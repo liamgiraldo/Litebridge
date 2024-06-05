@@ -120,11 +120,11 @@ public class MapCreator implements CommandExecutor, Listener {
                         incrementStep();
                         break;
                     case 1:
-                        worldBounds[0] = tempVector;
+                        worldBounds[0] = Arrays.copyOf(tempVector, tempVector.length);
                         incrementStep();
                         break;
                     case 2:
-                        worldBounds[1] = tempVector;
+                        worldBounds[1] = Arrays.copyOf(tempVector, tempVector.length);
                         player.sendMessage("World bounds ");
                         printDoubleArray(worldBounds, player);
                         incrementStep();
@@ -133,11 +133,11 @@ public class MapCreator implements CommandExecutor, Listener {
                         incrementStep();
                         break;
                     case 4:
-                        killPlane[0] = tempVector;
+                        killPlane[0] = Arrays.copyOf(tempVector, tempVector.length);
                         incrementStep();
                         break;
                     case 5:
-                        killPlane[1] = tempVector;
+                        killPlane[1] = Arrays.copyOf(tempVector, tempVector.length);
                         player.sendMessage("Kill plane ");
                         printDoubleArray(killPlane, player);
                         incrementStep();
@@ -146,12 +146,12 @@ public class MapCreator implements CommandExecutor, Listener {
                         incrementStep();
                         break;
                     case 7:
-                        blueSpawnPoint = tempVector;
+                        blueSpawnPoint = Arrays.copyOf(tempVector, tempVector.length);
                         player.sendMessage("Blue spawn point " + Arrays.toString(blueSpawnPoint));
                         incrementStep();
                         break;
                     case 8:
-                        redSpawnPoint = tempVector;
+                        redSpawnPoint = Arrays.copyOf(tempVector, tempVector.length);
                         player.sendMessage("Red spawn point " + Arrays.toString(redSpawnPoint));
                         incrementStep();
                         break;
@@ -162,11 +162,11 @@ public class MapCreator implements CommandExecutor, Listener {
                         incrementStep();
                         break;
                     case 11:
-                        blueGoalBounds[0] = tempVector;
+                        blueGoalBounds[0] = Arrays.copyOf(tempVector, tempVector.length);
                         incrementStep();
                         break;
                     case 12:
-                        blueGoalBounds[1] = tempVector;
+                        blueGoalBounds[1] = Arrays.copyOf(tempVector, tempVector.length);
                         player.sendMessage("Blue goal bounds ");
                         printDoubleArray(blueGoalBounds, player);
                         incrementStep();
@@ -175,11 +175,11 @@ public class MapCreator implements CommandExecutor, Listener {
                         incrementStep();
                         break;
                     case 14:
-                        redGoalBounds[0] = tempVector;
+                        redGoalBounds[0] = Arrays.copyOf(tempVector, tempVector.length);
                         incrementStep();
                         break;
                     case 15:
-                        redGoalBounds[1] = tempVector;
+                        redGoalBounds[1] = Arrays.copyOf(tempVector, tempVector.length);
                         player.sendMessage("Red goal bounds ");
                         printDoubleArray(redGoalBounds, player);
                         incrementStep();
