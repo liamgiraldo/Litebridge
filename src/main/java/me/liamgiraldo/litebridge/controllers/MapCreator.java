@@ -102,6 +102,8 @@ public class MapCreator implements CommandExecutor, Listener {
 
     @EventHandler
     public void onStickRightClick(PlayerInteractEvent e) {
+        //Before the first stick click, the case is 0, but...
+        //immediately gets set to 1.
         if (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
             System.out.println("Event handled!");
             Block blockClicked = e.getClickedBlock();
@@ -111,7 +113,6 @@ public class MapCreator implements CommandExecutor, Listener {
             ItemStack itemUsed = e.getItem();
             Player player = e.getPlayer();
             if (itemUsed != null && itemUsed.getType() == Material.STICK) {
-                player.sendMessage(stepMessages[instructionStep]);
                 switch(instructionStep){
                     case 0:
                         //whatever happens here first
@@ -193,6 +194,7 @@ public class MapCreator implements CommandExecutor, Listener {
                     default:
                         System.out.println("Uh oh! Unprocessable step found! Check MapCreator's processNextStep method!");
                 }
+                player.sendMessage(stepMessages[instructionStep]);
             }
         }
     }
