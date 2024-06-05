@@ -88,7 +88,7 @@ public class MapCreator implements CommandExecutor, EventListener {
         ItemStack stack = new ItemStack(Material.STICK);
         stack.setAmount(1);
         ItemMeta meta = stack.getItemMeta();
-        meta.setDisplayName("&6Bridge Stick");
+        meta.setDisplayName(ChatColor.AQUA + "Bridge Stick");
         meta.setLore(Arrays.asList("&7Used for making bridge maps.","&7Hopefully this works!"));
         stack.setItemMeta(meta);
         player.getInventory().addItem(stack);
