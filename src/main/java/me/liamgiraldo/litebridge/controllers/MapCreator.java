@@ -112,6 +112,7 @@ public class MapCreator implements CommandExecutor, Listener {
             tempVector[2] = blockClicked.getZ();
             ItemStack itemUsed = e.getItem();
             Player player = e.getPlayer();
+            player.sendMessage("block coords are " + Arrays.toString(tempVector));
             if (itemUsed != null && itemUsed.getType() == Material.STICK) {
                 switch(instructionStep){
                     case 0:
