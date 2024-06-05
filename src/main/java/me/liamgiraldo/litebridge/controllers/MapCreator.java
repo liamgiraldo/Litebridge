@@ -10,6 +10,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -21,7 +22,7 @@ import java.util.Arrays;
 import java.util.EventListener;
 import java.util.Vector;
 
-public class MapCreator implements CommandExecutor, EventListener {
+public class MapCreator implements CommandExecutor, Listener {
     private String[] stepMessages;
     private int instructionStep;
 
