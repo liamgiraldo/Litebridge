@@ -172,6 +172,10 @@ public class MapCreator implements CommandExecutor, Listener {
                         redGoalBounds[1] = tempVector;
                         incrementStep();
                         break;
+                    case 16:
+                        break;
+                    case 17:
+                        break;
                     //16 and 17 are text based steps, not needed here.
                     case 18:
                         //TODO Game model needs to take in kill bounds
