@@ -45,6 +45,11 @@ commands:
     usage: /<command> message
     permission: litebridge.setjoinmessage
     permission-message: You don't have permission to set the server join message.
+  bridgewand:
+    description: Gives the player a bridge wand. Used to create bridge maps.
+    usage: /<command> player-to-give
+    permission: litebridge.bridgewand
+    permission-message: You don't have permission to get a bridge wand.
 permissions:
   litebridge.god:
     description: Allows someone to run the /god command

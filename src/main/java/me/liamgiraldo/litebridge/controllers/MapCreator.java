@@ -78,6 +78,12 @@ public class MapCreator implements CommandExecutor, EventListener {
         }
         return true;
     }
+
+    /**
+     * Gives the player a bridge wand.
+     * Name of stick is Bridge Stick
+     * @param player Player to give stick to.
+     * */
     private void givePlayerBridgeWand(Player player){
         ItemStack stack = new ItemStack(Material.STICK);
         stack.setAmount(1);

@@ -1,6 +1,7 @@
 package me.liamgiraldo.litebridge;
 
 import me.liamgiraldo.litebridge.commands.*;
+import me.liamgiraldo.litebridge.controllers.MapCreator;
 import me.liamgiraldo.litebridge.listeners.BedLeaveListener;
 import me.liamgiraldo.litebridge.listeners.PlayerJoinListener;
 import org.bukkit.Location;
@@ -20,12 +21,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class Litebridge extends JavaPlugin implements Listener {
 
     private static Litebridge plugin;
+    private MapCreator mapCreator;
 
     @Override
     public void onEnable() {
         // Plugin startup logic
         saveDefaultConfig();
 
+        mapCreator = new MapCreator();
         plugin = this;
         System.out.println("Litebridge is running.");
 
@@ -38,6 +41,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
         getCommand("setspawn").setExecutor(new SetSpawnCommand());
         getCommand("spawn").setExecutor(new SpawnCommand());
         getCommand("setjoinmessage").setExecutor(new SetMessageCommand());
+        getCommand("bridgewand").setExecutor(mapCreator, this);
     }
 
     @Override
