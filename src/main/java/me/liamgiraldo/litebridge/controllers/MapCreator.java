@@ -43,7 +43,7 @@ public class MapCreator implements CommandExecutor, Listener {
     private int goalsToWin;
     private int maxPlayers;
 
-    private int[][] = new int[3][2] killPlane;
+    private int[][] killPlane = new int[3][2];
 
     private GameModel gameModel;
 
@@ -98,16 +98,16 @@ public class MapCreator implements CommandExecutor, Listener {
         player.getInventory().addItem(stack);
     }
 
-    private ArrayList<Integer> tempVector = new ArrayList<>(3);
+    private int[] tempVector = new int[3];
 
     @EventHandler
     public void onStickRightClick(PlayerInteractEvent e) {
         if (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
             System.out.println("Event handled!");
             Block blockClicked = e.getClickedBlock();
-            tempVector.set(0, blockClicked.getX());
-            tempVector.set(1, blockClicked.getY());
-            tempVector.set(2,blockClicked.getZ());
+            tempVector[0] = blockClicked.getX();
+            tempVector[1] = blockClicked.getY();
+            tempVector[2] = blockClicked.getZ();
             ItemStack itemUsed = e.getItem();
             Player player = e.getPlayer();
             if (itemUsed != null && itemUsed.getType() == Material.STICK) {
@@ -118,22 +118,22 @@ public class MapCreator implements CommandExecutor, Listener {
                         incrementStep();
                         break;
                     case 1:
-                        worldBounds.set(0, tempVector);
+                        worldBounds[0] = tempVector;
                         incrementStep();
                         break;
                     case 2:
-                        worldBounds.set(1, tempVector);
+                        worldBounds[1] = tempVector;
                         incrementStep();
                         break;
                     case 3:
                         incrementStep();
                         break;
                     case 4:
-                        killPlane.set(0, tempVector);
+                        killPlane[0] = tempVector;
                         incrementStep();
                         break;
                     case 5:
-                        killPlane.set(1, tempVector);
+                        killPlane[1] = tempVector;
                         incrementStep();
                         break;
                     case 6:
@@ -154,22 +154,22 @@ public class MapCreator implements CommandExecutor, Listener {
                         incrementStep();
                         break;
                     case 11:
-                        blueGoalBounds.set(0, tempVector);
+                        blueGoalBounds[0] = tempVector;
                         incrementStep();
                         break;
                     case 12:
-                        blueGoalBounds.set(1, tempVector);
+                        blueGoalBounds[1] = tempVector;
                         incrementStep();
                         break;
                     case 13:
                         incrementStep();
                         break;
                     case 14:
-                        redGoalBounds.add(tempVector);
+                        redGoalBounds[0] = tempVector;
                         incrementStep();
                         break;
                     case 15:
-                        redGoalBounds.add(tempVector);
+                        redGoalBounds[1] = tempVector;
                         incrementStep();
                         break;
                     //16 and 17 are text based steps, not needed here.

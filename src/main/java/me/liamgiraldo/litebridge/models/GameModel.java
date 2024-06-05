@@ -10,11 +10,11 @@ import java.util.Vector;
 
 public class GameModel {
     private World world;
-    private Vector<Integer> blueSpawnPoint;
-    private Vector<Integer> redSpawnPoint;
-    private ArrayList<Vector<Integer>> blueGoalBounds;
-    private ArrayList<Vector<Integer>> redGoalBounds;
-    private ArrayList<Vector<Integer>> worldBounds;
+    private int[] blueSpawnPoint;
+    private int[] redSpawnPoint;
+    private int[][] blueGoalBounds;
+    private int[][] redGoalBounds;
+    private int[][] worldBounds;
 
     /**
      * The state of this game.
@@ -43,7 +43,7 @@ public class GameModel {
      * @param maxPlayers The maximum amount of players permitted in this bridge game
      *
      * */
-    public GameModel(World world, Vector<Integer> blueSpawnPoint, Vector<Integer> redSpawnPoint, ArrayList<Vector<Integer>> blueGoalBounds, ArrayList<Vector<Integer>> redGoalBounds, ArrayList<Vector<Integer>> worldBounds, int goalsToWin, int maxPlayers){
+    public GameModel(World world, int[] blueSpawnPoint, int[] redSpawnPoint,int[][] blueGoalBounds, int[][] redGoalBounds, int[][] worldBounds, int goalsToWin, int maxPlayers){
         this.world = world;
         this.defaultMap = world;
         this.blueSpawnPoint = blueSpawnPoint;
