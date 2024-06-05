@@ -33,17 +33,17 @@ public class MapCreator implements CommandExecutor, Listener {
      * ***/
     private World world;
     private int[] blueSpawnPoint = new int[3];
-    private int[][] blueGoalBounds = new int[3][2];
+    private int[][] blueGoalBounds = new int[2][3];
 
     private int[] redSpawnPoint = new int[3];
-    private int[][] redGoalBounds = new int[3][2];
+    private int[][] redGoalBounds = new int[2][3];
 
-    private int[][] worldBounds = new int[3][2];
+    private int[][] worldBounds = new int[2][3];
 
     private int goalsToWin;
     private int maxPlayers;
 
-    private int[][] killPlane = new int[3][2];
+    private int[][] killPlane = new int[2][3];
 
     private GameModel gameModel;
 
@@ -124,7 +124,8 @@ public class MapCreator implements CommandExecutor, Listener {
                         break;
                     case 2:
                         worldBounds[1] = tempVector;
-                        player.sendMessage("World bounds " + Arrays.toString(worldBounds));
+                        player.sendMessage("World bounds ");
+                        printDoubleArray(worldBounds, player);
                         incrementStep();
                         break;
                     case 3:
@@ -136,7 +137,8 @@ public class MapCreator implements CommandExecutor, Listener {
                         break;
                     case 5:
                         killPlane[1] = tempVector;
-                        player.sendMessage("Kill plane " + Arrays.toString(killPlane));
+                        player.sendMessage("Kill plane ");
+                        printDoubleArray(killPlane, player);
                         incrementStep();
                         break;
                     case 6:
@@ -164,7 +166,8 @@ public class MapCreator implements CommandExecutor, Listener {
                         break;
                     case 12:
                         blueGoalBounds[1] = tempVector;
-                        player.sendMessage("Blue goal bounds " + Arrays.toString(blueGoalBounds));
+                        player.sendMessage("Blue goal bounds ");
+                        printDoubleArray(blueGoalBounds, player);
                         incrementStep();
                         break;
                     case 13:
@@ -176,7 +179,8 @@ public class MapCreator implements CommandExecutor, Listener {
                         break;
                     case 15:
                         redGoalBounds[1] = tempVector;
-                        player.sendMessage("Red goal bounds " + Arrays.toString(redGoalBounds));
+                        player.sendMessage("Red goal bounds ");
+                        printDoubleArray(redGoalBounds, player);
                         incrementStep();
                         break;
                     case 16:
@@ -221,11 +225,13 @@ public class MapCreator implements CommandExecutor, Listener {
             try{
                 this.goalsToWin = Integer.parseInt(e.getMessage());
                 player.sendMessage("Goals for game: " + Integer.toString(goalsToWin));
+                player.sendMessage("Goals set. Right click the stick to continue.");
                 incrementStep();
                 //The message was valid, return true;
                 return true;
             }catch(Exception exception){
                 player.sendMessage("Your input for max players was invalid. Try again.");
+                player.sendMessage("Goals set. Right click the stick to continue.");
                 //The message was invalid, return false;
                 return false;
             }
@@ -241,4 +247,9 @@ public class MapCreator implements CommandExecutor, Listener {
         }
     }
 
+    private void printDoubleArray(int[][] array, Player player){
+        String first = Arrays.toString(array[0]);
+        String second = Arrays.toString(array[1]);
+        player.sendMessage(new String[]{first, second});
+    }
 }
