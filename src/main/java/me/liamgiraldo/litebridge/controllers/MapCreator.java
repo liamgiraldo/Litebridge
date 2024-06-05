@@ -102,6 +102,7 @@ public class MapCreator implements CommandExecutor, Listener {
 
     @EventHandler
     public void onStickRightClick(PlayerInteractEvent e) {
+        //TODO save all these parameters to config.
         //Before the first stick click, the case is 0, but...
         //immediately gets set to 1.
         if (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
