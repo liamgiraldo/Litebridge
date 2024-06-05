@@ -17,6 +17,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EventListener;
@@ -31,17 +32,17 @@ public class MapCreator implements CommandExecutor, Listener {
      *
      * ***/
     private World world;
-    private Vector<Integer> blueSpawnPoint;
-    private ArrayList<Vector<Integer>> blueGoalBounds;
+    private ArrayList<Integer> blueSpawnPoint;
+    private ArrayList<ArrayList<Integer>> blueGoalBounds;
 
-    private Vector<Integer> redSpawnPoint;
-    private ArrayList<Vector<Integer>> redGoalBounds;
+    private ArrayList<Integer> redSpawnPoint;
+    private ArrayList<ArrayList<Integer>> redGoalBounds;
 
-    private ArrayList<Vector<Integer>> worldBounds;
+    private ArrayList<ArrayList<Integer>> worldBounds;
     private int goalsToWin;
     private int maxPlayers;
 
-    private ArrayList<Vector<Integer>> killPlane;
+    private ArrayList<ArrayList<Integer>> killPlane;
 
     private GameModel gameModel;
 
@@ -96,11 +97,12 @@ public class MapCreator implements CommandExecutor, Listener {
         player.getInventory().addItem(stack);
     }
 
-    private Vector<Integer> tempVector = new Vector<>(3);
+    private ArrayList<Integer> tempVector = new ArrayList<>(3);
 
     @EventHandler
     public void onStickRightClick(PlayerInteractEvent e) {
         if (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            System.out.println("Event handled!");
             Block blockClicked = e.getClickedBlock();
             tempVector.set(0, blockClicked.getX());
             tempVector.set(1, blockClicked.getY());
