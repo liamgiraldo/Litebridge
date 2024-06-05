@@ -123,6 +123,7 @@ public class MapCreator implements CommandExecutor, Listener {
                         break;
                     case 2:
                         worldBounds[1] = tempVector;
+                        player.sendMessage("World bounds " + Arrays.toString(worldBounds));
                         incrementStep();
                         break;
                     case 3:
@@ -134,6 +135,7 @@ public class MapCreator implements CommandExecutor, Listener {
                         break;
                     case 5:
                         killPlane[1] = tempVector;
+                        player.sendMessage("Kill plane " + Arrays.toString(killPlane));
                         incrementStep();
                         break;
                     case 6:
@@ -141,10 +143,12 @@ public class MapCreator implements CommandExecutor, Listener {
                         break;
                     case 7:
                         blueSpawnPoint = tempVector;
+                        player.sendMessage("Blue spawn point " + Arrays.toString(blueSpawnPoint));
                         incrementStep();
                         break;
                     case 8:
                         redSpawnPoint = tempVector;
+                        player.sendMessage("Red spawn point " + Arrays.toString(redSpawnPoint));
                         incrementStep();
                         break;
                     case 9:
@@ -159,6 +163,7 @@ public class MapCreator implements CommandExecutor, Listener {
                         break;
                     case 12:
                         blueGoalBounds[1] = tempVector;
+                        player.sendMessage("Blue goal bounds " + Arrays.toString(blueGoalBounds));
                         incrementStep();
                         break;
                     case 13:
@@ -170,6 +175,7 @@ public class MapCreator implements CommandExecutor, Listener {
                         break;
                     case 15:
                         redGoalBounds[1] = tempVector;
+                        player.sendMessage("Red goal bounds " + Arrays.toString(redGoalBounds));
                         incrementStep();
                         break;
                     case 16:
@@ -198,6 +204,7 @@ public class MapCreator implements CommandExecutor, Listener {
             //TODO this has to be refactored later to be for op only. I'm tired.
             try{
                 this.maxPlayers = Integer.parseInt(e.getMessage());
+                player.sendMessage("Max players: " + Integer.toString(maxPlayers));
                 incrementStep();
                 //The message was valid, return true;
                 return true;
@@ -211,6 +218,7 @@ public class MapCreator implements CommandExecutor, Listener {
             //TODO this has to be refactored later to be for op only. I'm tired.
             try{
                 this.goalsToWin = Integer.parseInt(e.getMessage());
+                player.sendMessage("Goals for game: " + Integer.toString(goalsToWin));
                 incrementStep();
                 //The message was valid, return true;
                 return true;
