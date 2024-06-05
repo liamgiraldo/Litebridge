@@ -32,17 +32,18 @@ public class MapCreator implements CommandExecutor, Listener {
      *
      * ***/
     private World world;
-    private ArrayList<Integer> blueSpawnPoint;
-    private ArrayList<ArrayList<Integer>> blueGoalBounds;
+    private int[] blueSpawnPoint = new int[3];
+    private int[][] blueGoalBounds = new int[3][2];
 
-    private ArrayList<Integer> redSpawnPoint;
-    private ArrayList<ArrayList<Integer>> redGoalBounds;
+    private int[] redSpawnPoint = new int[3];
+    private int[][] redGoalBounds = new int[3][2];
 
-    private ArrayList<ArrayList<Integer>> worldBounds;
+    private int[][] worldBounds = new int[3][2];
+
     private int goalsToWin;
     private int maxPlayers;
 
-    private ArrayList<ArrayList<Integer>> killPlane;
+    private int[][] = new int[3][2] killPlane;
 
     private GameModel gameModel;
 
