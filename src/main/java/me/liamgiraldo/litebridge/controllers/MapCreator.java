@@ -34,16 +34,18 @@ public class MapCreator implements CommandExecutor, Listener {
     private World world;
     private int[] blueSpawnPoint = new int[3];
     private int[][] blueGoalBounds = new int[2][3];
+    private int[][] blueCageBounds = new int[2][3];
 
     private int[] redSpawnPoint = new int[3];
     private int[][] redGoalBounds = new int[2][3];
+    private int[][] redCageBounds = new int[2][3];
 
     private int[][] worldBounds = new int[2][3];
 
     private int goalsToWin;
     private int maxPlayers;
 
-    private int[][] killPlane = new int[2][3];
+    private int killPlane;
 
     private GameModel gameModel;
 
@@ -69,8 +71,15 @@ public class MapCreator implements CommandExecutor, Listener {
                 "Right click to select the bottom right bound", //15
                 "Type the max players that can be in this game", //16 Typed Max Players
                 "Type the amount of goals that are required to win this game", //17 Typed Goals Required
-                "If this message is displaying, the map data has been saved successfully. Right click to continue.", //18
-                "Should you need to reset this map, do /bridgewand again. All done." //19
+                "Let's now select the cage boundaries. Right click to continue", //18
+                "Right click to select the top left blue cage boundary", //19
+                "Right click to select the bottom right blue cage boundary", //20
+                "Right click to select the top left red cage boundary", //21
+                "Right click to select the bottom right red cage boundary", //22
+                "Now we need to select the y-layer that defines the kill boundary. Right click to continue", //23
+                "Right click on a block to define the y layer kill boundary", //24
+                "If this message is displaying, the map data has been saved successfully. Right click to continue.", //25
+                "Should you need to reset this map, do /bridgewand again. All done." //25
         };
     }
 
@@ -191,11 +200,34 @@ public class MapCreator implements CommandExecutor, Listener {
                         break;
                     //16 and 17 are text based steps, not needed here.
                     case 18:
-                        //TODO Game model needs to take in kill bounds
-                        this.gameModel = new GameModel(world,blueSpawnPoint,redSpawnPoint,blueGoalBounds,redGoalBounds,worldBounds,goalsToWin,maxPlayers);
                         incrementStep();
                         break;
                     case 19:
+                        blueCageBounds[0] = Arrays.copyOf(tempVector, tempVector.length);
+                        incrementStep();
+                        break;
+                    case 20:
+                        blueCageBounds[1] = Arrays.copyOf(tempVector, tempVector.length);
+                        incrementStep();
+                        break;
+                    case 21:
+                        redCageBounds[0] = Arrays.copyOf(tempVector, tempVector.length);
+                        incrementStep();
+                        break;
+                    case 22:
+                        redCageBounds[1] = Arrays.copyOf(tempVector, tempVector.length);
+                        incrementStep();
+                        break;
+                    case 23:
+                        incrementStep();
+                        break;
+                    //final step
+                    case 24:
+                        killPlane = tempVector[1];
+                        this.gameModel = new GameModel(world,blueSpawnPoint,redSpawnPoint,blueGoalBounds,redGoalBounds,worldBounds,goalsToWin,maxPlayers);
+                        break;
+                    case 25:
+                        incrementStep();
                         break;
                     default:
                         System.out.println("Uh oh! Unprocessable step found! Check MapCreator's processNextStep method!");
