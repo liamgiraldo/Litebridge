@@ -346,26 +346,26 @@ public class MapCreator implements CommandExecutor, Listener {
 
         message = "Blue goal bounds: ";
         p.sendMessage(message);
-        printDoubleArray(blueGoalBounds);
+        printDoubleArray(blueGoalBounds, p);
 
         message = "Blue cage bounds: ";
         p.sendMessage(message);
-        printDoubleArray(blueCageBounds);
+        printDoubleArray(blueCageBounds, p);
 
         message = "Red spawn point: " + Arrays.toString(redSpawnPoint);
         p.sendMessage(message);
 
         message = "Red goal bounds: ";
         p.sendMessage(message);
-        printDoubleArray(redGoalBounds);
+        printDoubleArray(redGoalBounds, p);
 
         message = "Red cage bounds: ";
         p.sendMessage(message);
-        printDoubleArray(redCageBounds);
+        printDoubleArray(redCageBounds, p);
 
         message = "World bounds: ";
         p.sendMessage(message);
-        printDoubleArray(worldBounds);
+        printDoubleArray(worldBounds, p);
 
         message = "Goals to win: " + Integer.toString(goalsToWin);
         p.sendMessage(message);
