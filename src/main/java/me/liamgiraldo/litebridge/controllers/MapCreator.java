@@ -56,9 +56,9 @@ public class MapCreator implements CommandExecutor, Listener {
                 "Set hard world boundaries. 0 building will be allowed outside of these bounds. Right click to continue", //0
                 "Right click to select top left bound", //1
                 "Right click to select bottom right bound", //2
-                "Next, let's set the kill plane. This is one flat rectangle. Right click to continue.", //3
-                "Right click to select top left bound", //4
-                "Right click to select bottom right bound", //5
+                "This is a stub message. Right click to continue.", //3
+                "This is a stub message. Right click to continue.", //4
+                "This is a stub message. Right click to continue.", //5
                 "Next, let's select team spawn points. It might be wise to put them in cages. We set those bounds later. Right click to continue.", //6
                 "Right click to select a blue team spawn point", //7
                 "Right click to select a red ream spawn point", //8
@@ -143,13 +143,11 @@ public class MapCreator implements CommandExecutor, Listener {
                         incrementStep();
                         break;
                     case 4:
-                        killPlane[0] = Arrays.copyOf(tempVector, tempVector.length);
+                        //the original kill plane code went here.
                         incrementStep();
                         break;
                     case 5:
-                        killPlane[1] = Arrays.copyOf(tempVector, tempVector.length);
-                        player.sendMessage("Kill plane ");
-                        printDoubleArray(killPlane, player);
+                        //the original kill plane code went here.
                         incrementStep();
                         break;
                     case 6:
@@ -224,13 +222,13 @@ public class MapCreator implements CommandExecutor, Listener {
                     //final step
                     case 24:
                         killPlane = tempVector[1];
-                        this.gameModel = new GameModel(world,blueSpawnPoint,redSpawnPoint,blueGoalBounds,redGoalBounds,worldBounds,goalsToWin,maxPlayers);
+                        this.gameModel = new GameModel(world, blueSpawnPoint,redSpawnPoint,blueGoalBounds,redGoalBounds,blueCageBounds,redCageBounds,worldBounds,killPlane,goalsToWin,maxPlayers);
                         break;
                     case 25:
                         incrementStep();
                         break;
                     default:
-                        System.out.println("Uh oh! Unprocessable step found! Check MapCreator's processNextStep method!");
+                        System.out.println("Uh oh! Unprocessable step found! Check MapCreator's event handler!");
                 }
                 player.sendMessage(stepMessages[instructionStep]);
             }
