@@ -116,7 +116,7 @@ public class MapCreator implements CommandExecutor, Listener {
         //TODO save all these parameters to config.
         //Before the first stick click, the case is 0, but...
         //immediately gets set to 1.
-        if (e.getAction() == Action.RIGHT_CLICK_AIR) {
+        if (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
             Block blockClicked = e.getClickedBlock();
             boolean airClicked = true;
             if(tempVector != null)
