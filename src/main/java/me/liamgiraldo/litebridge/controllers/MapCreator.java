@@ -132,7 +132,7 @@ public class MapCreator implements CommandExecutor, Listener {
             Player player = e.getPlayer();
             player.sendMessage("block coords are " + Arrays.toString(tempVector));
             if (itemUsed != null && itemUsed.getType() == Material.STICK) {
-                if(tempVector == oldVector){
+                if(Arrays.equals(oldVector,tempVector)){
                     player.sendMessage("You can't have the block position be the same as the last one.");
                     return;
                 }
