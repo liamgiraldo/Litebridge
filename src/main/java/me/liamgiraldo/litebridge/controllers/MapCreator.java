@@ -53,6 +53,7 @@ public class MapCreator implements CommandExecutor, Listener {
     public MapCreator(){
         stepMessages = new String[]{
                 //TODO this isn't taking into account spawn box positions. Need to add those later.
+                "This is a stub message. You will never see this normally. Right click to continue.",
                 "Set hard world boundaries. 0 building will be allowed outside of these bounds. Right click to continue", //0
                 "Right click to select top left bound", //1
                 "Right click to select bottom right bound", //2
@@ -108,42 +109,56 @@ public class MapCreator implements CommandExecutor, Listener {
     }
 
     private int[] tempVector = new int[3];
+    private int[] oldVector = new int[3];
 
     @EventHandler
     public void onStickRightClick(PlayerInteractEvent e) {
         //TODO save all these parameters to config.
         //Before the first stick click, the case is 0, but...
         //immediately gets set to 1.
-        if (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            System.out.println("Event handled!");
+        if (e.getAction() == Action.RIGHT_CLICK_AIR) {
             Block blockClicked = e.getClickedBlock();
-            tempVector[0] = blockClicked.getX();
-            tempVector[1] = blockClicked.getY();
-            tempVector[2] = blockClicked.getZ();
+            boolean airClicked = true;
+            if(tempVector != null)
+                oldVector = Arrays.copyOf(tempVector, tempVector.length);
+            if(e.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                tempVector[0] = blockClicked.getX();
+                tempVector[1] = blockClicked.getY();
+                tempVector[2] = blockClicked.getZ();
+                airClicked = false;
+            }
             ItemStack itemUsed = e.getItem();
             Player player = e.getPlayer();
             player.sendMessage("block coords are " + Arrays.toString(tempVector));
             if (itemUsed != null && itemUsed.getType() == Material.STICK) {
+                if(tempVector == oldVector){
+                    player.sendMessage("You can't have the block position be the same as the last one.");
+                    return;
+                }
                 switch(instructionStep){
                     case 0:
-                        //whatever happens here first
+                        //stubstep
                         incrementStep();
                         break;
                     case 1:
-                        worldBounds[0] = Arrays.copyOf(tempVector, tempVector.length);
+                        //whatever happens here first
                         incrementStep();
                         break;
                     case 2:
+                        if(airClicked)
+                            break;
+                        worldBounds[0] = Arrays.copyOf(tempVector, tempVector.length);
+                        incrementStep();
+                        break;
+                    case 3:
+                        if(airClicked)
+                            break;
                         worldBounds[1] = Arrays.copyOf(tempVector, tempVector.length);
                         player.sendMessage("World bounds ");
                         printDoubleArray(worldBounds, player);
                         incrementStep();
                         break;
-                    case 3:
-                        incrementStep();
-                        break;
                     case 4:
-                        //the original kill plane code went here.
                         incrementStep();
                         break;
                     case 5:
@@ -151,80 +166,106 @@ public class MapCreator implements CommandExecutor, Listener {
                         incrementStep();
                         break;
                     case 6:
+                        //the original kill plane code went here.
                         incrementStep();
                         break;
                     case 7:
+                        incrementStep();
+                        break;
+                    case 8:
+                        if(airClicked)
+                            break;
                         blueSpawnPoint = Arrays.copyOf(tempVector, tempVector.length);
                         player.sendMessage("Blue spawn point " + Arrays.toString(blueSpawnPoint));
                         incrementStep();
                         break;
-                    case 8:
+                    case 9:
+                        if(airClicked)
+                            break;
                         redSpawnPoint = Arrays.copyOf(tempVector, tempVector.length);
                         player.sendMessage("Red spawn point " + Arrays.toString(redSpawnPoint));
-                        incrementStep();
-                        break;
-                    case 9:
                         incrementStep();
                         break;
                     case 10:
                         incrementStep();
                         break;
                     case 11:
-                        blueGoalBounds[0] = Arrays.copyOf(tempVector, tempVector.length);
                         incrementStep();
                         break;
                     case 12:
+                        if(airClicked)
+                            break;
+                        blueGoalBounds[0] = Arrays.copyOf(tempVector, tempVector.length);
+                        incrementStep();
+                        break;
+                    case 13:
+                        if(airClicked)
+                            break;
                         blueGoalBounds[1] = Arrays.copyOf(tempVector, tempVector.length);
                         player.sendMessage("Blue goal bounds ");
                         printDoubleArray(blueGoalBounds, player);
                         incrementStep();
                         break;
-                    case 13:
-                        incrementStep();
-                        break;
                     case 14:
-                        redGoalBounds[0] = Arrays.copyOf(tempVector, tempVector.length);
                         incrementStep();
                         break;
                     case 15:
+                        if(airClicked)
+                            break;
+                        redGoalBounds[0] = Arrays.copyOf(tempVector, tempVector.length);
+                        incrementStep();
+                        break;
+                    case 16:
+                        if(airClicked)
+                            break;
                         redGoalBounds[1] = Arrays.copyOf(tempVector, tempVector.length);
                         player.sendMessage("Red goal bounds ");
                         printDoubleArray(redGoalBounds, player);
                         incrementStep();
                         break;
-                    case 16:
-                        break;
                     case 17:
                         break;
-                    //16 and 17 are text based steps, not needed here.
                     case 18:
-                        incrementStep();
                         break;
+                    //16 and 17 are text based steps, not needed here.
                     case 19:
-                        blueCageBounds[0] = Arrays.copyOf(tempVector, tempVector.length);
                         incrementStep();
                         break;
                     case 20:
-                        blueCageBounds[1] = Arrays.copyOf(tempVector, tempVector.length);
+                        if(airClicked)
+                            break;
+                        blueCageBounds[0] = Arrays.copyOf(tempVector, tempVector.length);
                         incrementStep();
                         break;
                     case 21:
-                        redCageBounds[0] = Arrays.copyOf(tempVector, tempVector.length);
+                        if(airClicked)
+                            break;
+                        blueCageBounds[1] = Arrays.copyOf(tempVector, tempVector.length);
                         incrementStep();
                         break;
                     case 22:
-                        redCageBounds[1] = Arrays.copyOf(tempVector, tempVector.length);
+                        if(airClicked)
+                            break;
+                        redCageBounds[0] = Arrays.copyOf(tempVector, tempVector.length);
                         incrementStep();
                         break;
                     case 23:
+                        if(airClicked)
+                            break;
+                        redCageBounds[1] = Arrays.copyOf(tempVector, tempVector.length);
+                        incrementStep();
+                        break;
+                    case 24:
                         incrementStep();
                         break;
                     //final step
-                    case 24:
+                    case 25:
+                        if(airClicked)
+                            break;
                         killPlane = tempVector[1];
                         this.gameModel = new GameModel(world, blueSpawnPoint,redSpawnPoint,blueGoalBounds,redGoalBounds,blueCageBounds,redCageBounds,worldBounds,killPlane,goalsToWin,maxPlayers);
                         break;
-                    case 25:
+                    case 26:
                         incrementStep();
                         break;
                     default:
@@ -234,6 +275,19 @@ public class MapCreator implements CommandExecutor, Listener {
             }
         }
     }
+
+    /**
+     * the wayy to fix this shit
+     * funcs[]
+     * loop over functions
+     *
+     * addStep(func*){
+     *     ()->{
+     *         incrementStep();
+     *         break;
+     *     }
+     * }
+     * */
 
     @EventHandler
     public boolean onPlayerChat(AsyncPlayerChatEvent e){
