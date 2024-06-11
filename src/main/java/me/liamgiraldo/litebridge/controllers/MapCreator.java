@@ -104,7 +104,7 @@ public class MapCreator implements CommandExecutor, Listener {
         stack.setAmount(1);
         ItemMeta meta = stack.getItemMeta();
         meta.setDisplayName(ChatColor.AQUA + "Bridge Stick");
-        meta.setLore(Arrays.asList("&7Used for making bridge maps.","&7Hopefully this works!"));
+        meta.setLore(Arrays.asList("Used for making bridge maps.","Hopefully this works!"));
         stack.setItemMeta(meta);
         player.getInventory().addItem(stack);
     }
@@ -266,6 +266,12 @@ public class MapCreator implements CommandExecutor, Listener {
                         killPlane = tempVector[1];
                         this.gameModel = new GameModel(world, blueSpawnPoint,redSpawnPoint,blueGoalBounds,redGoalBounds,blueCageBounds,redCageBounds,worldBounds,killPlane,goalsToWin,maxPlayers);
                         printAllWorldParams(player);
+
+                        //should in theory remove stick
+                        player.getInventory().clear(player.getInventory().getHeldItemSlot());
+
+                        //back to first step, but they need another stick
+                        instructionStep = 0;
                         break;
                     case 26:
                         incrementStep();
@@ -300,6 +306,7 @@ public class MapCreator implements CommandExecutor, Listener {
                 this.maxPlayers = Integer.parseInt(e.getMessage());
                 player.sendMessage("Max players: " + Integer.toString(maxPlayers));
                 incrementStep();
+                player.sendMessage(stepMessages[instructionStep]);
                 //The message was valid, return true;
                 return true;
             }catch(Exception exception){
@@ -315,6 +322,7 @@ public class MapCreator implements CommandExecutor, Listener {
                 player.sendMessage("Goals for game: " + Integer.toString(goalsToWin));
                 player.sendMessage("Goals set. Right click the stick to continue.");
                 incrementStep();
+                player.sendMessage(stepMessages[instructionStep]);
                 //The message was valid, return true;
                 return true;
             }catch(Exception exception){
