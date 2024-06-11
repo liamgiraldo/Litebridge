@@ -51,6 +51,7 @@ public class MapCreator implements CommandExecutor, Listener {
 
 
     public MapCreator(){
+
         stepMessages = new String[]{
                 //TODO this isn't taking into account spawn box positions. Need to add those later.
                 "This is a stub message. You will never see this normally. Right click to continue.",
@@ -264,6 +265,7 @@ public class MapCreator implements CommandExecutor, Listener {
                             break;
                         killPlane = tempVector[1];
                         this.gameModel = new GameModel(world, blueSpawnPoint,redSpawnPoint,blueGoalBounds,redGoalBounds,blueCageBounds,redCageBounds,worldBounds,killPlane,goalsToWin,maxPlayers);
+                        printAllWorldParams(player);
                         break;
                     case 26:
                         incrementStep();
@@ -292,7 +294,7 @@ public class MapCreator implements CommandExecutor, Listener {
     @EventHandler
     public boolean onPlayerChat(AsyncPlayerChatEvent e){
         Player player = e.getPlayer();
-        if(this.instructionStep == 16){
+        if(this.instructionStep == 17){
             //TODO this has to be refactored later to be for op only. I'm tired.
             try{
                 this.maxPlayers = Integer.parseInt(e.getMessage());
@@ -306,7 +308,7 @@ public class MapCreator implements CommandExecutor, Listener {
                 return false;
             }
         }
-        if(this.instructionStep == 17){
+        if(this.instructionStep == 18){
             //TODO this has to be refactored later to be for op only. I'm tired.
             try{
                 this.goalsToWin = Integer.parseInt(e.getMessage());
@@ -316,8 +318,7 @@ public class MapCreator implements CommandExecutor, Listener {
                 //The message was valid, return true;
                 return true;
             }catch(Exception exception){
-                player.sendMessage("Your input for max players was invalid. Try again.");
-                player.sendMessage("Goals set. Right click the stick to continue.");
+                player.sendMessage("Your input for goals was invalid. Try again.");
                 //The message was invalid, return false;
                 return false;
             }
@@ -337,5 +338,42 @@ public class MapCreator implements CommandExecutor, Listener {
         String first = Arrays.toString(array[0]);
         String second = Arrays.toString(array[1]);
         player.sendMessage(new String[]{first, second});
+    }
+
+    private void printAllWorldParams(Player p){
+        String message = "Blue spawn point: " + Arrays.toString(blueSpawnPoint);
+        p.sendMessage(message);
+
+        message = "Blue goal bounds: ";
+        p.sendMessage(message);
+        printDoubleArray(blueGoalBounds);
+
+        message = "Blue cage bounds: ";
+        p.sendMessage(message);
+        printDoubleArray(blueCageBounds);
+
+        message = "Red spawn point: " + Arrays.toString(redSpawnPoint);
+        p.sendMessage(message);
+
+        message = "Red goal bounds: ";
+        p.sendMessage(message);
+        printDoubleArray(redGoalBounds);
+
+        message = "Red cage bounds: ";
+        p.sendMessage(message);
+        printDoubleArray(redCageBounds);
+
+        message = "World bounds: ";
+        p.sendMessage(message);
+        printDoubleArray(worldBounds);
+
+        message = "Goals to win: " + Integer.toString(goalsToWin);
+        p.sendMessage(message);
+
+        message = "Max Players: " + Integer.toString(maxPlayers);
+        p.sendMessage(message);
+
+        message = "Kill plane: " + Integer.toString(killPlane);
+        p.sendMessage(message);
     }
 }
