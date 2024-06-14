@@ -50,7 +50,17 @@ commands:
     usage: /<command> player-to-give
     permission: litebridge.bridgewand
     permission-message: You don't have permission to get a bridge wand.
+  litebridge:
+    description: Adds the sender to a litebridge queue
+    usage: /<command> (random) OR /<command> (gamemode) OR /<command> (gamemode) (map)
+    aliases:
+      - q
+    permission: litebridge.queue
+    permission-message: You don't have permission to queue bridge games.
 permissions:
   litebridge.god:
     description: Allows someone to run the /god command
+    default: op
+  litebridge.queue:
+    description: Allows someone to queue into a bridge game
     default: op

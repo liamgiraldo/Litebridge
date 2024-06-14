@@ -2,9 +2,11 @@ package me.liamgiraldo.litebridge;
 
 import me.liamgiraldo.litebridge.commands.*;
 import me.liamgiraldo.litebridge.controllers.MapCreator;
+import me.liamgiraldo.litebridge.controllers.QueueController;
 import me.liamgiraldo.litebridge.listeners.BedLeaveListener;
 import me.liamgiraldo.litebridge.listeners.PlayerJoinListener;
 import me.liamgiraldo.litebridge.models.GameModel;
+import me.liamgiraldo.litebridge.models.QueueModel;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -20,6 +22,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
+import java.util.Queue;
 
 public final class Litebridge extends JavaPlugin implements Listener {
 
@@ -27,6 +30,19 @@ public final class Litebridge extends JavaPlugin implements Listener {
     private MapCreator mapCreator;
 
     private ArrayList<GameModel> models;
+    private ArrayList<QueueModel> queues;
+
+    private queueController;
+
+    /**
+     * Constructs queues based on existing game models
+     * */
+    private constructQueues(ArrayList<GameModel> models, ArrayList<QueueModel> queues){
+        for (GameModel model:
+                models) {
+            queues.add(new QueueModel(model.getMaxPlayers(), model.getWorld().getName(), model.getWorld()));
+        }
+    }
 
     @Override
     public void onEnable() {
@@ -34,6 +50,11 @@ public final class Litebridge extends JavaPlugin implements Listener {
         saveDefaultConfig();
 
         mapCreator = new MapCreator();
+        this.models = mapCreator.constructGameModels();
+        constructQueues(this.models, queues);
+
+        this.queueController = new QueueController(queues);
+
         plugin = this;
         System.out.println("Litebridge is running.");
 
@@ -48,8 +69,9 @@ public final class Litebridge extends JavaPlugin implements Listener {
         getCommand("spawn").setExecutor(new SpawnCommand());
         getCommand("setjoinmessage").setExecutor(new SetMessageCommand());
         getCommand("bridgewand").setExecutor(mapCreator);
+        getCommand("litebridge").setExecutor(queueController);
 
-        this.models = mapCreator.constructGameModels();
+
     }
 
     @Override
@@ -98,5 +120,11 @@ public final class Litebridge extends JavaPlugin implements Listener {
 
     public static Litebridge getPlugin(){
         return plugin;
+    }
+
+
+    //TODO Be able to add a queue when a new game model (map) is created
+    public void addAQueue(GameModel model){
+
     }
 }
