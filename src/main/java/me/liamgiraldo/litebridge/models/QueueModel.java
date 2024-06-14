@@ -1,6 +1,8 @@
 package me.liamgiraldo.litebridge.models;
 
 import me.liamgiraldo.litebridge.Litebridge;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 
@@ -21,9 +23,9 @@ public class QueueModel {
     //5 seconds (integer)
     private int startTimer;
 
-    QueueModel(int maxPlayer, String worldName, GameModel associatedGame){
+    public QueueModel(int maxPlayer, String worldName, GameModel associatedGame){
         this.maxPlayers = maxPlayers;
-        queue = new int[this.maxPlayers];
+        queue = new Player[this.maxPlayers];
         this.associatedGame = associatedGame;
         this.world = associatedGame.getWorld();
         this.worldName = world.getName();
@@ -100,5 +102,14 @@ public class QueueModel {
 
     public void setMaxPlayers(int maxPlayers) {
         this.maxPlayers = maxPlayers;
+    }
+
+    public boolean isQueueFull(){
+        for(int i = 0; i < queue.length; i++){
+            if(queue[i] == null){
+                return false;
+            }
+        }
+        return true;
     }
 }

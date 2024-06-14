@@ -6,6 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,9 +14,10 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import java.util.ArrayList;
 import java.util.EventListener;
 
-public class QueueController implements EventListener, CommandExecutor{
+public class QueueController implements EventListener, CommandExecutor {
     private ArrayList<QueueModel> queues;
 
     public QueueController(ArrayList<QueueModel> queues){
@@ -30,7 +32,7 @@ public class QueueController implements EventListener, CommandExecutor{
             if(gameToQueueTo == null)
                 return false;
             gameToQueueTo.appendToQueue(p);
-            p.sendMessage("You were added to the " + gameToQueueTo.getWorld.getName() + "queue");
+            p.sendMessage("You were added to the " + gameToQueueTo.getWorld().getName() + "queue");
         }
         return true;
     }
@@ -68,6 +70,7 @@ public class QueueController implements EventListener, CommandExecutor{
         if(firstArg != null) {
             switch (firstArg) {
                 case "random":
+                    //TODO Check for any non-full game
                     //return for random queue
                     break;
                 default:
@@ -80,6 +83,10 @@ public class QueueController implements EventListener, CommandExecutor{
                     }
                     gameMode = Integer.parseInt(firstArg);
             }
+        }
+        else{
+            //first argument is null, queue any fill
+            return null;
         }
 
         if(secondArg != null) {
@@ -95,8 +102,12 @@ public class QueueController implements EventListener, CommandExecutor{
                 System.out.println("That map was not a valid map");
             }
         }
+        else{
+            //if the second argument is null, try using only the first one
+        }
         for(QueueModel q : queues){
             //maxPlayers of QueueModel needs to be an even number GRRR
+            //TODO Make sure that the game is not full as well. Use queue.isQueueFull to check
             if(q.getWorld().getName().equals(mapName) && q.getMaxPlayers()/2 == gameMode){
                 return q;
             }

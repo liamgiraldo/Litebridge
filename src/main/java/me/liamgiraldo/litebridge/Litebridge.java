@@ -32,15 +32,15 @@ public final class Litebridge extends JavaPlugin implements Listener {
     private ArrayList<GameModel> models;
     private ArrayList<QueueModel> queues;
 
-    private queueController;
+    private QueueController queueController;
 
     /**
      * Constructs queues based on existing game models
      * */
-    private constructQueues(ArrayList<GameModel> models, ArrayList<QueueModel> queues){
+    private void constructQueues(ArrayList<GameModel> models, ArrayList<QueueModel> queues){
         for (GameModel model:
                 models) {
-            queues.add(new QueueModel(model.getMaxPlayers(), model.getWorld().getName(), model.getWorld()));
+            queues.add(new QueueModel(model.getMaxPlayers(), model.getWorld().getName(), model));
         }
     }
 
