@@ -37,6 +37,110 @@ public class GameModel {
     //We will use this defaultMap copy to replace the used map on game end.
     private World defaultMap;
 
+    public int[] getBlueSpawnPoint() {
+        return blueSpawnPoint;
+    }
+
+    public void setBlueSpawnPoint(int[] blueSpawnPoint) {
+        this.blueSpawnPoint = blueSpawnPoint;
+    }
+
+    public int[][] getBlueGoalBounds() {
+        return blueGoalBounds;
+    }
+
+    public void setBlueGoalBounds(int[][] blueGoalBounds) {
+        this.blueGoalBounds = blueGoalBounds;
+    }
+
+    public int[][] getBlueCageBounds() {
+        return blueCageBounds;
+    }
+
+    public void setBlueCageBounds(int[][] blueCageBounds) {
+        this.blueCageBounds = blueCageBounds;
+    }
+
+    public int[] getRedSpawnPoint() {
+        return redSpawnPoint;
+    }
+
+    public void setRedSpawnPoint(int[] redSpawnPoint) {
+        this.redSpawnPoint = redSpawnPoint;
+    }
+
+    public int[][] getRedGoalBounds() {
+        return redGoalBounds;
+    }
+
+    public void setRedGoalBounds(int[][] redGoalBounds) {
+        this.redGoalBounds = redGoalBounds;
+    }
+
+    public int[][] getRedCageBounds() {
+        return redCageBounds;
+    }
+
+    public void setRedCageBounds(int[][] redCageBounds) {
+        this.redCageBounds = redCageBounds;
+    }
+
+    public World getWorld() {
+        return world;
+    }
+
+    public void setWorld(World world) {
+        this.world = world;
+    }
+
+    public int[][] getWorldBounds() {
+        return worldBounds;
+    }
+
+    public void setWorldBounds(int[][] worldBounds) {
+        this.worldBounds = worldBounds;
+    }
+
+    public int getGameState() {
+        return gameState;
+    }
+
+    public void setGameState(int gameState) {
+        this.gameState = gameState;
+    }
+
+    public int getGoalsToWin() {
+        return goalsToWin;
+    }
+
+    public void setGoalsToWin(int goalsToWin) {
+        this.goalsToWin = goalsToWin;
+    }
+
+    public int getMaxPlayers() {
+        return maxPlayers;
+    }
+
+    public void setMaxPlayers(int maxPlayers) {
+        this.maxPlayers = maxPlayers;
+    }
+
+    public ArrayList<Player> getPlayers() {
+        return players;
+    }
+
+    public void setPlayers(ArrayList<Player> players) {
+        this.players = players;
+    }
+
+    public World getDefaultMap() {
+        return defaultMap;
+    }
+
+    public void setDefaultMap(World defaultMap) {
+        this.defaultMap = defaultMap;
+    }
+
     /**
      * @param world The bridge map the game will use
      * @param blueSpawnPoint The blue team's spawn point

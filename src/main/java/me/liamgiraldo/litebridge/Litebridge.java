@@ -4,6 +4,7 @@ import me.liamgiraldo.litebridge.commands.*;
 import me.liamgiraldo.litebridge.controllers.MapCreator;
 import me.liamgiraldo.litebridge.listeners.BedLeaveListener;
 import me.liamgiraldo.litebridge.listeners.PlayerJoinListener;
+import me.liamgiraldo.litebridge.models.GameModel;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -18,10 +19,14 @@ import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
+
 public final class Litebridge extends JavaPlugin implements Listener {
 
     private static Litebridge plugin;
     private MapCreator mapCreator;
+
+    private ArrayList<GameModel> models;
 
     @Override
     public void onEnable() {
@@ -43,6 +48,8 @@ public final class Litebridge extends JavaPlugin implements Listener {
         getCommand("spawn").setExecutor(new SpawnCommand());
         getCommand("setjoinmessage").setExecutor(new SetMessageCommand());
         getCommand("bridgewand").setExecutor(mapCreator);
+
+        this.models = mapCreator.constructGameModels();
     }
 
     @Override
@@ -67,6 +74,26 @@ public final class Litebridge extends JavaPlugin implements Listener {
             return false;
         }
         return true;
+    }
+
+    //TODO: The usage of this method intrinsically causes a cyclical dependency. I acknowledge this. Deadlocks be damned.
+    /**
+     * Adds a given model to the currently registered game models
+     * If the provided model is already in the registered models, it will update the provided one
+     * @param model Model to register
+     * */
+    public void addToModels(GameModel model){
+        for(int i = 0; i < models.size(); i++){
+            if(model.getWorld().getName().equals(models.get(i).getWorld().getName())){
+               //if the model already exists within the arraylist of models, just update it
+               System.out.println("This model already exists, updating it according to the newly provided one.");
+               models.set(i, model);
+               return;
+           }
+       }
+       //by reaching the end of the loop, we know it doesn't exist
+        System.out.println("This model didn't exist. Adding it to the existing models.");
+        models.add(model);
     }
 
     public static Litebridge getPlugin(){
