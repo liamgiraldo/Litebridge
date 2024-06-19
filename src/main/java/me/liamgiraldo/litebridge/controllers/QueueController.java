@@ -88,6 +88,7 @@ public class QueueController implements EventListener, CommandExecutor {
                     if(queue1 == null){
                         System.out.println("We couldn't find a valid queue for you to go into.");
                     }
+                    return queue1;
                     //return for random queue
                     break;
                 default:
@@ -103,7 +104,24 @@ public class QueueController implements EventListener, CommandExecutor {
         }
         else{
             //first argument is null, queue any fill
-            return null;
+            QueueModel queue1 = queues.get((int) (Math.random()*queues.size()));
+            mapName = queue1.getWorld().getName();
+            int recursionDepth = 10;
+            int count = 0;
+            while(queue1.isQueueFull()){
+                //this can go on forever, if ALL of the queues are full
+                queue1 = queues.get((int) (Math.random()*queues.size()));
+                mapName = queue1.getWorld().getName();
+                if(count == recursionDepth){
+                    System.out.print("We couldn't find a valid queue for you to use.");
+                    return null;
+                }
+                count++;
+            }
+            if(queue1 == null){
+                System.out.println("We couldn't find a valid queue for you to go into.");
+            }
+            return queue1;
         }
 
         if(secondArg != null) {
