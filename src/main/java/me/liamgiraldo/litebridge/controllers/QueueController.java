@@ -71,12 +71,14 @@ public class QueueController implements EventListener, CommandExecutor {
             switch (firstArg) {
                 case "random":
                     //TODO Check for any non-full game
-                    QueueModel queue1 = queues.get(Math.random()*queues.size()).getWorld().getName();
+                    QueueModel queue1 = queues.get((int) (Math.random()*queues.size()));
+                    mapName = queue1.getWorld().getName();
                     int recursionDepth = 10;
                     int count = 0;
                     while(queue1.isQueueFull()){
                         //this can go on forever, if ALL of the queues are full
-                        queue1 = queues.get(Math.random()*queues.size()).getWorld().getName();
+                        queue1 = queues.get((int) (Math.random()*queues.size()));
+                        mapName = queue1.getWorld().getName();
                         if(count == recursionDepth){
                             System.out.print("We couldn't find a valid queue for you to use.");
                             return null;
