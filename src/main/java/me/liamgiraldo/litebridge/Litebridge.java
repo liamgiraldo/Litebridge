@@ -34,6 +34,10 @@ public final class Litebridge extends JavaPlugin implements Listener {
 
     private QueueController queueController;
 
+    public static Litebridge getPlugin(){
+        return plugin;
+    }
+
     /**
      * Constructs queues based on existing game models
      * */
@@ -116,10 +120,6 @@ public final class Litebridge extends JavaPlugin implements Listener {
        //by reaching the end of the loop, we know it doesn't exist
         System.out.println("This model didn't exist. Adding it to the existing models.");
         models.add(model);
-    }
-
-    public static Litebridge getPlugin(){
-        return plugin;
     }
 
 
