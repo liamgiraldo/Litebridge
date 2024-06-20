@@ -74,6 +74,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
         getCommand("setjoinmessage").setExecutor(new SetMessageCommand());
         getCommand("bridgewand").setExecutor(mapCreator);
         getCommand("litebridge").setExecutor(queueController);
+        getCommand("litebridge").setExecutor(new CheckqueueCommand(this));
 
 
     }
@@ -126,5 +127,9 @@ public final class Litebridge extends JavaPlugin implements Listener {
     //TODO Be able to add a queue when a new game model (map) is created
     public void addAQueue(GameModel model){
 
+    }
+
+    public ArrayList<QueueModel> getQueues(){
+        return this.queues;
     }
 }

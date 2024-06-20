@@ -57,6 +57,13 @@ commands:
       - q
     permission: litebridge.queue
     permission-message: You don't have permission to queue bridge games.
+  checkqueues:
+    description: Shows all queues for all maps.
+    usage: /<command>
+    aliases:
+      - cq
+    permission: litebridge.checkqueues
+    permission-message: You don't have permission to check queues.
 permissions:
   litebridge.god:
     description: Allows someone to run the /god command
