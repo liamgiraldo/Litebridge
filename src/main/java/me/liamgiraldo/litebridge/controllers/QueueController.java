@@ -244,8 +244,8 @@ public class QueueController implements EventListener, CommandExecutor {
      * */
     private void leaveQueue(Player p){
         for(QueueModel q: queues){
-            for(Player[] players: q.getQueue()){
-                if(players[i].getUniqueId() == p.getUniqueId()){
+            for(Player players: q.getQueue()){
+                if(players.getUniqueId() == p.getUniqueId()){
                     q.removeFromQueue(p);
                     p.sendMessage("You were removed from a queue.");
                     return;
