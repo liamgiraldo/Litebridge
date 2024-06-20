@@ -134,7 +134,7 @@ public class MapCreator implements CommandExecutor, Listener {
             if (itemUsed != null && itemUsed.getType() == Material.STICK) {
                 this.worldName = player.getWorld().getName();
                 //if the config for this world doesn't exist make one
-                if(!Litebridge.getPlugin().getConfig().isConfigurationSection(player.getWorld().getName())) {
+                if(!litebridge.getConfig().isConfigurationSection(player.getWorld().getName())) {
                     setUpConfig(player.getWorld().getName());
                 }
                 if(Arrays.equals(oldVector,tempVector)){
@@ -162,8 +162,8 @@ public class MapCreator implements CommandExecutor, Listener {
                         worldBounds[1] = Arrays.copyOf(tempVector, tempVector.length);
                         player.sendMessage("World bounds ");
                         printDoubleArray(worldBounds, player);
-                        Litebridge.getPlugin().getConfig().set(worldName + ".world-bounds", worldBounds);
-                        Litebridge.getPlugin().saveConfig();
+                        litebridge.getConfig().set(worldName + ".world-bounds", worldBounds);
+                        litebridge.saveConfig();
                         incrementStep();
                         break;
                     case 4:
@@ -184,8 +184,8 @@ public class MapCreator implements CommandExecutor, Listener {
                         if(airClicked)
                             break;
                         blueSpawnPoint = Arrays.copyOf(tempVector, tempVector.length);
-                        Litebridge.getPlugin().getConfig().set(worldName + ".blue-spawn", blueSpawnPoint);
-                        Litebridge.getPlugin().saveConfig();
+                        litebridge.getConfig().set(worldName + ".blue-spawn", blueSpawnPoint);
+                        litebridge.saveConfig();
                         player.sendMessage("Blue spawn point " + Arrays.toString(blueSpawnPoint));
                         incrementStep();
                         break;
@@ -193,8 +193,8 @@ public class MapCreator implements CommandExecutor, Listener {
                         if(airClicked)
                             break;
                         redSpawnPoint = Arrays.copyOf(tempVector, tempVector.length);
-                        Litebridge.getPlugin().getConfig().set(worldName + ".red-spawn", redSpawnPoint);
-                        Litebridge.getPlugin().saveConfig();
+                        litebridge.getConfig().set(worldName + ".red-spawn", redSpawnPoint);
+                        litebridge.saveConfig();
                         player.sendMessage("Red spawn point " + Arrays.toString(redSpawnPoint));
                         incrementStep();
                         break;
@@ -216,8 +216,8 @@ public class MapCreator implements CommandExecutor, Listener {
                         blueGoalBounds[1] = Arrays.copyOf(tempVector, tempVector.length);
                         player.sendMessage("Blue goal bounds ");
                         printDoubleArray(blueGoalBounds, player);
-                        Litebridge.getPlugin().getConfig().set(worldName + ".blue-goal", blueGoalBounds);
-                        Litebridge.getPlugin().saveConfig();
+                        litebridge.getConfig().set(worldName + ".blue-goal", blueGoalBounds);
+                        litebridge.saveConfig();
                         incrementStep();
                         break;
                     case 14:
@@ -233,8 +233,8 @@ public class MapCreator implements CommandExecutor, Listener {
                         if(airClicked)
                             break;
                         redGoalBounds[1] = Arrays.copyOf(tempVector, tempVector.length);
-                        Litebridge.getPlugin().getConfig().set(worldName + ".red-goal", redGoalBounds);
-                        Litebridge.getPlugin().saveConfig();
+                        litebridge.getConfig().set(worldName + ".red-goal", redGoalBounds);
+                        litebridge.saveConfig();
                         player.sendMessage("Red goal bounds ");
                         printDoubleArray(redGoalBounds, player);
                         incrementStep();
@@ -257,8 +257,8 @@ public class MapCreator implements CommandExecutor, Listener {
                         if(airClicked)
                             break;
                         blueCageBounds[1] = Arrays.copyOf(tempVector, tempVector.length);
-                        Litebridge.getPlugin().getConfig().set(worldName + ".blue-cage", blueCageBounds);
-                        Litebridge.getPlugin().saveConfig();
+                        litebridge.getConfig().set(worldName + ".blue-cage", blueCageBounds);
+                        litebridge.saveConfig();
                         incrementStep();
                         break;
                     case 22:
@@ -271,8 +271,8 @@ public class MapCreator implements CommandExecutor, Listener {
                         if(airClicked)
                             break;
                         redCageBounds[1] = Arrays.copyOf(tempVector, tempVector.length);
-                        Litebridge.getPlugin().getConfig().set(worldName + ".red-cage", redCageBounds);
-                        Litebridge.getPlugin().saveConfig();
+                        litebridge.getConfig().set(worldName + ".red-cage", redCageBounds);
+                        litebridge.saveConfig();
                         incrementStep();
                         break;
                     case 24:
@@ -283,12 +283,12 @@ public class MapCreator implements CommandExecutor, Listener {
                         if(airClicked)
                             break;
                         killPlane = tempVector[1];
-                        Litebridge.getPlugin().getConfig().set(worldName + ".kill-plane", killPlane);
-                        Litebridge.getPlugin().saveConfig();
+                        litebridge.getConfig().set(worldName + ".kill-plane", killPlane);
+                        litebridge.saveConfig();
 
-                        this.world = Litebridge.getPlugin().getServer().getWorld(worldName);
+                        this.world = litebridge.getServer().getWorld(worldName);
                         this.gameModel = new GameModel(world, blueSpawnPoint,redSpawnPoint,blueGoalBounds,redGoalBounds,blueCageBounds,redCageBounds,worldBounds,killPlane,goalsToWin,maxPlayers);
-                        Litebridge.getPlugin().addToModels(this.gameModel);
+                        litebridge.addToModels(this.gameModel);
                         printAllWorldParams(player);
 
                         //should in theory remove stick
@@ -328,8 +328,8 @@ public class MapCreator implements CommandExecutor, Listener {
             //TODO this has to be refactored later to be for op only. I'm tired.
             try{
                 this.maxPlayers = Integer.parseInt(e.getMessage());
-                Litebridge.getPlugin().getConfig().set(worldName + ".max-players", maxPlayers);
-                Litebridge.getPlugin().saveConfig();
+                litebridge.getConfig().set(worldName + ".max-players", maxPlayers);
+                litebridge.saveConfig();
                 player.sendMessage("Max players: " + Integer.toString(maxPlayers));
                 incrementStep();
                 player.sendMessage(stepMessages[instructionStep]);
@@ -345,8 +345,8 @@ public class MapCreator implements CommandExecutor, Listener {
             //TODO this has to be refactored later to be for op only. I'm tired.
             try{
                 this.goalsToWin = Integer.parseInt(e.getMessage());
-                Litebridge.getPlugin().getConfig().set(worldName + ".goals-required", goalsToWin);
-                Litebridge.getPlugin().saveConfig();
+                litebridge.getConfig().set(worldName + ".goals-required", goalsToWin);
+                litebridge.saveConfig();
                 player.sendMessage("Goals for game: " + Integer.toString(goalsToWin));
                 player.sendMessage("Goals set. Right click the stick to continue.");
                 incrementStep();
@@ -429,18 +429,18 @@ public class MapCreator implements CommandExecutor, Listener {
     }
 
     private void setUpConfig(String worldname){
-        Litebridge.getPlugin().getConfig().createSection(worldname);
-        Litebridge.getPlugin().getConfig().createSection(worldname + ".world-bounds");
-        Litebridge.getPlugin().getConfig().createSection(worldname + ".blue-spawn");
-        Litebridge.getPlugin().getConfig().createSection(worldname + ".red-spawn");
-        Litebridge.getPlugin().getConfig().createSection(worldname + ".blue-goal");
-        Litebridge.getPlugin().getConfig().createSection(worldname + ".red-goal");
-        Litebridge.getPlugin().getConfig().createSection(worldname + ".blue-cage");
-        Litebridge.getPlugin().getConfig().createSection(worldname + ".red-cage");
-        Litebridge.getPlugin().getConfig().createSection(worldname + ".kill-plane");
-        Litebridge.getPlugin().getConfig().createSection(worldname + ".max-players");
-        Litebridge.getPlugin().getConfig().createSection(worldname + ".goals-required");
-        Litebridge.getPlugin().saveConfig();
+        litebridge.getConfig().createSection(worldname);
+        litebridge.getConfig().createSection(worldname + ".world-bounds");
+        litebridge.getConfig().createSection(worldname + ".blue-spawn");
+        litebridge.getConfig().createSection(worldname + ".red-spawn");
+        litebridge.getConfig().createSection(worldname + ".blue-goal");
+        litebridge.getConfig().createSection(worldname + ".red-goal");
+        litebridge.getConfig().createSection(worldname + ".blue-cage");
+        litebridge.getConfig().createSection(worldname + ".red-cage");
+        litebridge.getConfig().createSection(worldname + ".kill-plane");
+        litebridge.getConfig().createSection(worldname + ".max-players");
+        litebridge.getConfig().createSection(worldname + ".goals-required");
+        litebridge.saveConfig();
     }
 
     /**
@@ -460,21 +460,21 @@ public class MapCreator implements CommandExecutor, Listener {
 
             String worldName = world.getName();
 
-            int[] blueSpawnPoint = listToArray(Litebridge.getPlugin().getConfig().getIntegerList(worldName + ".blue-spawn"));
-            int[] redSpawnPoint = listToArray(Litebridge.getPlugin().getConfig().getIntegerList(worldName + ".red-spawn"));
+            int[] blueSpawnPoint = listToArray(litebridge.getConfig().getIntegerList(worldName + ".blue-spawn"));
+            int[] redSpawnPoint = listToArray(litebridge.getConfig().getIntegerList(worldName + ".red-spawn"));
 
-            int[][] redGoalBounds = listToArray2D(Litebridge.getPlugin().getConfig().getList(worldName + ".red-goal"));
-            int[][] blueGoalBounds = listToArray2D(Litebridge.getPlugin().getConfig().getList(worldName + ".blue-goal"));
+            int[][] redGoalBounds = listToArray2D(litebridge.getConfig().getList(worldName + ".red-goal"));
+            int[][] blueGoalBounds = listToArray2D(litebridge.getConfig().getList(worldName + ".blue-goal"));
 
-            int[][] redCageBounds = listToArray2D(Litebridge.getPlugin().getConfig().getList(worldName + ".red-cage"));
-            int[][] blueCageBounds = listToArray2D(Litebridge.getPlugin().getConfig().getList(worldName + ".blue-cage"));
+            int[][] redCageBounds = listToArray2D(litebridge.getConfig().getList(worldName + ".red-cage"));
+            int[][] blueCageBounds = listToArray2D(litebridge.getConfig().getList(worldName + ".blue-cage"));
 
-            int[][] worldBounds = listToArray2D(Litebridge.getPlugin().getConfig().getList(worldName + ".world-bounds"));
+            int[][] worldBounds = listToArray2D(litebridge.getConfig().getList(worldName + ".world-bounds"));
 
-            int goalsToWin = Litebridge.getPlugin().getConfig().getInt(worldName + ".goals-required");
-            int maxPlayers = Litebridge.getPlugin().getConfig().getInt(worldName + ".max-players");
+            int goalsToWin = litebridge.getConfig().getInt(worldName + ".goals-required");
+            int maxPlayers = litebridge.getConfig().getInt(worldName + ".max-players");
 
-            int killPlane = Litebridge.getPlugin().getConfig().getInt(worldName + ".kill-plane");
+            int killPlane = litebridge.getConfig().getInt(worldName + ".kill-plane");
 
             models.add(new GameModel(world, blueSpawnPoint, redSpawnPoint, blueGoalBounds, redGoalBounds, blueCageBounds, redCageBounds, worldBounds, killPlane, goalsToWin, maxPlayers));
         }
