@@ -69,10 +69,10 @@ public class QueueController implements EventListener, CommandExecutor {
             secondArg = args[1];
 
         //gameMode is the game type, example singles, doubles, triples etc..
-        int gameMode;
+        int gameMode = -1;
 
         //mapName is the name of the map to queue for
-        String mapName;
+        String mapName = null;
 
         //if the first argument exists...
         if(firstArg != null) {
@@ -118,7 +118,8 @@ public class QueueController implements EventListener, CommandExecutor {
                         //if this doesn't work, set the gameMode to null
                         System.out.println(e);
                         System.out.println("This gamemode type doesn't exist");
-                        gameMode = null;
+                        //-1 is essentially null
+                        gameMode = -1;
                         break;
                     }
                     //If we were able to parse the integer, set the game mode to that int.
@@ -184,6 +185,9 @@ public class QueueController implements EventListener, CommandExecutor {
                 mapName = null;
             }
         }
+        else{
+            mapName = null;
+        }
 
         //if no gamemode was specified, or the gamemode typed was invalid
         //try to queue using just the map name
@@ -193,7 +197,7 @@ public class QueueController implements EventListener, CommandExecutor {
         }
 
         //If the map name is verified to exist, and the gamemode is verified to be a number
-        if(mapName != null && gameMode != null) {
+        if(mapName != null && gameMode != -1) {
             //now we try to queue the specified game
             for (QueueModel q : queues) {
                 //maxPlayers of QueueModel needs to be an even number GRRR
@@ -209,7 +213,7 @@ public class QueueController implements EventListener, CommandExecutor {
             }
         }
 
-        if(mapName != null && gameMode == null){
+        if(mapName != null && gameMode == -1){
             for (QueueModel q : queues) {
                 //maxPlayers of QueueModel needs to be an even number GRRR
                 if (q.getWorld().getName().equals(mapName)) {
