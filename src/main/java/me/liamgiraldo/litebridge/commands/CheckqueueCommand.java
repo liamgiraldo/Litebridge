@@ -38,7 +38,7 @@ public class CheckqueueCommand implements CommandExecutor {
                 if(p == null) {
                     builder.append("[Empty], ");
                 } else {
-                    builder.append("[" + p.getName() + "], ");
+                    builder.append("[").append(p.getName()).append("], ");
                 }
             }
             queues[i] = builder.toString();
