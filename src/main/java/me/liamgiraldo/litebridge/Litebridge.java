@@ -74,7 +74,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
         getCommand("setjoinmessage").setExecutor(new SetMessageCommand());
         getCommand("bridgewand").setExecutor(mapCreator);
         getCommand("litebridge").setExecutor(queueController);
-        getCommand("checkqueue").setExecutor(new CheckqueueCommand(this));
+        getCommand("checkqueues").setExecutor(new CheckqueueCommand(this));
 
 
     }
