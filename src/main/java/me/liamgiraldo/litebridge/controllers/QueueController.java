@@ -28,6 +28,10 @@ public class QueueController implements EventListener, CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args){
         if(sender instanceof Player){
             Player p = (Player)sender;
+            if(args[0].equals("leave")){
+                leaveQueue(p);
+                return true;
+            }
             QueueModel gameToQueueTo = checkAppropriateQueue(args);
             if(gameToQueueTo == null)
                 return false;
@@ -230,5 +234,24 @@ public class QueueController implements EventListener, CommandExecutor {
 
         //at this point we literally could not find any game for you to queue at all
         return null;
+    }
+
+    /**
+     * Searches for the provided player throughout all queues
+     * If the player is found, remove them from that queue.
+     *
+     * @param p Player to remove from a queue
+     * */
+    private void leaveQueue(Player p){
+        for(QueueModel q: queues){
+            for(Player[] players: q.getQueue()){
+                if(players[i].getUniqueId() == p.getUniqueId()){
+                    q.removeFromQueue(p);
+                    p.sendMessage("You were removed from a queue.");
+                    return;
+                }
+            }
+        }
+        System.out.println("This player wasn't even in a queue.");
     }
 }
