@@ -5,6 +5,9 @@ import me.liamgiraldo.litebridge.models.QueueModel;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
 
 public class CheckqueueCommand implements CommandExecutor {
     Litebridge litebridge;
@@ -12,11 +15,13 @@ public class CheckqueueCommand implements CommandExecutor {
         this.litebridge = litebridge;
     }
     @Override
-    public void onCommand(CommandSender sender, Command command, String label, String[] args){
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args){
         if(sender instanceof Player){
             Player player = (Player)sender;
             player.sendMessage(grabQueues());
+            return true;
         }
+        return false;
     }
 
     private String[] grabQueues(){
