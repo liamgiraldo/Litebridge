@@ -55,6 +55,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
 
         mapCreator = new MapCreator(this);
         this.models = mapCreator.constructGameModels();
+
         constructQueues(this.models, queues);
 
         this.queueController = new QueueController(queues);
