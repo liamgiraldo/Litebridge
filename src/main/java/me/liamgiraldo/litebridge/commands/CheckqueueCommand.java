@@ -29,13 +29,17 @@ public class CheckqueueCommand implements CommandExecutor {
         ArrayList<QueueModel> queueModelArrayList = litebridge.getQueues();
         for(int i = 0; i < queueModelArrayList.size(); i++){
             QueueModel model = queueModelArrayList.get(i);
+            Player[] players = model.getQueue();
             StringBuilder builder = new StringBuilder();
             builder.append(model.getWorld().getName());
             builder.append("\n");
-            for (Player p: model.getQueue()) {
-                if(p == null)
+            for (int j = 0; j < players.length; j++) {
+                Player p = players[j];
+                if(p == null) {
                     builder.append("[Empty], ");
-                builder.append("[" + p.getName() + "], ");
+                } else {
+                    builder.append("[" + p.getName() + "], ");
+                }
             }
             queues[i] = builder.toString();
         }
