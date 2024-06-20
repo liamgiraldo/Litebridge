@@ -1,0 +1,73 @@
+name: Litebridge
+version: '0.0.1-SNAPSHOT'
+main: me.liamgiraldo.litebridge.Litebridge
+api-version: 1.8
+authors: [ litebow ]
+description: A lightweight, multiverse bridge plugin.
+commands:
+  uuid:
+    description: Gets current player's UUID
+    usage: /<command>
+  god:
+    description: Enables / disables invulnerability
+    usage: /<command>
+    permission: litebridge.god
+    permission-message: You don't have permission to run the god command
+  feed:
+    description: Sets hunger to full
+    usage: /<command>
+  repeat:
+    description: Repeats the arguments provided to this command
+    usage: /<command>
+    permission: litebridge.repeat
+    permission-message: You don't have memory on your memory card!
+    aliases:
+      - rp
+  strike:
+    description: Strikes the players provided.
+    usage: /<command> player1 player2 player3 etc...
+    permission: litebridge.strike
+    permission-message: You don't have permission to strike down players.
+    aliases:
+      - str
+  setspawn:
+    description: Sets the server spawn point
+    usage: /<command>
+    permission: litebridge.setspawn
+    permission-message: You don't have permission to set the world spawn.
+  spawn:
+    description: Sends player to world spawn point
+    usage: /<command>
+    permission: litebridge.spawn
+    permission-message: You don't have permission to warp to spawn.
+  setjoinmessage:
+    description: Sets the server join message
+    usage: /<command> message
+    permission: litebridge.setjoinmessage
+    permission-message: You don't have permission to set the server join message.
+  bridgewand:
+    description: Gives the player a bridge wand. Used to create bridge maps.
+    usage: /<command> player-to-give
+    permission: litebridge.bridgewand
+    permission-message: You don't have permission to get a bridge wand.
+  litebridge:
+    description: Adds the sender to a litebridge queue
+    usage: /<command> (random) OR /<command> (gamemode) OR /<command> (gamemode) (map)
+    aliases:
+      - q
+    permission: litebridge.queue
+    permission-message: You don't have permission to queue bridge games.
+  checkqueues:
+    description: Shows all queues for all maps.
+    usage: /<command>
+    aliases:
+      - cq
+    permission: litebridge.checkqueues
+    permission-message: You don't have permission to check queues.
+permissions:
+  litebridge.god:
+    description: Allows someone to run the /god command
+    default: op
+  litebridge.queue:
+    description: Allows someone to queue into a bridge game
+    default: op
