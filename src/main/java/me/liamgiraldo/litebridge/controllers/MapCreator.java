@@ -451,8 +451,8 @@ public class MapCreator implements CommandExecutor, Listener {
     public ArrayList<GameModel> constructGameModels() {
         ArrayList<GameModel> models = new ArrayList<>();
 
-        for (String section : Litebridge.getPlugin().getConfig().getKeys(false)) {
-            World world = Litebridge.getPlugin().getServer().getWorld(section);
+        for (String section : litebridge.getConfig().getKeys(false)) {
+            World world = litebridge.getServer().getWorld(section);
             if (world == null) {
                 System.out.println(section + " is not a valid world. Continuing the config parse.");
                 continue;
