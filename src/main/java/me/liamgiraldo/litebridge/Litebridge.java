@@ -30,7 +30,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
     private MapCreator mapCreator;
 
     private ArrayList<GameModel> models;
-    private ArrayList<QueueModel> queues;
+    private ArrayList<QueueModel> queues = new ArrayList<>();
 
     private QueueController queueController;
 
