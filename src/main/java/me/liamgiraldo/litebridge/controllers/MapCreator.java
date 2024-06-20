@@ -45,9 +45,12 @@ public class MapCreator implements CommandExecutor, Listener {
     private int killPlane;
 
     private GameModel gameModel;
+    private Litebridge litebridge;
 
 
-    public MapCreator(){
+    //cyclical dependency. Deadlock maybe?
+    public MapCreator(Litebridge litebridge){
+        this.litebridge = litebridge;
 
         stepMessages = new String[]{
                 //TODO this isn't taking into account spawn box positions. Need to add those later.

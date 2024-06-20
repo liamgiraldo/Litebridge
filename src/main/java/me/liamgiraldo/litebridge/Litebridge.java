@@ -53,7 +53,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
         // Plugin startup logic
         saveDefaultConfig();
 
-        mapCreator = new MapCreator();
+        mapCreator = new MapCreator(this);
         this.models = mapCreator.constructGameModels();
         constructQueues(this.models, queues);
 
