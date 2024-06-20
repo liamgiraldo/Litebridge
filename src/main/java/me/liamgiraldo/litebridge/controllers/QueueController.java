@@ -88,7 +88,7 @@ public class QueueController implements EventListener, CommandExecutor {
                     if(queue1 == null){
                         System.out.println("We couldn't find a valid queue for you to go into.");
                     }
-                    return queue1;
+                    mapName = queue1.getWorld().getName();
                     //return for random queue
                     break;
                 default:
@@ -121,7 +121,7 @@ public class QueueController implements EventListener, CommandExecutor {
             if(queue1 == null){
                 System.out.println("We couldn't find a valid queue for you to go into.");
             }
-            return queue1;
+            mapName = queue1.getWorld().getName();
         }
 
         if(secondArg != null) {
@@ -135,16 +135,19 @@ public class QueueController implements EventListener, CommandExecutor {
             }
             if(!mapInModels){
                 System.out.println("That map was not a valid map");
+                mapName = null;
             }
-        }
-        else{
-            //if the second argument is null, try using only the first one
         }
         for(QueueModel q : queues){
             //maxPlayers of QueueModel needs to be an even number GRRR
             //TODO Make sure that the game is not full as well. Use queue.isQueueFull to check
             if(q.getWorld().getName().equals(mapName) && q.getMaxPlayers()/2 == gameMode){
-                return q;
+                if(!q.isQueueFull()){
+                    return q;
+                }
+                else{
+                    System.out.println("All queues for the specified gamemode are full.");
+                }
             }
         }
         return null;
