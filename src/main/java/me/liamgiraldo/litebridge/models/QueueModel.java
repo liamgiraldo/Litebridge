@@ -23,9 +23,9 @@ public class QueueModel {
     //5 seconds (integer)
     private int startTimer;
 
-    public QueueModel(int maxPlayer, String worldName, GameModel associatedGame){
+    public QueueModel(int maxPlayers, String worldName, GameModel associatedGame){
         this.maxPlayers = maxPlayers;
-        queue = new Player[this.maxPlayers];
+        this.queue = new Player[this.maxPlayers];
         this.associatedGame = associatedGame;
         this.world = associatedGame.getWorld();
         this.worldName = world.getName();
@@ -58,6 +58,7 @@ public class QueueModel {
         for(int i = 0; i < queue.length; i++){
             if(queue[i] == null){
                 queue[i] = player;
+                break;
             }
         }
     }
@@ -71,6 +72,8 @@ public class QueueModel {
      * */
     public void removeFromQueue(Player player){
         for(int i = 0; i < queue.length; i++){
+            if(queue[i] == null)
+                continue;
             if(queue[i].getName().equals(player.getName())){
                 queue[i] = null;
             }
@@ -102,6 +105,10 @@ public class QueueModel {
 
     public void setMaxPlayers(int maxPlayers) {
         this.maxPlayers = maxPlayers;
+    }
+
+    public GameModel getAssociatedGame(){
+        return this.associatedGame;
     }
 
     public boolean isQueueFull(){

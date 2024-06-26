@@ -33,7 +33,7 @@ public class CheckqueueCommand implements CommandExecutor {
             StringBuilder builder = new StringBuilder();
             builder.append(model.getWorld().getName());
             builder.append("\n");
-            System.out.println(model.getMaxPlayers());
+
             for (int j = 0; j < players.length; j++) {
                 Player p = players[j];
                 if(p == null) {

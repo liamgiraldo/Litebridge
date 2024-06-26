@@ -56,9 +56,18 @@ public final class Litebridge extends JavaPlugin implements Listener {
         mapCreator = new MapCreator(this);
         this.models = mapCreator.constructGameModels();
 
+        System.out.println("All model's max players upon constuctor load");
+        for(int i = 0; i < models.size(); i++){
+            System.out.println(models.get(i).getMaxPlayers());
+        }
+
         constructQueues(this.models, queues);
 
         this.queueController = new QueueController(queues);
+        System.out.println("All queue's max players upon constructor load");
+        for(int i = 0; i < queues.size(); i++){
+            System.out.println(queues.get(i).getAssociatedGame().getMaxPlayers());
+        }
 
         plugin = this;
         System.out.println("Litebridge is running.");

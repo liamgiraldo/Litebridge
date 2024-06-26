@@ -15,6 +15,7 @@ import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EventListener;
 
 public class QueueController implements EventListener, CommandExecutor {
@@ -28,14 +29,39 @@ public class QueueController implements EventListener, CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args){
         if(sender instanceof Player){
             Player p = (Player)sender;
-            if(args[0].equals("leave")){
-                leaveQueue(p);
-                return true;
+
+            if(args.length > 0) {
+                if (args[0].equals("leave")) {
+                    leaveQueue(p);
+                    return true;
+                }
             }
+            //Check if the player is already in any queues.
+            for(int i = 0; i < queues.size(); i++){
+                for(int j = 0; j < queues.get(i).getQueue().length; j++){
+                    if(queues.get(i).getQueue()[j] == null)
+                        continue;
+                    if(p.getUniqueId() == queues.get(i).getQueue()[j].getUniqueId()){
+                        p.sendMessage("You're already queueing for a game.");
+                        p.sendMessage("If you want to requeue, do /q leave, then /q again.");
+                        return false;
+                    }
+                }
+            }
+
             QueueModel gameToQueueTo = checkAppropriateQueue(args);
             if(gameToQueueTo == null)
                 return false;
             gameToQueueTo.appendToQueue(p);
+
+            for(Player p1 : gameToQueueTo.getQueue()){
+                if(p1 == null) {
+                    System.out.println("null");
+                }else {
+                    System.out.println(p1.getName());
+                }
+            }
+
             p.sendMessage("You were added to the " + gameToQueueTo.getWorld().getName() + "queue");
         }
         return true;
@@ -144,11 +170,12 @@ public class QueueController implements EventListener, CommandExecutor {
                 queue1 = queues.get((int) (Math.random()*queues.size()));
                 mapName = queue1.getWorld().getName();
                 //Get the map name of the valid queue
-                if(count == recursionDepth){
+                if(count >= recursionDepth){
                     //if we couldn't find a valid queue for the given map name, set the map name to null.
                     //We will use this later.
                     System.out.print("A non-full queue of the given map name was not found.");
                     mapName = null;
+                    break;
                 }
                 count++;
             }
@@ -188,9 +215,6 @@ public class QueueController implements EventListener, CommandExecutor {
                 //set that map name to null
                 mapName = null;
             }
-        }
-        else{
-            mapName = null;
         }
 
         //if no gamemode was specified, or the gamemode typed was invalid

@@ -387,6 +387,21 @@ public class MapCreator implements CommandExecutor, Listener {
     }
 
     /**
+     * Sends the console the contents of a double array
+     *
+     * @param array The double array to send
+     * */
+    private void printDoubleArray(int[][] array){
+        String first = Arrays.toString(array[0]);
+        String second = Arrays.toString(array[1]);
+        System.out.println(Arrays.toString(new String[]{first, second}));
+    }
+
+    private void printSingleArray(int[] array){
+        System.out.println(Arrays.toString(array));
+    }
+
+    /**
      * Prints out all map creation parameters
      *
      * @param p The player to send the parameters to
@@ -475,6 +490,17 @@ public class MapCreator implements CommandExecutor, Listener {
             int maxPlayers = litebridge.getConfig().getInt(worldName + ".max-players");
 
             int killPlane = litebridge.getConfig().getInt(worldName + ".kill-plane");
+
+            printSingleArray(blueSpawnPoint);
+            printSingleArray(redSpawnPoint);
+            printDoubleArray(redGoalBounds);
+            printDoubleArray(blueGoalBounds);
+            printDoubleArray(redCageBounds);
+            printDoubleArray(blueCageBounds);
+            printDoubleArray(worldBounds);
+            System.out.println(goalsToWin);
+            System.out.println(maxPlayers);
+            System.out.println(killPlane);
 
             models.add(new GameModel(world, blueSpawnPoint, redSpawnPoint, blueGoalBounds, redGoalBounds, blueCageBounds, redCageBounds, worldBounds, killPlane, goalsToWin, maxPlayers));
         }
