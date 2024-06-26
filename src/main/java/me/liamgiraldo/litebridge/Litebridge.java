@@ -74,6 +74,8 @@ public final class Litebridge extends JavaPlugin implements Listener {
 
         getServer().getPluginManager().registerEvents(new BedLeaveListener(),this);
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(), this);
+//        TODO: Register events in GameController
+//        getServer().getPluginManager().registerEvents(, this);
         getServer().getPluginManager().registerEvents(mapCreator, this);
         getCommand("god").setExecutor(new GodCommand());
         getCommand("feed").setExecutor(new FeedCommand());

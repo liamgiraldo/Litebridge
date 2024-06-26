@@ -1,6 +1,8 @@
 package me.liamgiraldo.litebridge.models;
 
 import me.liamgiraldo.litebridge.Litebridge;
+import me.liamgiraldo.litebridge.events.QueueFullEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
@@ -60,6 +62,12 @@ public class QueueModel {
                 queue[i] = player;
                 break;
             }
+        }
+        // Check if the queue is now full
+        if (isQueueFull()) {
+            // Trigger the custom event
+            QueueFullEvent event = new QueueFullEvent(this);
+            Bukkit.getServer().getPluginManager().callEvent(event);
         }
     }
 
