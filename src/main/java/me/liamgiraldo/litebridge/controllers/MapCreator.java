@@ -287,7 +287,7 @@ public class MapCreator implements CommandExecutor, Listener {
                         litebridge.saveConfig();
 
                         this.world = litebridge.getServer().getWorld(worldName);
-                        this.gameModel = new GameModel(world, blueSpawnPoint,redSpawnPoint,blueGoalBounds,redGoalBounds,blueCageBounds,redCageBounds,worldBounds,killPlane,goalsToWin,maxPlayers);
+                        this.gameModel = new GameModel(world, blueSpawnPoint,redSpawnPoint,blueGoalBounds,redGoalBounds,blueCageBounds,redCageBounds,worldBounds,killPlane,goalsToWin,maxPlayers, litebridge);
                         litebridge.addToModels(this.gameModel);
                         printAllWorldParams(player);
 
@@ -502,7 +502,7 @@ public class MapCreator implements CommandExecutor, Listener {
             System.out.println(maxPlayers);
             System.out.println(killPlane);
 
-            models.add(new GameModel(world, blueSpawnPoint, redSpawnPoint, blueGoalBounds, redGoalBounds, blueCageBounds, redCageBounds, worldBounds, killPlane, goalsToWin, maxPlayers));
+            models.add(new GameModel(world, blueSpawnPoint, redSpawnPoint, blueGoalBounds, redGoalBounds, blueCageBounds, redCageBounds, worldBounds, killPlane, goalsToWin, maxPlayers, litebridge));
         }
         return models;
     }

@@ -7,6 +7,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class QueueModel {
     private Player[] queue;
@@ -103,22 +104,48 @@ public class QueueModel {
         return world;
     }
 
+    /**
+     * Set the world for the queue
+     *
+     * @param world The world for the queue
+     * */
     public void setWorld(World world) {
         this.world = world;
     }
 
+    /**
+     * Get the max players for the queue
+     *
+     * @return int The max players for the queue
+     * */
     public int getMaxPlayers() {
         return maxPlayers;
     }
 
+    /**
+     * Set the max players for the queue
+     *
+     * @param maxPlayers The max players for the queue
+     * */
     public void setMaxPlayers(int maxPlayers) {
         this.maxPlayers = maxPlayers;
     }
 
+    /**
+     * Get the associated game
+     *
+     * @return GameModel The associated game
+     * */
     public GameModel getAssociatedGame(){
         return this.associatedGame;
     }
 
+    /**
+     * Checks if the queue is full
+     * A queue is full when all the spots are taken
+     *
+     * @return boolean True if the queue is full, false otherwise
+     * */
     public boolean isQueueFull(){
         for(int i = 0; i < queue.length; i++){
             if(queue[i] == null){
@@ -126,5 +153,12 @@ public class QueueModel {
             }
         }
         return true;
+    }
+
+    /**
+     * Clears the queue of all players
+     * */
+    public void clearQueue(){
+        Arrays.fill(queue, null);
     }
 }

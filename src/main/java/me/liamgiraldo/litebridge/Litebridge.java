@@ -1,6 +1,7 @@
 package me.liamgiraldo.litebridge;
 
 import me.liamgiraldo.litebridge.commands.*;
+import me.liamgiraldo.litebridge.controllers.GameController;
 import me.liamgiraldo.litebridge.controllers.MapCreator;
 import me.liamgiraldo.litebridge.controllers.QueueController;
 import me.liamgiraldo.litebridge.listeners.BedLeaveListener;
@@ -33,6 +34,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
     private ArrayList<QueueModel> queues = new ArrayList<>();
 
     private QueueController queueController;
+    private GameController gameController;
 
     public static Litebridge getPlugin(){
         return plugin;
@@ -69,11 +71,14 @@ public final class Litebridge extends JavaPlugin implements Listener {
             System.out.println(queues.get(i).getAssociatedGame().getMaxPlayers());
         }
 
+        this.gameController = new GameController(queues, this);
+
         plugin = this;
         System.out.println("Litebridge is running.");
 
         getServer().getPluginManager().registerEvents(new BedLeaveListener(),this);
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(), this);
+        getServer().getPluginManager().registerEvents(gameController, this);
 //        TODO: Register events in GameController
 //        getServer().getPluginManager().registerEvents(, this);
         getServer().getPluginManager().registerEvents(mapCreator, this);

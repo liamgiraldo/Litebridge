@@ -1,5 +1,7 @@
 package me.liamgiraldo.litebridge.controllers;
 
+import me.liamgiraldo.litebridge.events.QueueFullEvent;
+import me.liamgiraldo.litebridge.models.GameModel;
 import me.liamgiraldo.litebridge.models.QueueModel;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -278,4 +280,5 @@ public class QueueController implements EventListener, CommandExecutor {
         }
         System.out.println("This player wasn't even in a queue.");
     }
+
 }

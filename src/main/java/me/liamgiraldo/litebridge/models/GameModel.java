@@ -1,9 +1,17 @@
 package me.liamgiraldo.litebridge.models;
 
 import com.sun.tools.javac.util.List;
+import me.liamgiraldo.litebridge.Litebridge;
+import me.liamgiraldo.litebridge.runnables.GameTimer;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
 
 import java.util.ArrayList;
 import java.util.Vector;
@@ -21,21 +29,80 @@ public class GameModel {
     private World world;
     private int[][] worldBounds;
 
-    /**
-     * The state of this game.
-     * 0 -> inactive
-     * 1 -> queueing
-     * 2 -> starting
-     * 3 -> active
-     * */
-    private int gameState;
+    private ScoreboardManager scoreboardManager;
+    private Scoreboard scoreboard;
+    private Objective objective;
+
+    public int getRedGoals() {
+        return redGoals;
+    }
+
+    public void setRedGoals(int redGoals) {
+        this.redGoals = redGoals;
+    }
+
+    public int getBlueGoals() {
+        return blueGoals;
+    }
+
+    public void setBlueGoals(int blueGoals) {
+        this.blueGoals = blueGoals;
+    }
+
+    private int redGoals = 0;
+    private int blueGoals = 0;
+
+    private Score redScoreboardScore;
+    private Score blueScoreboardScore;
+
+    private Litebridge plugin;
+
+    public int getGameTimeInSeconds() {
+        return gameTimeInSeconds;
+    }
+
+    public void setGameTimeInSeconds(int gameTimeInSeconds) {
+        this.gameTimeInSeconds = gameTimeInSeconds;
+    }
+
+    public GameTimer getGameTimer() {
+        return this.gameTimer;
+    }
+
+    public Scoreboard getScoreboard() {
+        return this.scoreboard;
+    }
+
+//    /**
+//     * The state of this game.
+//     * 0 -> inactive
+//     * 1 -> queueing
+//     * 2 -> starting
+//     * 3 -> active
+//     * */
+//    private int gameState;
+
+    public enum GameState {
+        INACTIVE,
+        QUEUEING,
+        STARTING,
+        ACTIVE
+    }
+
+    private GameState gameState;
 
     private int goalsToWin;
     private int maxPlayers;
+
     private ArrayList<Player> players;
+    private ArrayList<Player> redTeam;
+    private ArrayList<Player> blueTeam;
 
     //We will use this defaultMap copy to replace the used map on game end.
     private World defaultMap;
+
+    private GameTimer gameTimer;
+    private int gameTimeInSeconds = 15;
 
     public int[] getBlueSpawnPoint() {
         return blueSpawnPoint;
@@ -101,11 +168,11 @@ public class GameModel {
         this.worldBounds = worldBounds;
     }
 
-    public int getGameState() {
+    public GameState getGameState() {
         return gameState;
     }
 
-    public void setGameState(int gameState) {
+    public void setGameState(GameState gameState) {
         this.gameState = gameState;
     }
 
@@ -141,21 +208,93 @@ public class GameModel {
         this.defaultMap = defaultMap;
     }
 
-    /**
-     * @param world The bridge map the game will use
-     * @param blueSpawnPoint The blue team's spawn point
-     * @param redSpawnPoint The red team's spawn point
-     * @param blueGoalBounds The bounds of the blue team's goal
-     * @param redGoalBounds The bounds of the red team's goal
-     * @param blueCageBounds The two blocks that define the blue cage boundaries
-     * @param redCageBounds The two blocks that define the red cage boundaries
-     * @param worldBounds The boundaries of the bridge map. Building outside of this region is prohibited.'
-     * @param killPlane The y coordinate where the kill plane is set
-     * @param goalsToWin The amount of goals required to win this game
-     * @param maxPlayers The maximum amount of players permitted in this bridge game
-     *
+    public void addPlayer(Player player) {
+        //when we add a player, we also need to assign them to a team (red or blue)
+        this.players.add(player);
+        if (checkIfGameIsFull()) {
+            assignPlayerTeams(this.players);
+        }
+    }
+
+    public void removePlayer(Player player) {
+        this.players.remove(player);
+    }
+
+    public void removeAllPlayersFromGame() {
+        this.players.clear();
+    }
+
+    public boolean checkIfGameIsFull() {
+        return this.players.size() == this.maxPlayers;
+    }
+
+    public boolean checkIfPlayerIsInGame(Player player) {
+        return this.players.contains(player);
+    }
+
+    public boolean checkIfPlayerIsInRedTeam(Player player) {
+        return this.redTeam.contains(player);
+    }
+
+    public boolean checkIfPlayerIsInBlueTeam(Player player) {
+        return this.blueTeam.contains(player);
+    }
+
+    public void startGameTimer(int countdown) {
+        this.gameTimer = new GameTimer(countdown);
+        this.gameTimer.runTaskTimer(Litebridge.getPlugin(), 0, 20);
+    }
+
+    /***
+     * Assigns a player to a team
+     * I'm not quite sure if this should be in the GameModel class or GameController class
+     * I suppose it's fine here.
+     * @param players The players to assign to a team
      * */
-    public GameModel(World world, int[] blueSpawnPoint, int[] redSpawnPoint,int[][] blueGoalBounds, int[][] redGoalBounds, int[][] blueCageBounds, int[][] redCageBounds, int[][] worldBounds, int killPlane, int goalsToWin, int maxPlayers){
+    private void assignPlayerTeams(ArrayList<Player> players) {
+        //First, check which team has fewer players
+        //Then assign each player in the array list to either the red team or the blue team
+        //Assign based on which team has fewer players, and then if both teams have the same amount, assign randomly
+        int redTeamSize = this.redTeam.size();
+        int blueTeamSize = this.blueTeam.size();
+        for (Player player : players) {
+            if (redTeamSize < blueTeamSize) {
+                this.redTeam.add(player);
+            } else if (blueTeamSize < redTeamSize) {
+                this.blueTeam.add(player);
+            } else {
+                //If both teams have the same amount of players, assign randomly
+                if (Math.random() < 0.5) {
+                    this.redTeam.add(player);
+                } else {
+                    this.blueTeam.add(player);
+                }
+            }
+        }
+    }
+
+    public ArrayList<Player> getRedTeam() {
+        return this.redTeam;
+    }
+
+    public ArrayList<Player> getBlueTeam() {
+        return this.blueTeam;
+    }
+
+    /**
+     * @param world          The bridge map the game will use
+     * @param blueSpawnPoint The blue team's spawn point
+     * @param redSpawnPoint  The red team's spawn point
+     * @param blueGoalBounds The bounds of the blue team's goal
+     * @param redGoalBounds  The bounds of the red team's goal
+     * @param blueCageBounds The two blocks that define the blue cage boundaries
+     * @param redCageBounds  The two blocks that define the red cage boundaries
+     * @param worldBounds    The boundaries of the bridge map. Building outside of this region is prohibited.'
+     * @param killPlane      The y coordinate where the kill plane is set
+     * @param goalsToWin     The amount of goals required to win this game
+     * @param maxPlayers     The maximum amount of players permitted in this bridge game
+     */
+    public GameModel(World world, int[] blueSpawnPoint, int[] redSpawnPoint, int[][] blueGoalBounds, int[][] redGoalBounds, int[][] blueCageBounds, int[][] redCageBounds, int[][] worldBounds, int killPlane, int goalsToWin, int maxPlayers, Litebridge plugin){
         this.world = world;
         this.defaultMap = world;
         this.worldBounds = worldBounds;
@@ -173,8 +312,37 @@ public class GameModel {
 
         //No players when game model is created
         this.players = new ArrayList<Player>();
+        this.redTeam = new ArrayList<Player>();
+        this.blueTeam = new ArrayList<Player>();
+
         //Default state for a game is inactive
-        this.gameState = 0;
+        this.gameState = GameState.INACTIVE;
+
+        this.plugin = plugin;
+
+        this.scoreboardManager = Bukkit.getScoreboardManager();
+
+        this.scoreboard = scoreboardManager.getNewScoreboard();
+        this.objective = scoreboard.registerNewObjective("bridge", "dummy");
+
+        objective.setDisplayName(ChatColor.GOLD + "Litebridge");
+        objective.setDisplaySlot(org.bukkit.scoreboard.DisplaySlot.SIDEBAR);
+
+        redScoreboardScore = objective.getScore(ChatColor.RED + "Red Team: ");
+        redScoreboardScore.setScore(11);
+
+        blueScoreboardScore = objective.getScore(ChatColor.BLUE + "Blue Team: ");
+        blueScoreboardScore.setScore(10);
+
     }
 
+    public void setScoreboardRedGoals(int redGoals) {
+        redScoreboardScore = objective.getScore(ChatColor.RED + "Red Goals: " + redGoals);
+//        redScoreboardScore.setScore(11);
+    }
+
+    public void setScoreboardBlueGoals(int blueGoals) {
+        blueScoreboardScore = objective.getScore(ChatColor.BLUE + "Blue Goals: " + blueGoals);
+//        blueScoreboardScore.setScore(10);
+    }
 }
