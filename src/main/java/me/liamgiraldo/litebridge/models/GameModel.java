@@ -1,13 +1,10 @@
 package me.liamgiraldo.litebridge.models;
 
-import com.sun.tools.javac.util.List;
-import com.xism4.sternalboard.SternalBoardHandler;
 import me.liamgiraldo.litebridge.Litebridge;
 import me.liamgiraldo.litebridge.runnables.GameTimer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
@@ -15,7 +12,6 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 
 import java.util.ArrayList;
-import java.util.Vector;
 
 public class GameModel {
 
@@ -77,11 +73,83 @@ public class GameModel {
     private Player[] redTeam;
     private Player[] blueTeam;
 
-    //We will use this defaultMap copy to replace the used map on game end.
+    //We will use this defaultMap copy to replace the used map on the game end.
     private World defaultMap;
 
     private GameTimer gameTimer;
     private int gameTimeInSeconds = 30;
+
+    /**
+     * @param world          The bridge map the game will use
+     * @param blueSpawnPoint The blue team's spawn point
+     * @param redSpawnPoint  The red team's spawn point
+     * @param blueGoalBounds The bounds of the blue team's goal
+     * @param redGoalBounds  The bounds of the red team's goal
+     * @param blueCageBounds The two blocks that define the blue cage boundaries
+     * @param redCageBounds  The two blocks that define the red cage boundaries
+     * @param worldBounds    The boundaries of the bridge map. Building outside of this region is prohibited.'
+     * @param killPlane      The y coordinate where the kill plane is set
+     * @param goalsToWin     The number of goals required to win this game
+     * @param maxPlayers     The maximum number of players permitted in this bridge game
+     */
+    public GameModel(World world, int[] blueSpawnPoint, int[] redSpawnPoint, int[][] blueGoalBounds, int[][] redGoalBounds, int[][] blueCageBounds, int[][] redCageBounds, int[][] worldBounds, int killPlane, int goalsToWin, int maxPlayers, Litebridge plugin){
+        this.world = world;
+        this.defaultMap = world;
+        this.worldBounds = worldBounds;
+
+        this.blueSpawnPoint = blueSpawnPoint;
+        this.blueGoalBounds = blueGoalBounds;
+        this.blueCageBounds = blueCageBounds;
+
+        this.redGoalBounds = redGoalBounds;
+        this.redSpawnPoint = redSpawnPoint;
+        this.redCageBounds = redCageBounds;
+
+        this.goalsToWin = goalsToWin;
+        this.maxPlayers = maxPlayers;
+
+        //No players when game model is created
+        this.players = new ArrayList<Player>();
+        this.redTeam = new Player[maxPlayers /2];
+        this.blueTeam = new Player[maxPlayers /2];
+
+        //Default state for a game is inactive
+        this.gameState = GameState.INACTIVE;
+
+        this.plugin = plugin;
+
+        this.scoreboardManager = Bukkit.getScoreboardManager();
+
+        this.scoreboard = scoreboardManager.getNewScoreboard();
+
+        this.objective = scoreboard.registerNewObjective("bridge", "dummy");
+
+        objective.setDisplayName(ChatColor.GOLD + "Litebridge");
+        objective.setDisplaySlot(org.bukkit.scoreboard.DisplaySlot.SIDEBAR);
+
+//        redScoreboardScore = objective.getScore(ChatColor.RED + "Red Goals: ");
+//        redScoreboardScore.setScore(11);
+//
+//        blueScoreboardScore = objective.getScore(ChatColor.BLUE + "Blue Goals: ");
+//        blueScoreboardScore.setScore(10);
+
+    }
+
+    public void setScoreboardRedGoals(int redGoals) {
+        this.redGoals = redGoals;
+        scoreboard.resetScores(ChatColor.RED + "Red Goals: " + (redGoals - 1)); // Reset the old score
+        redScoreboardScore = objective.getScore(ChatColor.RED + "Red Goals: " + redGoals);
+        redScoreboardScore.setScore(11);
+//        redScoreboardScore.setScore(11);
+    }
+
+    public void setScoreboardBlueGoals(int blueGoals) {
+        this.blueGoals = blueGoals;
+        scoreboard.resetScores(ChatColor.BLUE + "Blue Goals: " + (blueGoals - 1)); // Reset the old score
+        blueScoreboardScore = objective.getScore(ChatColor.BLUE + "Blue Goals: " + blueGoals);
+        blueScoreboardScore.setScore(10);
+//        blueScoreboardScore.setScore(10);
+    }
 
     public int getGameTimeInSeconds() {
         return gameTimeInSeconds;
@@ -315,7 +383,8 @@ public class GameModel {
     private void assignPlayerTeams(ArrayList<Player> players) {
         //First, check which team has fewer players
         //Then assign each player in the array list to either the red team or the blue team
-        //Assign based on which team has fewer players, and then if both teams have the same amount, assign randomly
+        //Assign based on which team has fewer players,
+        // and then if both teams have the same amount, assign randomly
         int redTeamSize = this.redTeam.length;
         int blueTeamSize = this.blueTeam.length;
         for (Player player : players) {
@@ -324,7 +393,7 @@ public class GameModel {
             } else if (blueTeamSize < redTeamSize) {
                 addPlayerToBlueTeam(player);
             } else {
-                //If both teams have the same amount of players, assign randomly
+                //If both teams have the same number of players, assign randomly
                 if (Math.random() < 0.5) {
                     addPlayerToRedTeam(player);
                 } else {
@@ -340,77 +409,5 @@ public class GameModel {
 
     public Player[] getBlueTeam() {
         return this.blueTeam;
-    }
-
-    /**
-     * @param world          The bridge map the game will use
-     * @param blueSpawnPoint The blue team's spawn point
-     * @param redSpawnPoint  The red team's spawn point
-     * @param blueGoalBounds The bounds of the blue team's goal
-     * @param redGoalBounds  The bounds of the red team's goal
-     * @param blueCageBounds The two blocks that define the blue cage boundaries
-     * @param redCageBounds  The two blocks that define the red cage boundaries
-     * @param worldBounds    The boundaries of the bridge map. Building outside of this region is prohibited.'
-     * @param killPlane      The y coordinate where the kill plane is set
-     * @param goalsToWin     The amount of goals required to win this game
-     * @param maxPlayers     The maximum amount of players permitted in this bridge game
-     */
-    public GameModel(World world, int[] blueSpawnPoint, int[] redSpawnPoint, int[][] blueGoalBounds, int[][] redGoalBounds, int[][] blueCageBounds, int[][] redCageBounds, int[][] worldBounds, int killPlane, int goalsToWin, int maxPlayers, Litebridge plugin){
-        this.world = world;
-        this.defaultMap = world;
-        this.worldBounds = worldBounds;
-
-        this.blueSpawnPoint = blueSpawnPoint;
-        this.blueGoalBounds = blueGoalBounds;
-        this.blueCageBounds = blueCageBounds;
-
-        this.redGoalBounds = redGoalBounds;
-        this.redSpawnPoint = redSpawnPoint;
-        this.redCageBounds = redCageBounds;
-
-        this.goalsToWin = goalsToWin;
-        this.maxPlayers = maxPlayers;
-
-        //No players when game model is created
-        this.players = new ArrayList<Player>();
-        this.redTeam = new Player[maxPlayers /2];
-        this.blueTeam = new Player[maxPlayers /2];
-
-        //Default state for a game is inactive
-        this.gameState = GameState.INACTIVE;
-
-        this.plugin = plugin;
-
-        this.scoreboardManager = Bukkit.getScoreboardManager();
-
-        this.scoreboard = scoreboardManager.getNewScoreboard();
-
-        this.objective = scoreboard.registerNewObjective("bridge", "dummy");
-
-        objective.setDisplayName(ChatColor.GOLD + "Litebridge");
-        objective.setDisplaySlot(org.bukkit.scoreboard.DisplaySlot.SIDEBAR);
-
-//        redScoreboardScore = objective.getScore(ChatColor.RED + "Red Goals: ");
-//        redScoreboardScore.setScore(11);
-//
-//        blueScoreboardScore = objective.getScore(ChatColor.BLUE + "Blue Goals: ");
-//        blueScoreboardScore.setScore(10);
-
-    }
-
-    public void setScoreboardRedGoals(int redGoals) {
-        this.redGoals = redGoals;
-        scoreboard.resetScores(ChatColor.RED + "Red Goals: " + (redGoals - 1)); // Reset the old score
-        redScoreboardScore = objective.getScore(ChatColor.RED + "Red Goals: " + redGoals);
-        redScoreboardScore.setScore(11);
-//        redScoreboardScore.setScore(11);
-    }
-
-    public void setScoreboardBlueGoals(int blueGoals) {
-        this.blueGoals = blueGoals;
-        scoreboard.resetScores(ChatColor.BLUE + "Blue Goals: " + (blueGoals - 1)); // Reset the old score
-        blueScoreboardScore = objective.getScore(ChatColor.BLUE + "Blue Goals: " + blueGoals);
-        blueScoreboardScore.setScore(10);
-//        blueScoreboardScore.setScore(10);
     }
 }

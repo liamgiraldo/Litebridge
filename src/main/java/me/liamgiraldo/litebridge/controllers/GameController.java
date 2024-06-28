@@ -1,50 +1,34 @@
 package me.liamgiraldo.litebridge.controllers;
 
 import com.cryptomorin.xseries.XMaterial;
-import jdk.javadoc.internal.doclint.HtmlTag;
 import me.liamgiraldo.litebridge.Litebridge;
 import me.liamgiraldo.litebridge.events.QueueFullEvent;
 import me.liamgiraldo.litebridge.models.GameModel;
 import me.liamgiraldo.litebridge.models.QueueModel;
 import me.liamgiraldo.litebridge.runnables.GameTimer;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.material.MaterialData;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Score;
-
-import java.awt.*;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
-
-import static jdk.javadoc.internal.doclint.HtmlTag.BlockType.BLOCK;
-
 
 public class GameController implements CommandExecutor, Listener {
-    //I'm using the queues because they have references to the games of which they queue for
-    //You'll have to access the games individually.
-    private Location lobbyLocation;
-    private ArrayList<QueueModel> queues;
 
-    private Litebridge plugin;
+    private final Location lobbyLocation;
+    private final ArrayList<QueueModel> queues;
+
+    private final Litebridge plugin;
 
     ArrayList<ItemStack> kitItems;
 
@@ -53,6 +37,7 @@ public class GameController implements CommandExecutor, Listener {
      * We use the GameController to manage all the active games and their corresponding queues.
      *
      * @param queues The queues to manage
+     * @param plugin The lite-bridge plugin
      */
     public GameController(ArrayList<QueueModel> queues, Litebridge plugin) {
         this.queues = queues;
@@ -83,16 +68,32 @@ public class GameController implements CommandExecutor, Listener {
             public void run() {
                 handleActiveGames();
             }
+            //once every second
         }.runTaskTimer(plugin, 0L, 20L);
     }
 
+    /**
+     * This method is called when a command is executed
+     * This method is used to handle commands
+     *
+     * @param sender The sender of the command
+     * @param command The command that was executed
+     * @param label The label of the command
+     * @param args The arguments of the command
+     *
+     * @return Whether the command was executed successfully
+     * */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         return false;
     }
 
-    //TODO Test this code
-    //when a queue becomes full, we want to add all the players in the queue to the associated game
+    /**
+     * Event called upon queue full event
+     * This event is used to start a game when a queue is full
+     *
+     * @param e The QueueFullEvent
+     * */
     @EventHandler
     public void onQueueFull(QueueFullEvent e) {
         QueueModel queue = e.getQueue();
@@ -109,17 +110,12 @@ public class GameController implements CommandExecutor, Listener {
         // however, after this, we need the controller to handle the game logic for all the games.
     }
 
-    //I need to loop over all the games, and handles their logic separately
     /**
-     * pseudocode:
-     * for each queue in queues:
-     * grab the game associated with each queue
-     * loop over every game
-     * if the game's state is starting or active, handle the game logic
-     * every game has their own GameTimer object, so for every game, we need to execute certain tasks at their own points in the timer
+     * This method handles game starting logic
+     * This includes teleporting players to their spawn points, giving them kits, and starting the game timer
      *
+     * @param game The game to start
      * */
-
     private void gameStartLogic(GameModel game) {
         //TODO Implement game start logic
         //If the game is full, we want to start the game
@@ -153,7 +149,7 @@ public class GameController implements CommandExecutor, Listener {
     /**
      * This is the game loop
      * This method is called every second
-     *This method is responsible for handling the game logic for all active games
+     * This method is responsible for handling the game logic for all active games
      * This includes updating the scoreboard, checking if the game is over, and handling the game end logic
      * */
     public void handleActiveGames(){
@@ -197,13 +193,22 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Gives the kit items to a set of player
+     * Kit items are defined in the GameController constructor
+     *
+     * @param players The players to give the kit items to
+     * @param redTeam Whether the players are on the red team or not
+     * */
     private void giveKitToPlayers(Player[] players, boolean redTeam){
         for (Player player: players){
             //TODO Implement kit giving
             ItemStack redClay = XMaterial.RED_TERRACOTTA.parseItem();
+            assert redClay != null;
             redClay.setAmount(64);
 
             ItemStack blueClay = XMaterial.BLUE_TERRACOTTA.parseItem();
+            assert blueClay != null;
             blueClay.setAmount(64);
 
             //Give the player the kit items
@@ -217,6 +222,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Executes game end logic
+     * This method is called when a game ends
+     *
+     * @param queue The queue associated with the game that should end
+     * */
     private void gameEnd(QueueModel queue){
         //When a game ends, we want to reset the game state to inactive,
         //We want to clear the queue,
@@ -237,12 +248,15 @@ public class GameController implements CommandExecutor, Listener {
         }
         queue.clearQueue();
         game.removeAllPlayersFromGame();
+        game.setBlueGoals(0);
+        game.setRedGoals(0);
     }
 
     /**
      * Event called upon player move event
      * This event is used to check if a player has scored a goal
      * If a player has scored a goal, we increment the score of the team that the player is on
+     *
      * @param e The PlayerMoveEvent
      * */
     @EventHandler
@@ -281,6 +295,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Gets the minimum bounds of a 3D space
+     *
+     * @param bounds The bounds to get the minimum of (2D array, 2x3, two (X, Y, Z) sets of three coordinates)
+     * @return The minimum bounds of the 3D space
+     * */
     private int[] getMinBounds(int[][] bounds) {
         int minX = Math.min(bounds[0][0], bounds[1][0]);
         int minY = Math.min(bounds[0][1], bounds[1][1]);
@@ -288,6 +308,13 @@ public class GameController implements CommandExecutor, Listener {
         return new int[]{minX, minY, minZ};
     }
 
+    /**
+     * Gets the maximum bounds of a 3D space
+     *
+     * @param bounds The bounds to get the maximum of (2D array, 2x3, two (X, Y, Z) sets of three coordinates)
+     *
+     * @return The maximum bounds of the 3D space
+     * */
     private int[] getMaxBounds(int[][] bounds) {
         int maxX = Math.max(bounds[0][0], bounds[1][0]);
         int maxY = Math.max(bounds[0][1], bounds[1][1]);
@@ -295,12 +322,27 @@ public class GameController implements CommandExecutor, Listener {
         return new int[]{maxX, maxY, maxZ};
     }
 
+    /**
+     * Checks if a location is within the bounds of a 3D space
+     *
+     * @param location The location to check
+     * @param minBounds The minimum bounds of the 3D space
+     * @param maxBounds The maximum bounds of the 3D space
+     *
+     * @return Whether the location is within the bounds of the 3D space
+     * */
     private boolean isWithinBounds(Location location, int[] minBounds, int[] maxBounds) {
         return location.getBlockX() >= minBounds[0] && location.getBlockX() <= maxBounds[0] &&
                 location.getBlockY() >= minBounds[1] && location.getBlockY() <= maxBounds[1] &&
                 location.getBlockZ() >= minBounds[2] && location.getBlockZ() <= maxBounds[2];
     }
 
+    /**
+     * Checks, and handles a player scoring a goal in the red goal
+     *
+     * @param player The player to check / handle the goal for
+     * @param game The game to check / handle the goal for
+     * */
     private void handleRedGoal(Player player, GameModel game) {
         System.out.println("Player " + player.getName() + " is within the bounds of the red goal!");
 
@@ -316,6 +358,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Checks, and handles a player scoring a goal in the blue goal
+     *
+     * @param player The player to check / handle the goal for
+     * @param game The game to check / handle the goal for
+     * */
     private void handleBlueGoal(Player player, GameModel game) {
         System.out.println("Player " + player.getName() + " is within the bounds of the blue goal!");
 
@@ -331,34 +379,45 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Updates the scoreboard for a game
+     * Specifically updates the red goals and blue goals for a game
+     * Does not update the timer or other information
+     *
+     * @param game The game to update the scoreboard for
+     * */
     private void updateScoreboard(GameModel game) {
         Objective objective = game.getScoreboard().getObjective("bridge");
 
-        // Reset the old scores
+        //Reset the old scores
         game.getScoreboard().resetScores(ChatColor.RED + "Red Goals: " + (game.getRedGoals() - 1));
         game.getScoreboard().resetScores(ChatColor.BLUE + "Blue Goals: " + (game.getBlueGoals() - 1));
 
-        // Set the new scores
+        //Set the new scores
         objective.getScore(ChatColor.RED + "Red Goals: " + game.getRedGoals()).setScore(11);
         objective.getScore(ChatColor.BLUE + "Blue Goals: " + game.getBlueGoals()).setScore(10);
 
-        // Update the scoreboard for each player
+        //Update the scoreboard for each player
         for (Player player : game.getPlayers()) {
             player.setScoreboard(game.getScoreboard());
         }
     }
 
+    /**
+     * Checks if the red team has won the game
+     *
+     * @param game The game to check if the red team has won
+     * */
     private boolean hasTheRedTeamWon(GameModel game){
-        if(game.getRedGoals() >= game.getGoalsToWin()){
-            return true;
-        }
-        return false;
-    }
-    private boolean hasTheBlueTeamWon(GameModel game){
-        if(game.getBlueGoals() >= game.getGoalsToWin()){
-            return true;
-        }
-        return false;
+        return game.getRedGoals() >= game.getGoalsToWin();
     }
 
+    /**
+     * Checks if the blue team has won the game
+     *
+     * @param game The game to check if the blue team has won
+     * */
+    private boolean hasTheBlueTeamWon(GameModel game){
+        return game.getBlueGoals() >= game.getGoalsToWin();
+    }
 }

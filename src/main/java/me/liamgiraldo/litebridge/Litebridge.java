@@ -129,7 +129,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
     public void addToModels(GameModel model){
         for(int i = 0; i < models.size(); i++){
             if(model.getWorld().getName().equals(models.get(i).getWorld().getName())){
-               //if the model already exists within the arraylist of models, just update it
+               //if the model already exists withinz the arraylist of models, just update it
                System.out.println("This model already exists, updating it according to the newly provided one.");
                models.set(i, model);
                return;
