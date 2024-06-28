@@ -1,6 +1,7 @@
 package me.liamgiraldo.litebridge.models;
 
 import com.sun.tools.javac.util.List;
+import com.xism4.sternalboard.SternalBoardHandler;
 import me.liamgiraldo.litebridge.Litebridge;
 import me.liamgiraldo.litebridge.runnables.GameTimer;
 import org.bukkit.Bukkit;
@@ -33,22 +34,6 @@ public class GameModel {
     private Scoreboard scoreboard;
     private Objective objective;
 
-    public int getRedGoals() {
-        return redGoals;
-    }
-
-    public void setRedGoals(int redGoals) {
-        this.redGoals = redGoals;
-    }
-
-    public int getBlueGoals() {
-        return blueGoals;
-    }
-
-    public void setBlueGoals(int blueGoals) {
-        this.blueGoals = blueGoals;
-    }
-
     private int redGoals = 0;
     private int blueGoals = 0;
 
@@ -57,20 +42,14 @@ public class GameModel {
 
     private Litebridge plugin;
 
-    public int getGameTimeInSeconds() {
-        return gameTimeInSeconds;
-    }
+    public void updateScoreboard(Objective objective, int countdown) {
+        scoreboard.resetScores(ChatColor.GREEN + "Time: 0");
+        scoreboard.resetScores(ChatColor.GREEN + "Time: " + (countdown + 1));
+        Score timerScore = objective.getScore(ChatColor.GREEN + "Time: " + countdown);
+        timerScore.setScore(12);
 
-    public void setGameTimeInSeconds(int gameTimeInSeconds) {
-        this.gameTimeInSeconds = gameTimeInSeconds;
-    }
-
-    public GameTimer getGameTimer() {
-        return this.gameTimer;
-    }
-
-    public Scoreboard getScoreboard() {
-        return this.scoreboard;
+        setScoreboardRedGoals(getRedGoals());
+        setScoreboardBlueGoals(getBlueGoals());
     }
 
 //    /**
@@ -95,14 +74,46 @@ public class GameModel {
     private int maxPlayers;
 
     private ArrayList<Player> players;
-    private ArrayList<Player> redTeam;
-    private ArrayList<Player> blueTeam;
+    private Player[] redTeam;
+    private Player[] blueTeam;
 
     //We will use this defaultMap copy to replace the used map on game end.
     private World defaultMap;
 
     private GameTimer gameTimer;
-    private int gameTimeInSeconds = 15;
+    private int gameTimeInSeconds = 30;
+
+    public int getGameTimeInSeconds() {
+        return gameTimeInSeconds;
+    }
+
+    public void setGameTimeInSeconds(int gameTimeInSeconds) {
+        this.gameTimeInSeconds = gameTimeInSeconds;
+    }
+
+    public GameTimer getGameTimer() {
+        return this.gameTimer;
+    }
+
+    public Scoreboard getScoreboard() {
+        return this.scoreboard;
+    }
+
+    public int getRedGoals() {
+        return redGoals;
+    }
+
+    public void setRedGoals(int redGoals) {
+        this.redGoals = redGoals;
+    }
+
+    public int getBlueGoals() {
+        return blueGoals;
+    }
+
+    public void setBlueGoals(int blueGoals) {
+        this.blueGoals = blueGoals;
+    }
 
     public int[] getBlueSpawnPoint() {
         return blueSpawnPoint;
@@ -233,11 +244,61 @@ public class GameModel {
     }
 
     public boolean checkIfPlayerIsInRedTeam(Player player) {
-        return this.redTeam.contains(player);
+        for(Player p : redTeam){
+            if(p == null)
+                continue;
+            if(p == player){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int howManyPlayersInRedTeam() {
+        int count = 0;
+        for(Player p : redTeam){
+            if(p != null)
+                count++;
+        }
+        return count;
+    }
+
+    public int howManyPlayersInBlueTeam() {
+        int count = 0;
+        for(Player p : blueTeam){
+            if(p != null)
+                count++;
+        }
+        return count;
+    }
+
+    public void addPlayerToRedTeam(Player p){
+        for(int i = 0; i < redTeam.length; i++){
+            if(redTeam[i] == null){
+                redTeam[i] = p;
+                break;
+            }
+        }
+    }
+
+    public void addPlayerToBlueTeam(Player p){
+        for(int i = 0; i < blueTeam.length; i++){
+            if(blueTeam[i] == null){
+                blueTeam[i] = p;
+                break;
+            }
+        }
     }
 
     public boolean checkIfPlayerIsInBlueTeam(Player player) {
-        return this.blueTeam.contains(player);
+        for(Player p : blueTeam){
+            if(p == null)
+                continue;
+            if(p == player){
+                return true;
+            }
+        }
+        return false;
     }
 
     public void startGameTimer(int countdown) {
@@ -255,29 +316,29 @@ public class GameModel {
         //First, check which team has fewer players
         //Then assign each player in the array list to either the red team or the blue team
         //Assign based on which team has fewer players, and then if both teams have the same amount, assign randomly
-        int redTeamSize = this.redTeam.size();
-        int blueTeamSize = this.blueTeam.size();
+        int redTeamSize = this.redTeam.length;
+        int blueTeamSize = this.blueTeam.length;
         for (Player player : players) {
-            if (redTeamSize < blueTeamSize) {
-                this.redTeam.add(player);
+            if (howManyPlayersInRedTeam() < howManyPlayersInBlueTeam()) {
+                addPlayerToRedTeam(player);
             } else if (blueTeamSize < redTeamSize) {
-                this.blueTeam.add(player);
+                addPlayerToBlueTeam(player);
             } else {
                 //If both teams have the same amount of players, assign randomly
                 if (Math.random() < 0.5) {
-                    this.redTeam.add(player);
+                    addPlayerToRedTeam(player);
                 } else {
-                    this.blueTeam.add(player);
+                    addPlayerToBlueTeam(player);
                 }
             }
         }
     }
 
-    public ArrayList<Player> getRedTeam() {
+    public Player[] getRedTeam() {
         return this.redTeam;
     }
 
-    public ArrayList<Player> getBlueTeam() {
+    public Player[] getBlueTeam() {
         return this.blueTeam;
     }
 
@@ -312,8 +373,8 @@ public class GameModel {
 
         //No players when game model is created
         this.players = new ArrayList<Player>();
-        this.redTeam = new ArrayList<Player>();
-        this.blueTeam = new ArrayList<Player>();
+        this.redTeam = new Player[maxPlayers /2];
+        this.blueTeam = new Player[maxPlayers /2];
 
         //Default state for a game is inactive
         this.gameState = GameState.INACTIVE;
@@ -323,26 +384,33 @@ public class GameModel {
         this.scoreboardManager = Bukkit.getScoreboardManager();
 
         this.scoreboard = scoreboardManager.getNewScoreboard();
+
         this.objective = scoreboard.registerNewObjective("bridge", "dummy");
 
         objective.setDisplayName(ChatColor.GOLD + "Litebridge");
         objective.setDisplaySlot(org.bukkit.scoreboard.DisplaySlot.SIDEBAR);
 
-        redScoreboardScore = objective.getScore(ChatColor.RED + "Red Team: ");
-        redScoreboardScore.setScore(11);
-
-        blueScoreboardScore = objective.getScore(ChatColor.BLUE + "Blue Team: ");
-        blueScoreboardScore.setScore(10);
+//        redScoreboardScore = objective.getScore(ChatColor.RED + "Red Goals: ");
+//        redScoreboardScore.setScore(11);
+//
+//        blueScoreboardScore = objective.getScore(ChatColor.BLUE + "Blue Goals: ");
+//        blueScoreboardScore.setScore(10);
 
     }
 
     public void setScoreboardRedGoals(int redGoals) {
+        this.redGoals = redGoals;
+        scoreboard.resetScores(ChatColor.RED + "Red Goals: " + (redGoals - 1)); // Reset the old score
         redScoreboardScore = objective.getScore(ChatColor.RED + "Red Goals: " + redGoals);
+        redScoreboardScore.setScore(11);
 //        redScoreboardScore.setScore(11);
     }
 
     public void setScoreboardBlueGoals(int blueGoals) {
+        this.blueGoals = blueGoals;
+        scoreboard.resetScores(ChatColor.BLUE + "Blue Goals: " + (blueGoals - 1)); // Reset the old score
         blueScoreboardScore = objective.getScore(ChatColor.BLUE + "Blue Goals: " + blueGoals);
+        blueScoreboardScore.setScore(10);
 //        blueScoreboardScore.setScore(10);
     }
 }

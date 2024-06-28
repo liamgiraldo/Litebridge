@@ -1,7 +1,8 @@
 name: Litebridge
 version: '${project.version}'
 main: me.liamgiraldo.litebridge.Litebridge
-api-version: 1.8
+#api-version: 1.8
+api-version: "1.13"
 authors: [ litebow ]
 description: A lightweight, multiverse bridge plugin.
 commands:
