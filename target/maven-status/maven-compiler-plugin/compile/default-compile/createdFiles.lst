@@ -15,6 +15,7 @@ me/liamgiraldo/litebridge/listeners/PlayerJoinListener.class
 me/liamgiraldo/litebridge/controllers/QueueController.class
 me/liamgiraldo/litebridge/models/QueueModel.class
 me/liamgiraldo/litebridge/commands/SpawnCommand.class
+me/liamgiraldo/litebridge/models/BlockChangeModel.class
 me/liamgiraldo/litebridge/commands/SetSpawnCommand.class
 me/liamgiraldo/litebridge/commands/StrikeCommand.class
 me/liamgiraldo/litebridge/controllers/GameController$1.class

@@ -12,6 +12,7 @@
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/listeners/PlayerJoinListener.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/commands/SetMessageCommand.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/events/QueueFullEvent.java
+/Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/models/BlockChangeModel.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/controllers/MapCreator.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/Litebridge.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/models/GameModel.java

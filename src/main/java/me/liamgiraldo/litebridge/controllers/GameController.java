@@ -3,6 +3,7 @@ package me.liamgiraldo.litebridge.controllers;
 import com.cryptomorin.xseries.XMaterial;
 import me.liamgiraldo.litebridge.Litebridge;
 import me.liamgiraldo.litebridge.events.QueueFullEvent;
+import me.liamgiraldo.litebridge.models.BlockChangeModel;
 import me.liamgiraldo.litebridge.models.GameModel;
 import me.liamgiraldo.litebridge.models.QueueModel;
 import me.liamgiraldo.litebridge.runnables.GameTimer;
@@ -10,6 +11,7 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -17,11 +19,18 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Objective;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GameController implements CommandExecutor, Listener {
 
@@ -31,6 +40,9 @@ public class GameController implements CommandExecutor, Listener {
     private final Litebridge plugin;
 
     ArrayList<ItemStack> kitItems;
+
+    //Map of world to list of block changes
+    private final Map<World, List<BlockChangeModel>> changes = new HashMap<>();
 
     /**
      * Constructs a new GameController
@@ -173,6 +185,12 @@ public class GameController implements CommandExecutor, Listener {
 
                 for(Player player: game.getPlayers()){
                     player.setScoreboard(game.getScoreboard());
+
+                    for(ItemStack item: player.getInventory().getContents()){
+                        if(item != null){
+                            item.setDurability((short) 0);
+                        }
+                    }
                 }
 
                 if(hasTheRedTeamWon(game)){
@@ -234,6 +252,7 @@ public class GameController implements CommandExecutor, Listener {
         //We want to teleport all the players back to the lobby
         //We want to reset the game timer
         GameModel game = queue.getAssociatedGame();
+        resetWorld(game.getWorld());
         game.setGameState(GameModel.GameState.INACTIVE);
         for(Player player: game.getPlayers()){
             player.teleport(lobbyLocation);
@@ -270,8 +289,6 @@ public class GameController implements CommandExecutor, Listener {
             GameModel game = queue.getAssociatedGame();
 
             if(game.getWorld() == world && game.getGameState() == GameModel.GameState.ACTIVE){
-                System.out.println("Player " + player.getName() + " moved in an active game!");
-
                 // Calculate bounds for red goal
                 int[][] redGoalBounds = game.getRedGoalBounds();
                 int[] redMinBounds = getMinBounds(redGoalBounds);
@@ -291,8 +308,144 @@ public class GameController implements CommandExecutor, Listener {
                 if(isWithinBounds(playerLocation, blueMinBounds, blueMaxBounds)){
                     handleBlueGoal(player, game);
                 }
+
+                int killPlane = game.getKillPlane();
+                if(playerLocation.getBlockY() <= killPlane){
+                    teleportPlayerBasedOnTeam(player, game);
+                }
             }
         }
+    }
+
+    @EventHandler
+    public void onPlayerFallDamage(EntityDamageEvent e){
+        if(e.getEntity() instanceof Player){
+            Player player = (Player) e.getEntity();
+            for(QueueModel queue: queues){
+                GameModel game = queue.getAssociatedGame();
+                if(game.getPlayers().contains(player)){
+                    if(e.getCause() == EntityDamageEvent.DamageCause.FALL){
+                        e.setCancelled(true);
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onDeathEvent(EntityDamageEvent e) //Listens to EntityDamageEvent
+    {
+        if(e.getEntity() instanceof  Player) {
+            Player player = (Player) e.getEntity();
+            for(QueueModel queue: queues){
+                GameModel game = queue.getAssociatedGame();
+                if(game.getPlayers().contains(player)){
+                    if(player.getHealth() - player.getLastDamage() <= 0){
+                        e.setCancelled(true);
+                        player.setHealth(20);
+                        teleportPlayerBasedOnTeam(player, game);
+                    }
+                }
+            }
+        }
+    }
+
+    private void teleportPlayerBasedOnTeam(Player p, GameModel game){
+        if(game.checkIfPlayerIsInRedTeam(p)){
+            p.teleport(new Location(game.getWorld(), game.getRedSpawnPoint()[0], game.getRedSpawnPoint()[1], game.getRedSpawnPoint()[2]));
+        } else if(game.checkIfPlayerIsInBlueTeam(p)){
+            p.teleport(new Location(game.getWorld(), game.getBlueSpawnPoint()[0], game.getBlueSpawnPoint()[1], game.getBlueSpawnPoint()[2]));
+        }
+    }
+
+    /**
+     * Adds a block change to the changes map
+     * */
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent e){
+        Player p = e.getPlayer();
+        Block block = e.getBlock();
+        for(QueueModel queue: queues){
+            //if the player is in a starting, queueing, or inactive game, cancel the block change
+            if(queue.getAssociatedGame().getPlayers().contains(p)){
+                GameModel game = queue.getAssociatedGame();
+
+                //TODO: Remove this, this is just for testing
+                if(game.getGameState() == GameModel.GameState.INACTIVE) {
+                    return;
+                }
+
+                if(game.getGameState() == GameModel.GameState.STARTING || game.getGameState() == GameModel.GameState.INACTIVE || game.getGameState() == GameModel.GameState.QUEUEING){
+                    e.setCancelled(true);
+                    return;
+                }
+
+                //if the game is active, only allow players to place blocks within the world boundaries
+                if(game.getGameState() == GameModel.GameState.ACTIVE){
+                    int[][] worldBounds = game.getWorldBounds();
+                    int[] worldMinBounds = getMinBounds(worldBounds);
+                    int[] worldMaxBounds = getMaxBounds(worldBounds);
+                    if(!isWithinBounds(block.getLocation(), worldMinBounds, worldMaxBounds)){
+                        e.setCancelled(true);
+                        return;
+                    }
+                }
+            }
+            //if the block is in the world of an active game, add the block change to the changes map
+            if(queue.getAssociatedGame().getWorld() == block.getWorld() && queue.getAssociatedGame().getGameState() == GameModel.GameState.ACTIVE){
+                // If there is no existing block change for the location, add a new block change
+                changes.computeIfAbsent(block.getWorld(), k -> new ArrayList<>())
+                        .add(new BlockChangeModel(block.getLocation(), block.getType(), e.getBlockReplacedState().getType()));
+                return;
+            }
+        }
+    }
+
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent e){
+        Block block = e.getBlock();
+        Player p = e.getPlayer();
+        for(QueueModel queue: queues){
+            //if the player is in a starting, queueing, or inactive game, cancel the block change
+            if(queue.getAssociatedGame().getPlayers().contains(p)){
+                GameModel game = queue.getAssociatedGame();
+
+                //TODO: This is just for testing, remove this
+                if(game.getGameState() == GameModel.GameState.INACTIVE) {
+                    return;
+                }
+
+                if(game.getGameState() == GameModel.GameState.STARTING || game.getGameState() == GameModel.GameState.INACTIVE || game.getGameState() == GameModel.GameState.QUEUEING){
+                    e.setCancelled(true);
+                    return;
+                }
+
+                if(game.getGameState() == GameModel.GameState.ACTIVE) {
+                    //We can't let the player break any blocks that AREN'T stained clay
+                    if (block.getType() != Material.STAINED_CLAY && block.getType() != XMaterial.RED_TERRACOTTA.parseMaterial() && block.getType() != XMaterial.BLUE_TERRACOTTA.parseMaterial()) {
+                        e.setCancelled(true);
+                        return;
+                    }
+                }
+            }
+            //if the block is in the world of an active game, add the block change to the changes map
+            if(queue.getAssociatedGame().getWorld() == block.getWorld() && queue.getAssociatedGame().getGameState() == GameModel.GameState.ACTIVE){
+                //if the world doesn't have any block changes, add a new list of block changes
+                changes.computeIfAbsent(block.getWorld(), k -> new ArrayList<>())
+                        .add(new BlockChangeModel(block.getLocation(), block.getType(), Material.AIR));
+                return;
+            }
+        }
+    }
+
+    public void resetWorld(World world) {
+        List<BlockChangeModel> worldChanges = changes.get(world);
+        if (worldChanges != null) {
+            for (BlockChangeModel change : worldChanges) {
+                change.getLocation().getBlock().setType(change.getBefore());
+            }
+        }
+        changes.remove(world);
     }
 
     /**

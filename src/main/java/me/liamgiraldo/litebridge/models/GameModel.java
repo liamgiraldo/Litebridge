@@ -38,15 +38,7 @@ public class GameModel {
 
     private Litebridge plugin;
 
-    public void updateScoreboard(Objective objective, int countdown) {
-        scoreboard.resetScores(ChatColor.GREEN + "Time: 0");
-        scoreboard.resetScores(ChatColor.GREEN + "Time: " + (countdown + 1));
-        Score timerScore = objective.getScore(ChatColor.GREEN + "Time: " + countdown);
-        timerScore.setScore(12);
-
-        setScoreboardRedGoals(getRedGoals());
-        setScoreboardBlueGoals(getBlueGoals());
-    }
+    private int killPlane;
 
 //    /**
 //     * The state of this game.
@@ -113,11 +105,13 @@ public class GameModel {
         this.redTeam = new Player[maxPlayers /2];
         this.blueTeam = new Player[maxPlayers /2];
 
+        this.killPlane = killPlane;
+
         //Default state for a game is inactive
         this.gameState = GameState.INACTIVE;
 
         this.plugin = plugin;
-
+        
         this.scoreboardManager = Bukkit.getScoreboardManager();
 
         this.scoreboard = scoreboardManager.getNewScoreboard();
@@ -287,6 +281,10 @@ public class GameModel {
         this.defaultMap = defaultMap;
     }
 
+    public int getKillPlane() {
+        return killPlane;
+    }
+
     public void addPlayer(Player player) {
         //when we add a player, we also need to assign them to a team (red or blue)
         this.players.add(player);
@@ -409,5 +407,15 @@ public class GameModel {
 
     public Player[] getBlueTeam() {
         return this.blueTeam;
+    }
+
+    public void updateScoreboard(Objective objective, int countdown) {
+        scoreboard.resetScores(ChatColor.GREEN + "Time: 0");
+        scoreboard.resetScores(ChatColor.GREEN + "Time: " + (countdown + 1));
+        Score timerScore = objective.getScore(ChatColor.GREEN + "Time: " + countdown);
+        timerScore.setScore(12);
+
+        setScoreboardRedGoals(getRedGoals());
+        setScoreboardBlueGoals(getBlueGoals());
     }
 }
