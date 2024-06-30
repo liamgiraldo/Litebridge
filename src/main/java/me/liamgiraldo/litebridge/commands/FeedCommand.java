@@ -23,12 +23,12 @@ public class FeedCommand implements CommandExecutor {
             }else{
                 //the current time in milliseconds - the current time it was when the player used the command
                 long elapsedTime = (System.currentTimeMillis() - cooldowns.get(player.getUniqueId()));
-                if(elapsedTime > 100000){
+                if(elapsedTime > 40){
                     cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
                     feed(player);
                 }
                 else{
-                    long timeLeft = (100000 - elapsedTime)/1000;
+                    long timeLeft = (40 - elapsedTime)/1000;
                     player.sendMessage("You can't use that for another " + timeLeft + " seconds");
                 }
             }
@@ -37,6 +37,7 @@ public class FeedCommand implements CommandExecutor {
     }
     private void feed(Player player){
         player.setFoodLevel(20);
+        player.setSaturation(20);
         player.sendMessage("Eat up.");
     }
 }

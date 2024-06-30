@@ -5,7 +5,9 @@ import me.liamgiraldo.litebridge.runnables.GameTimer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
@@ -17,11 +19,18 @@ public class GameModel {
 
     private int[] blueSpawnPoint;
     private int[][] blueGoalBounds;
+
     private int[][] blueCageBounds;
+
+    private ArrayList<Block> blueCageBlocks;
+    private ArrayList<BlockStateModel> originalBlueCageBlocks;
 
     private int[] redSpawnPoint;
     private int[][] redGoalBounds;
     private int[][] redCageBounds;
+
+    private ArrayList<Block> redCageBlocks;
+    private ArrayList<BlockStateModel> originalRedCageBlocks;
 
     private World world;
     private int[][] worldBounds;
@@ -53,6 +62,7 @@ public class GameModel {
         INACTIVE,
         QUEUEING,
         STARTING,
+        ENDING,
         ACTIVE
     }
 
@@ -69,7 +79,7 @@ public class GameModel {
     private World defaultMap;
 
     private GameTimer gameTimer;
-    private int gameTimeInSeconds = 30;
+    private int gameTimeInSeconds = 900;
 
     /**
      * @param world          The bridge map the game will use
@@ -97,6 +107,10 @@ public class GameModel {
         this.redSpawnPoint = redSpawnPoint;
         this.redCageBounds = redCageBounds;
 
+        //TODO: Remove this later, this is just to slightly adjust the spawn points (which we should never have to do)
+        this.redSpawnPoint[1] += 1;
+        this.blueSpawnPoint[1] += 1;
+
         this.goalsToWin = goalsToWin;
         this.maxPlayers = maxPlayers;
 
@@ -117,6 +131,68 @@ public class GameModel {
         this.scoreboard = scoreboardManager.getNewScoreboard();
 
         this.objective = scoreboard.registerNewObjective("bridge", "dummy");
+
+        this.gameTimer = new GameTimer(gameTimeInSeconds);
+
+        //The red cage blocks consist of all of the blocks in the red cage bounds
+        this.redCageBlocks = new ArrayList<Block>();
+
+        //this method is wrong.
+        int[] redBound1 = redCageBounds[0];
+        int[] redBound2 = redCageBounds[1];
+        int minRedX = Math.min(redBound1[0], redBound2[0]);
+        int maxRedX = Math.max(redBound1[0], redBound2[0]);
+        int minRedY = Math.min(redBound1[1], redBound2[1]);
+        int maxRedY = Math.max(redBound1[1], redBound2[1]);
+        int minRedZ = Math.min(redBound1[2], redBound2[2]);
+        int maxRedZ = Math.max(redBound1[2], redBound2[2]);
+        //now we have the min and max x, y, and z values for the red cage bounds
+        //we can iterate through all of the blocks in the red cage bounds
+        for (int x = minRedX; x <= maxRedX; x++) {
+            for (int y = minRedY; y <= maxRedY; y++) {
+                for (int z = minRedZ; z <= maxRedZ; z++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    redCageBlocks.add(block);
+                }
+            }
+        }
+
+        this.blueCageBlocks = new ArrayList<Block>();
+        int blueBound1[] = blueCageBounds[0];
+        int blueBound2[] = blueCageBounds[1];
+        int minBlueX = Math.min(blueBound1[0], blueBound2[0]);
+        int maxBlueX = Math.max(blueBound1[0], blueBound2[0]);
+        int minBlueY = Math.min(blueBound1[1], blueBound2[1]);
+        int maxBlueY = Math.max(blueBound1[1], blueBound2[1]);
+        int minBlueZ = Math.min(blueBound1[2], blueBound2[2]);
+        int maxBlueZ = Math.max(blueBound1[2], blueBound2[2]);
+        //now we have the min and max x, y, and z values for the blue cage bounds
+        //we can iterate through all of the blocks in the blue cage bounds
+        for (int x = minBlueX; x <= maxBlueX; x++) {
+            for (int y = minBlueY; y <= maxBlueY; y++) {
+                for (int z = minBlueZ; z <= maxBlueZ; z++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    blueCageBlocks.add(block);
+                }
+            }
+        }
+
+
+
+        this.originalRedCageBlocks = new ArrayList<BlockStateModel>();
+        for (Block block : redCageBlocks) {
+            originalRedCageBlocks.add(new BlockStateModel(block.getType(), block.getData()));
+        }
+
+        this.originalBlueCageBlocks = new ArrayList<BlockStateModel>();
+        for (Block block : blueCageBlocks) {
+            originalBlueCageBlocks.add(new BlockStateModel(block.getType(), block.getData()));
+        }
+
+        //is it possible to make a deep copy of the redCageBlocks and blueCageBlocks?
+        //I'm not sure if this is necessary, but it might be useful to have a copy of the original blocks
+        //in case we need to reset the cage boundaries
+
 
         objective.setDisplayName(ChatColor.GOLD + "Litebridge");
         objective.setDisplaySlot(org.bukkit.scoreboard.DisplaySlot.SIDEBAR);
@@ -417,5 +493,57 @@ public class GameModel {
 
         setScoreboardRedGoals(getRedGoals());
         setScoreboardBlueGoals(getBlueGoals());
+    }
+
+    //I need a method that sets all the blocks in the red cage boundaries to air
+    public void clearRedCage() {
+        for (Block block : redCageBlocks) {
+            block.setType(org.bukkit.Material.AIR);
+        }
+    }
+
+    //I also need a method that sets all the blocks in the red cage boundaries to it's original block type
+    public void resetRedCage() {
+        for(int i = 0; i < redCageBlocks.size(); i++){
+            Block block = redCageBlocks.get(i);
+            BlockStateModel originalBlock = originalRedCageBlocks.get(i);
+            block.setType(originalBlock.getMaterial());
+            block.setData(originalBlock.getData());
+        }
+    }
+
+    //I need a method that sets all the blocks in the blue cage boundaries to air
+    public void clearBlueCage() {
+        for (Block block : blueCageBlocks) {
+            block.setType(org.bukkit.Material.AIR);
+        }
+    }
+
+    //I also need a method that sets all the blocks in the blue cage boundaries to it's original block type
+    public void resetBlueCage() {
+        for(int i = 0; i < blueCageBlocks.size(); i++){
+            Block block = blueCageBlocks.get(i);
+            BlockStateModel originalBlock = originalBlueCageBlocks.get(i);
+            block.setType(originalBlock.getMaterial());
+            block.setData(originalBlock.getData());
+        }
+    }
+
+    public void resetCages(){
+        resetRedCage();
+        resetBlueCage();
+    }
+    public void clearCages(){
+        clearRedCage();
+        clearBlueCage();
+    }
+
+    public void startStallingTimer(Runnable onEnd) {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                onEnd.run();
+            }
+        }.runTaskLater(plugin, 5 * 20); // 5 seconds * 20 ticks/second
     }
 }
