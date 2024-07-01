@@ -57,16 +57,14 @@ public class QueueModel {
      *
      * @param player The player to add to the queue
      * */
-    public void appendToQueue(Player player){
-        for(int i = 0; i < queue.length; i++){
-            if(queue[i] == null){
+    public synchronized void appendToQueue(Player player) {
+        for (int i = 0; i < queue.length; i++) {
+            if (queue[i] == null) {
                 queue[i] = player;
                 break;
             }
         }
-        // Check if the queue is now full
         if (isQueueFull()) {
-            // Trigger the custom event
             QueueFullEvent event = new QueueFullEvent(this);
             Bukkit.getServer().getPluginManager().callEvent(event);
         }
@@ -79,12 +77,11 @@ public class QueueModel {
      *
      * @param player Player to remove from the queue
      * */
-    public void removeFromQueue(Player player){
-        for(int i = 0; i < queue.length; i++){
-            if(queue[i] == null)
-                continue;
-            if(queue[i].getName().equals(player.getName())){
+    public synchronized void removeFromQueue(Player player) {
+        for (int i = 0; i < queue.length; i++) {
+            if (queue[i] != null && queue[i].getName().equals(player.getName())) {
                 queue[i] = null;
+                break;
             }
         }
     }
@@ -159,6 +156,8 @@ public class QueueModel {
      * Clears the queue of all players
      * */
     public void clearQueue(){
-        Arrays.fill(queue, null);
+        for(int i = 0; i < queue.length; i++){
+            queue[i] = null;
+        }
     }
 }

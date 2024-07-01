@@ -30,10 +30,14 @@ public class MapCreator implements CommandExecutor, Listener {
     private String worldName;
 
     private int[] blueSpawnPoint = new int[3];
+    private float blueSpawnYaw;
+
     private int[][] blueGoalBounds = new int[2][3];
     private int[][] blueCageBounds = new int[2][3];
 
     private int[] redSpawnPoint = new int[3];
+    private float redSpawnYaw;
+
     private int[][] redGoalBounds = new int[2][3];
     private int[][] redCageBounds = new int[2][3];
 
@@ -184,6 +188,9 @@ public class MapCreator implements CommandExecutor, Listener {
                         if(airClicked)
                             break;
                         blueSpawnPoint = Arrays.copyOf(tempVector, tempVector.length);
+                        blueSpawnYaw = player.getLocation().getYaw();
+                        litebridge.getConfig().set(worldName + ".blue-spawn-yaw", blueSpawnYaw);
+                        litebridge.saveConfig();
                         litebridge.getConfig().set(worldName + ".blue-spawn", blueSpawnPoint);
                         litebridge.saveConfig();
                         player.sendMessage("Blue spawn point " + Arrays.toString(blueSpawnPoint));
@@ -193,6 +200,9 @@ public class MapCreator implements CommandExecutor, Listener {
                         if(airClicked)
                             break;
                         redSpawnPoint = Arrays.copyOf(tempVector, tempVector.length);
+                        redSpawnYaw = player.getLocation().getYaw();
+                        litebridge.getConfig().set(worldName + ".red-spawn-yaw", redSpawnYaw);
+                        litebridge.saveConfig();
                         litebridge.getConfig().set(worldName + ".red-spawn", redSpawnPoint);
                         litebridge.saveConfig();
                         player.sendMessage("Red spawn point " + Arrays.toString(redSpawnPoint));
@@ -287,7 +297,7 @@ public class MapCreator implements CommandExecutor, Listener {
                         litebridge.saveConfig();
 
                         this.world = litebridge.getServer().getWorld(worldName);
-                        this.gameModel = new GameModel(world, blueSpawnPoint,redSpawnPoint,blueGoalBounds,redGoalBounds,blueCageBounds,redCageBounds,worldBounds,killPlane,goalsToWin,maxPlayers, litebridge);
+                        this.gameModel = new GameModel(world, blueSpawnPoint,redSpawnPoint,blueGoalBounds,redGoalBounds,blueCageBounds,redCageBounds,worldBounds,killPlane,goalsToWin,maxPlayers, litebridge, blueSpawnYaw, redSpawnYaw);
                         litebridge.addToModels(this.gameModel);
                         printAllWorldParams(player);
 
@@ -455,6 +465,8 @@ public class MapCreator implements CommandExecutor, Listener {
         litebridge.getConfig().createSection(worldname + ".kill-plane");
         litebridge.getConfig().createSection(worldname + ".max-players");
         litebridge.getConfig().createSection(worldname + ".goals-required");
+        litebridge.getConfig().createSection(worldname + ".blue-spawn-yaw");
+        litebridge.getConfig().createSection(worldname + ".red-spawn-yaw");
         litebridge.saveConfig();
     }
 
@@ -491,6 +503,9 @@ public class MapCreator implements CommandExecutor, Listener {
 
             int killPlane = litebridge.getConfig().getInt(worldName + ".kill-plane");
 
+            float blueSpawnYaw = (float)litebridge.getConfig().getLong(worldName + ".blue-spawn-yaw");
+            float redSpawnYaw = (float)litebridge.getConfig().getLong(worldName + ".red-spawn-yaw");
+
             printSingleArray(blueSpawnPoint);
             printSingleArray(redSpawnPoint);
             printDoubleArray(redGoalBounds);
@@ -501,8 +516,10 @@ public class MapCreator implements CommandExecutor, Listener {
             System.out.println(goalsToWin);
             System.out.println(maxPlayers);
             System.out.println(killPlane);
+            System.out.println(blueSpawnYaw);
+            System.out.println(redSpawnYaw);
 
-            models.add(new GameModel(world, blueSpawnPoint, redSpawnPoint, blueGoalBounds, redGoalBounds, blueCageBounds, redCageBounds, worldBounds, killPlane, goalsToWin, maxPlayers, litebridge));
+            models.add(new GameModel(world, blueSpawnPoint, redSpawnPoint, blueGoalBounds, redGoalBounds, blueCageBounds, redCageBounds, worldBounds, killPlane, goalsToWin, maxPlayers, litebridge, blueSpawnYaw, redSpawnYaw));
         }
         return models;
     }

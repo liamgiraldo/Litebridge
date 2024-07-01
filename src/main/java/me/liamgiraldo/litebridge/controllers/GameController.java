@@ -26,6 +26,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
@@ -149,10 +150,10 @@ public class GameController implements CommandExecutor, Listener {
      * @param game The game to start
      * */
     private void gameStartLogic(GameModel game) {
-        //TODO Implement game start logic
         //If the game is full, we want to start the game
         if (game.checkIfGameIsFull()) {
             System.out.println("Starting a full game!");
+            //set the cages back to their original state if they weren't there already
             game.resetCages();
             //Set the game state to starting
             game.setGameState(GameModel.GameState.STARTING);
@@ -162,23 +163,9 @@ public class GameController implements CommandExecutor, Listener {
                 player.setSaturation(20);
             }
             //teleport the players to their respective spawn points
-            Location redSpawn = new Location(game.getWorld(), game.getRedSpawnPoint()[0], game.getRedSpawnPoint()[1], game.getRedSpawnPoint()[2]);
-            Location blueSpawn = new Location(game.getWorld(), game.getBlueSpawnPoint()[0], game.getBlueSpawnPoint()[1], game.getBlueSpawnPoint()[2]);
-            for (Player player : game.getRedTeam()) {
-                player.sendMessage("Game starting in 5 seconds!");
-                player.teleport(redSpawn);
+            teleportPlayersToSpawn(game);
 
-                System.out.println("Teleporting player " + player.getName() + " to red spawn at " + redSpawn.toString());
-            }
             giveKitToPlayers(game.getRedTeam(), true);
-            for (Player player : game.getBlueTeam()) {
-                if(player == null)
-                    continue;
-                player.sendMessage("Game starting in 5 seconds!");
-                player.teleport(blueSpawn);
-
-                System.out.println("Teleporting player " + player.getName() + " to blue spawn at " + blueSpawn.toString());
-            }
             giveKitToPlayers(game.getBlueTeam(), false);
             //start the stalling timer
             game.startStallingTimer(()->{game.clearCages(); game.setGameState(GameModel.GameState.ACTIVE);});
@@ -196,8 +183,9 @@ public class GameController implements CommandExecutor, Listener {
     public void handleActiveGames(){
         for(QueueModel queue: queues){
             GameModel game = queue.getAssociatedGame();
+            System.out.println("Checking game in world: " + game.getWorld().getName() + ", state: " + game.getGameState());
             if(game.getGameState() == GameModel.GameState.ACTIVE || game.getGameState() == GameModel.GameState.STARTING){
-                System.out.println("Handling an active game at world " + game.getWorld().getName() + " with " + game.getPlayers().size() + " players.");
+                System.out.println("Handling an active game at world " + game.getWorld().getName() + " with " + game.getPlayers().length + " players.");
                 GameTimer timer = game.getGameTimer();
 
                 int countdown = timer.getCountdown();
@@ -250,7 +238,15 @@ public class GameController implements CommandExecutor, Listener {
      * @param redTeam Whether the players are on the red team or not
      * */
     private void giveKitToPlayers(Player[] players, boolean redTeam){
+        if(players == null){
+            System.out.println("I'm trying to give a kit to a null player array");
+            return;
+        }
         for (Player player: players){
+            if(player == null){
+                System.out.println("I'm trying to give a kit to a null player");
+                continue;
+            }
             player.getInventory().clear();
 
             helmetMeta.setColor(redTeam ? Color.RED : Color.BLUE);
@@ -296,7 +292,7 @@ public class GameController implements CommandExecutor, Listener {
 
         for(QueueModel queue: queues){
             GameModel game = queue.getAssociatedGame();
-            if(game.getPlayers().contains(player)){
+            if(game.checkIfPlayerIsInGame(player)){
                 if(game.checkIfPlayerIsInRedTeam(player))
                     isPlayerOnRedTeam = true;
             }
@@ -384,13 +380,11 @@ public class GameController implements CommandExecutor, Listener {
                 player.playSound(player.getLocation(), Sound.ENDERMAN_TELEPORT, 1, 1);
                 player.teleport(lobbyLocation);
             }
-            game.removeAllPlayersFromGame();
+            resetWorld(game.getWorld());
+            game.resetGame();
             queue.clearQueue();
         });
-        game.setBlueGoals(0);
-        game.setRedGoals(0);
-        game.resetCages();
-        game.getGameTimer().cancel();
+
     }
 
     /**
@@ -448,7 +442,7 @@ public class GameController implements CommandExecutor, Listener {
         Player player = e.getPlayer();
         for(QueueModel queue: queues){
             GameModel game = queue.getAssociatedGame();
-            if(game.getPlayers().contains(player)){
+            if(game.checkIfPlayerIsInGame(player)){
                 e.setCancelled(true);
             }
         }
@@ -460,7 +454,7 @@ public class GameController implements CommandExecutor, Listener {
             Player player = (Player) e.getEntity();
             for(QueueModel queue: queues){
                 GameModel game = queue.getAssociatedGame();
-                if(game.getPlayers().contains(player)){
+                if(game.checkIfPlayerIsInGame(player)){
                     e.setCancelled(true);
                 }
             }
@@ -472,7 +466,7 @@ public class GameController implements CommandExecutor, Listener {
         Player player = e.getPlayer();
         for(QueueModel queue: queues){
             GameModel game = queue.getAssociatedGame();
-            if(game.getPlayers().contains(player)){
+            if(game.checkIfPlayerIsInGame(player)){
                 if(e.getItem().getType() == Material.GOLDEN_APPLE){
                     //cancel the potion effects of the golden apple
                     player.removePotionEffect(PotionEffectType.REGENERATION);
@@ -488,7 +482,7 @@ public class GameController implements CommandExecutor, Listener {
             Player player = (Player) e.getEntity();
             for(QueueModel queue: queues){
                 GameModel game = queue.getAssociatedGame();
-                if(game.getPlayers().contains(player)){
+                if(game.checkIfPlayerIsInGame(player)){
                     if(e.getCause() == EntityDamageEvent.DamageCause.FALL){
                         e.setCancelled(true);
                     }
@@ -502,7 +496,7 @@ public class GameController implements CommandExecutor, Listener {
         Player player = e.getPlayer();
         for(QueueModel queue: queues){
             GameModel game = queue.getAssociatedGame();
-            if(game.getPlayers().contains(player)){
+            if(game.checkIfPlayerIsInGame(player)){
                 e.setCancelled(true);
             }
         }
@@ -511,12 +505,44 @@ public class GameController implements CommandExecutor, Listener {
     //if a player damages another player, and both players are on the same team, cancel the event
     @EventHandler
     public void onPlayerDamageAnotherPlayer(EntityDamageByEntityEvent e){
+        //if the damager is an arrow, and the damaged is a player
+        if(e.getDamager() instanceof Arrow && e.getEntity() instanceof Player){
+            //get the arrow
+            Arrow arrow = (Arrow) e.getDamager();
+            //get the player that was shot
+            Player player = (Player) e.getEntity();
+            //if the shooter is a player
+            if(arrow.getShooter() instanceof Player){
+                //get the player that shot the arrow
+                Player damager = (Player) arrow.getShooter();
+                //check if they are both in the same (valid) game
+                for(QueueModel queue: queues){
+                    GameModel game = queue.getAssociatedGame();
+                    if(game.checkIfPlayerIsInGame(damager) && game.checkIfPlayerIsInGame(player)){
+                        //if they are in the same game, check if they are on the same team
+                        if(game.checkIfPlayerIsInRedTeam(damager) && game.checkIfPlayerIsInRedTeam(player)){
+                            //if they are on the same team, cancel the event
+                            e.setCancelled(true);
+                            return;
+                        } else if(game.checkIfPlayerIsInBlueTeam(damager) && game.checkIfPlayerIsInBlueTeam(player)) {
+                            //if they are on the same team, cancel the event
+                            e.setCancelled(true);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        //if the damager is a player, and the damaged is a player
         if(e.getDamager() instanceof Player && e.getEntity() instanceof Player){
             Player damager = (Player) e.getDamager();
             Player player = (Player) e.getEntity();
+            //check if they are both in the same (valid) game
             for(QueueModel queue: queues){
                 GameModel game = queue.getAssociatedGame();
-                if(game.getPlayers().contains(damager) && game.getPlayers().contains(player)){
+                if(game.checkIfPlayerIsInGame(damager) && game.checkIfPlayerIsInGame(player)){
+                    //if they are in the same game, check if they are on the same team
                     if(game.checkIfPlayerIsInRedTeam(damager) && game.checkIfPlayerIsInRedTeam(player)){
                         e.setCancelled(true);
                     } else if(game.checkIfPlayerIsInBlueTeam(damager) && game.checkIfPlayerIsInBlueTeam(player)){
@@ -533,7 +559,7 @@ public class GameController implements CommandExecutor, Listener {
             Player player = (Player) e.getEntity();
             for(QueueModel queue: queues){
                 GameModel game = queue.getAssociatedGame();
-                if(game.getPlayers().contains(player)){
+                if(game.checkIfPlayerIsInGame(player)){
                     if(game.getGameState() == GameModel.GameState.STARTING || game.getGameState() == GameModel.GameState.INACTIVE || game.getGameState() == GameModel.GameState.QUEUEING){
                         e.setCancelled(true);
                     }
@@ -548,13 +574,13 @@ public class GameController implements CommandExecutor, Listener {
     }
 
     @EventHandler
-    public void onPlayerShootBow(org.bukkit.event.entity.EntityShootBowEvent e){
-        if(e.getEntity() instanceof Player){
+    public void onPlayerShootBow(org.bukkit.event.entity.EntityShootBowEvent e) {
+        if (e.getEntity() instanceof Player) {
             Player player = (Player) e.getEntity();
-            for(QueueModel queue: queues){
+            for (QueueModel queue : queues) {
                 GameModel game = queue.getAssociatedGame();
-                if(game.getPlayers().contains(player)){
-                    game.startStallingTimer(()->{
+                if (game.checkIfPlayerIsInGame(player)) {
+                    game.startStallingTimer(() -> {
                         //Give the player an arrow
                         ItemStack arrow = new ItemStack(Material.ARROW, 1);
                         player.playSound(player.getLocation(), Sound.CHICKEN_EGG_POP, 1, 1);
@@ -566,6 +592,21 @@ public class GameController implements CommandExecutor, Listener {
     }
 
     @EventHandler
+    public void onProjectileHit(ProjectileHitEvent e){
+        if(e.getEntity() instanceof Arrow){
+            Arrow arrow = (Arrow) e.getEntity();
+            for(QueueModel queue: queues){
+                GameModel game = queue.getAssociatedGame();
+                if(game.getWorld() == arrow.getWorld()){
+                    arrow.remove();
+                }
+            }
+        }
+    }
+
+
+
+    @EventHandler
     public void onDeathEvent(EntityDamageEvent e) //Listens to EntityDamageEvent
     {
         if(e.getEntity() instanceof  Player) {
@@ -573,7 +614,7 @@ public class GameController implements CommandExecutor, Listener {
             Player damager = null;
             for(QueueModel queue: queues){
                 GameModel game = queue.getAssociatedGame();
-                if(game.getPlayers().contains(player)){
+                if(game.checkIfPlayerIsInGame(player)){
                     double finalDamage = e.getFinalDamage();
                     if(e instanceof EntityDamageByEntityEvent){
                         EntityDamageByEntityEvent entityDamage = (EntityDamageByEntityEvent) e;
@@ -626,9 +667,33 @@ public class GameController implements CommandExecutor, Listener {
 
     private void teleportPlayerBasedOnTeam(Player p, GameModel game){
         if(game.checkIfPlayerIsInRedTeam(p)){
-            p.teleport(new Location(game.getWorld(), game.getRedSpawnPoint()[0], game.getRedSpawnPoint()[1], game.getRedSpawnPoint()[2]));
+            Location redSpawn = new Location(game.getWorld(), game.getRedSpawnPoint()[0], game.getRedSpawnPoint()[1], game.getRedSpawnPoint()[2]);
+            redSpawn.setYaw(game.getRedSpawnYaw());
+            p.teleport(redSpawn);
         } else if(game.checkIfPlayerIsInBlueTeam(p)){
-            p.teleport(new Location(game.getWorld(), game.getBlueSpawnPoint()[0], game.getBlueSpawnPoint()[1], game.getBlueSpawnPoint()[2]));
+            Location blueSpawn = new Location(game.getWorld(), game.getBlueSpawnPoint()[0], game.getBlueSpawnPoint()[1], game.getBlueSpawnPoint()[2]);
+            blueSpawn.setYaw(game.getBlueSpawnYaw());
+            p.teleport(blueSpawn);
+        }
+    }
+
+    private void teleportPlayersToSpawn(GameModel game) {
+        Location redSpawn = new Location(game.getWorld(), game.getRedSpawnPoint()[0], game.getRedSpawnPoint()[1], game.getRedSpawnPoint()[2]);
+        redSpawn.setYaw(game.getRedSpawnYaw());
+        Location blueSpawn = new Location(game.getWorld(), game.getBlueSpawnPoint()[0], game.getBlueSpawnPoint()[1], game.getBlueSpawnPoint()[2]);
+        blueSpawn.setYaw(game.getBlueSpawnYaw());
+
+        for (Player player : game.getRedTeam()) {
+            if (player != null) {
+                player.teleport(redSpawn);
+                System.out.println("Teleporting player " + player.getName() + " to red spawn at " + redSpawn.toString());
+            }
+        }
+        for (Player player : game.getBlueTeam()) {
+            if (player != null) {
+                player.teleport(blueSpawn);
+                System.out.println("Teleporting player " + player.getName() + " to blue spawn at " + blueSpawn.toString());
+            }
         }
     }
 
@@ -641,7 +706,7 @@ public class GameController implements CommandExecutor, Listener {
         Block block = e.getBlock();
         for(QueueModel queue: queues){
             //if the player is in a starting, queueing, or inactive game, cancel the block change
-            if(queue.getAssociatedGame().getPlayers().contains(p)){
+            if(queue.getAssociatedGame().checkIfPlayerIsInGame(p)){
                 GameModel game = queue.getAssociatedGame();
 
                 //TODO: Remove this, this is just for testing
@@ -687,7 +752,7 @@ public class GameController implements CommandExecutor, Listener {
         Player p = e.getPlayer();
         for(QueueModel queue: queues){
             //if the player is in a starting, queueing, or inactive game, cancel the block change
-            if(queue.getAssociatedGame().getPlayers().contains(p)){
+            if(queue.getAssociatedGame().checkIfPlayerIsInGame(p)){
                 GameModel game = queue.getAssociatedGame();
 
                 //TODO: This is just for testing, remove this
@@ -794,7 +859,7 @@ public class GameController implements CommandExecutor, Listener {
 
         if(game.checkIfPlayerIsInRedTeam(player)){
             player.sendMessage("Wrong goal! Teleporting you back to your spawn point.");
-            player.teleport(new Location(game.getWorld(), game.getRedSpawnPoint()[0], game.getRedSpawnPoint()[1], game.getRedSpawnPoint()[2]));
+            teleportPlayerBasedOnTeam(player, game);
         } else if(game.checkIfPlayerIsInBlueTeam(player)){
             game.setBlueGoals(game.getBlueGoals() + 1);
             player.sendMessage("You scored a goal for the blue team!");
@@ -808,7 +873,11 @@ public class GameController implements CommandExecutor, Listener {
 //            player.teleport(new Location(game.getWorld(), game.getBlueSpawnPoint()[0], game.getBlueSpawnPoint()[1], game.getBlueSpawnPoint()[2]));
 
             game.resetCages();
-            game.startStallingTimer(()->{game.clearCages();});
+            if(!gameIsWon(game)) {
+                game.startStallingTimer(() -> {
+                    game.clearCages();
+                });
+            }
 
             player.playSound(player.getLocation(), Sound.FIREWORK_LAUNCH, 1, 1);
             updateScoreboard(game);
@@ -826,7 +895,7 @@ public class GameController implements CommandExecutor, Listener {
 
         if(game.checkIfPlayerIsInBlueTeam(player)){
             player.sendMessage("Wrong goal! Teleporting you back to your spawn point.");
-            player.teleport(new Location(game.getWorld(), game.getBlueSpawnPoint()[0], game.getBlueSpawnPoint()[1], game.getBlueSpawnPoint()[2]));
+            teleportPlayerBasedOnTeam(player, game);
         } else if(game.checkIfPlayerIsInRedTeam(player)){
             game.setRedGoals(game.getRedGoals() + 1);
             player.sendMessage("You scored a goal for the red team!");
@@ -840,7 +909,13 @@ public class GameController implements CommandExecutor, Listener {
 //            player.teleport(new Location(game.getWorld(), game.getRedSpawnPoint()[0], game.getRedSpawnPoint()[1], game.getRedSpawnPoint()[2]));
 
             game.resetCages();
-            game.startStallingTimer(()->{game.clearCages(); player.playSound(player.getLocation(), Sound.NOTE_PLING, 1, 1);});
+            //if the game is not won, start the stalling timer
+            //we don't want to clear the cages if the game is won
+            if(!gameIsWon(game)) {
+                game.startStallingTimer(() -> {
+                    game.clearCages();
+                });
+            }
 
             player.playSound(player.getLocation(), Sound.FIREWORK_LAUNCH, 1, 1);
             updateScoreboard(game);
@@ -894,5 +969,9 @@ public class GameController implements CommandExecutor, Listener {
         player.getInventory().setArmorContents(null);
 
         giveKitToSinglePlayer(player);
+    }
+
+    private boolean gameIsWon(GameModel game){
+        return hasTheRedTeamWon(game) || hasTheBlueTeamWon(game);
     }
 }

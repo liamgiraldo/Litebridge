@@ -4,6 +4,7 @@ import me.liamgiraldo.litebridge.Litebridge;
 import me.liamgiraldo.litebridge.runnables.GameTimer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -18,6 +19,8 @@ import java.util.ArrayList;
 public class GameModel {
 
     private int[] blueSpawnPoint;
+    private float blueSpawnYaw;
+
     private int[][] blueGoalBounds;
 
     private int[][] blueCageBounds;
@@ -26,6 +29,8 @@ public class GameModel {
     private ArrayList<BlockStateModel> originalBlueCageBlocks;
 
     private int[] redSpawnPoint;
+    private float redSpawnYaw;
+
     private int[][] redGoalBounds;
     private int[][] redCageBounds;
 
@@ -71,7 +76,7 @@ public class GameModel {
     private int goalsToWin;
     private int maxPlayers;
 
-    private ArrayList<Player> players;
+    private Player[] players;
     private Player[] redTeam;
     private Player[] blueTeam;
 
@@ -94,7 +99,7 @@ public class GameModel {
      * @param goalsToWin     The number of goals required to win this game
      * @param maxPlayers     The maximum number of players permitted in this bridge game
      */
-    public GameModel(World world, int[] blueSpawnPoint, int[] redSpawnPoint, int[][] blueGoalBounds, int[][] redGoalBounds, int[][] blueCageBounds, int[][] redCageBounds, int[][] worldBounds, int killPlane, int goalsToWin, int maxPlayers, Litebridge plugin){
+    public GameModel(World world, int[] blueSpawnPoint, int[] redSpawnPoint, int[][] blueGoalBounds, int[][] redGoalBounds, int[][] blueCageBounds, int[][] redCageBounds, int[][] worldBounds, int killPlane, int goalsToWin, int maxPlayers, Litebridge plugin, float blueSpawnYaw, float redSpawnYaw){
         this.world = world;
         this.defaultMap = world;
         this.worldBounds = worldBounds;
@@ -115,7 +120,7 @@ public class GameModel {
         this.maxPlayers = maxPlayers;
 
         //No players when game model is created
-        this.players = new ArrayList<Player>();
+        this.players = new Player[maxPlayers];
         this.redTeam = new Player[maxPlayers /2];
         this.blueTeam = new Player[maxPlayers /2];
 
@@ -125,6 +130,9 @@ public class GameModel {
         this.gameState = GameState.INACTIVE;
 
         this.plugin = plugin;
+
+        this.redSpawnYaw = redSpawnYaw;
+        this.blueSpawnYaw = blueSpawnYaw;
         
         this.scoreboardManager = Bukkit.getScoreboardManager();
 
@@ -158,8 +166,8 @@ public class GameModel {
         }
 
         this.blueCageBlocks = new ArrayList<Block>();
-        int blueBound1[] = blueCageBounds[0];
-        int blueBound2[] = blueCageBounds[1];
+        int[] blueBound1 = blueCageBounds[0];
+        int[] blueBound2 = blueCageBounds[1];
         int minBlueX = Math.min(blueBound1[0], blueBound2[0]);
         int maxBlueX = Math.max(blueBound1[0], blueBound2[0]);
         int minBlueY = Math.min(blueBound1[1], blueBound2[1]);
@@ -341,11 +349,11 @@ public class GameModel {
         this.maxPlayers = maxPlayers;
     }
 
-    public ArrayList<Player> getPlayers() {
+    public Player[] getPlayers() {
         return players;
     }
 
-    public void setPlayers(ArrayList<Player> players) {
+    public void setPlayers(Player[] players) {
         this.players = players;
     }
 
@@ -361,28 +369,90 @@ public class GameModel {
         return killPlane;
     }
 
+    public float getBlueSpawnYaw() {
+        return blueSpawnYaw;
+    }
+
+    public float getRedSpawnYaw() {
+        return redSpawnYaw;
+    }
+
+    public void setBlueSpawnYaw(float blueSpawnYaw) {
+        this.blueSpawnYaw = blueSpawnYaw;
+    }
+
+    public void setRedSpawnYaw(float redSpawnYaw) {
+        this.redSpawnYaw = redSpawnYaw;
+    }
+
     public void addPlayer(Player player) {
         //when we add a player, we also need to assign them to a team (red or blue)
-        this.players.add(player);
+        //if the game is full, we should not add the player
+        if(!checkIfGameIsFull()){
+            for(int i = 0; i < players.length; i++){
+                if(players[i] == null){
+                    players[i] = player;
+                    break;
+                }
+            }
+        }
+        else{
+            player.sendMessage(ChatColor.RED + "We tried to send you to a full game. You should never see this message!");
+        }
         if (checkIfGameIsFull()) {
             assignPlayerTeams(this.players);
         }
     }
 
     public void removePlayer(Player player) {
-        this.players.remove(player);
+        for(int i = 0; i < players.length; i++){
+            if(players[i] == player){
+                players[i] = null;
+                break;
+            }
+        }
+        for(int i = 0; i < redTeam.length; i++){
+            if(redTeam[i] == player){
+                redTeam[i] = null;
+                break;
+            }
+        }
+        for(int i = 0; i < blueTeam.length; i++){
+            if(blueTeam[i] == player){
+                blueTeam[i] = null;
+                break;
+            }
+        }
     }
 
     public void removeAllPlayersFromGame() {
-        this.players.clear();
+        for(int i = 0; i < players.length; i++){
+            players[i] = null;
+        }
+        for(int i = 0; i < redTeam.length; i++){
+            redTeam[i] = null;
+        }
+        for(int i = 0; i < blueTeam.length; i++){
+            blueTeam[i] = null;
+        }
     }
 
     public boolean checkIfGameIsFull() {
-        return this.players.size() == this.maxPlayers;
+        for(Player p : players){
+            if(p == null){
+                return false;
+            }
+        }
+        return true;
     }
 
     public boolean checkIfPlayerIsInGame(Player player) {
-        return this.players.contains(player);
+        for(Player p : players){
+            if(p == player){
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean checkIfPlayerIsInRedTeam(Player player) {
@@ -454,7 +524,7 @@ public class GameModel {
      * I suppose it's fine here.
      * @param players The players to assign to a team
      * */
-    private void assignPlayerTeams(ArrayList<Player> players) {
+    private void assignPlayerTeams(Player[] players) {
         //First, check which team has fewer players
         //Then assign each player in the array list to either the red team or the blue team
         //Assign based on which team has fewer players,
@@ -536,6 +606,9 @@ public class GameModel {
     public void clearCages(){
         clearRedCage();
         clearBlueCage();
+        for(Player p : players){
+            p.playSound(p.getLocation(), Sound.NOTE_PLING, 1, 1);
+        }
     }
 
     public void startStallingTimer(Runnable onEnd) {
@@ -545,5 +618,15 @@ public class GameModel {
                 onEnd.run();
             }
         }.runTaskLater(plugin, 5 * 20); // 5 seconds * 20 ticks/second
+    }
+
+    public void resetGame() {
+        setGameState(GameState.INACTIVE);
+        removeAllPlayersFromGame();
+        setRedGoals(0);
+        setBlueGoals(0);
+        resetCages();
+        gameTimer.cancel();
+        startStallingTimer(null);
     }
 }
