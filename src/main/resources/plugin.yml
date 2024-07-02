@@ -59,16 +59,28 @@ commands:
     permission: litebridge.queue
     permission-message: You don't have permission to queue bridge games.
   checkqueues:
-    description: Shows all queues for all maps.
+    description: Shows all queues for all maps. This method is deprecated, use /litebridgedebug instead.
     usage: /<command>
     aliases:
       - cq
     permission: litebridge.checkqueues
     permission-message: You don't have permission to check queues.
+  litebridgedebug:
+    description: Shows debug information about the plugin.
+    usage: /<command> [config|queues|models|worlds|me] or /<command> player [uuid|name|world|game|queue|team] or /<command> game [world|max|queue|red|blue|winner|state|time|score] or /<command> queue [players|world|max|game]
+    permission: litebridge.debug
+    permission-message: You don't have permission to debug the plugin.
+    aliases:
+      - lbdebug
+      - lbd
+      - ld
 permissions:
   litebridge.god:
     description: Allows someone to run the /god command
     default: op
   litebridge.queue:
     description: Allows someone to queue into a bridge game
+    default: op
+  litebridge.litebridgedebug:
+    description: Allows someone to debug the plugin
     default: op

@@ -9,8 +9,22 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 
+/***
+ * This was the original command to check queues. It was replaced by the DebugCommand.
+ * @deprecated use {@link DebugCommand} instead
+ * */
+@Deprecated
 public class CheckqueueCommand implements CommandExecutor {
     Litebridge litebridge;
+
+
+    /**
+     * This was the original command to check queues. It was replaced by the DebugCommand.
+     *
+     * @param litebridge The main class
+     * @deprecated use {@link DebugCommand} instead
+     * */
+    @Deprecated
     public CheckqueueCommand(Litebridge litebridge){
         this.litebridge = litebridge;
     }
@@ -24,6 +38,12 @@ public class CheckqueueCommand implements CommandExecutor {
         return false;
     }
 
+    /**
+     * Grabs the queues and returns them as a string array
+     * @return The queues as a string array
+     * @deprecated use {@link DebugCommand} instead
+     * */
+    @Deprecated
     private String[] grabQueues(){
         String[] queues = new String[litebridge.getQueues().size()];
         ArrayList<QueueModel> queueModelArrayList = litebridge.getQueues();

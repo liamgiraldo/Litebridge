@@ -58,6 +58,10 @@ public class GameController implements CommandExecutor, Listener {
     private LeatherArmorMeta leggingsMeta = (LeatherArmorMeta) leggings.getItemMeta();
     private LeatherArmorMeta bootsMeta = (LeatherArmorMeta) boots.getItemMeta();
 
+    private String gameIsStartingTitle = ChatColor.GOLD + "" + ChatColor.BOLD + "Game is starting";
+    private String subtitle = ChatColor.GRAY + "Cages open in:";
+    private String playerScoredTitle = ChatColor.GRAY + "" + ChatColor.BOLD + "Scored!";
+
     //Map of world to list of block changes
     private final Map<World, DoublyLinkedList> changes = new HashMap<>();
 
@@ -183,7 +187,7 @@ public class GameController implements CommandExecutor, Listener {
     public void handleActiveGames(){
         for(QueueModel queue: queues){
             GameModel game = queue.getAssociatedGame();
-            System.out.println("Checking game in world: " + game.getWorld().getName() + ", state: " + game.getGameState());
+//            System.out.println("Checking game in world: " + game.getWorld().getName() + ", state: " + game.getGameState());
             if(game.getGameState() == GameModel.GameState.ACTIVE || game.getGameState() == GameModel.GameState.STARTING){
                 System.out.println("Handling an active game at world " + game.getWorld().getName() + " with " + game.getPlayers().length + " players.");
                 GameTimer timer = game.getGameTimer();
@@ -860,26 +864,41 @@ public class GameController implements CommandExecutor, Listener {
         if(game.checkIfPlayerIsInRedTeam(player)){
             player.sendMessage("Wrong goal! Teleporting you back to your spawn point.");
             teleportPlayerBasedOnTeam(player, game);
-        } else if(game.checkIfPlayerIsInBlueTeam(player)){
+        } else if(game.checkIfPlayerIsInBlueTeam(player)) {
             game.setBlueGoals(game.getBlueGoals() + 1);
-            player.sendMessage("You scored a goal for the blue team!");
+
+            String localPlayerScoredTitle = ChatColor.RED + player.getName() + playerScoredTitle;
 
             //for all players in the game, teleport them back to their spawn points
-            for(Player p: game.getPlayers()){
+            for (Player p : game.getPlayers()) {
                 teleportPlayerBasedOnTeam(p, game);
                 p.setHealth(20);
-                resetPlayerInventory(player);
+                resetPlayerInventory(p);
+
+                p.sendMessage(player.getName() + " scored a goal for the blue team!");
+                p.playSound(p.getLocation(), Sound.FIREWORK_LAUNCH, 1, 1);
+
+                //we also need to reset all potion effects
+                p.getActivePotionEffects().forEach(potionEffect -> p.removePotionEffect(potionEffect.getType()));
             }
 //            player.teleport(new Location(game.getWorld(), game.getBlueSpawnPoint()[0], game.getBlueSpawnPoint()[1], game.getBlueSpawnPoint()[2]));
 
             game.resetCages();
-            if(!gameIsWon(game)) {
-                game.startStallingTimer(() -> {
+            if (!gameIsWon(game)) {
+                game.startStallingTimer(() -> {//seconds left in this timer;
                     game.clearCages();
+                    for (Player p : game.getPlayers()) {
+                        p.resetTitle();
+                    }
+                }, (countdown) -> {
+                    String localPlayerScoredSubtitle = subtitle + ChatColor.GOLD + countdown;
+                    for (Player p : game.getPlayers()) {
+                        p.sendTitle(localPlayerScoredTitle, localPlayerScoredSubtitle);
+                    }
                 });
             }
 
-            player.playSound(player.getLocation(), Sound.FIREWORK_LAUNCH, 1, 1);
+
             updateScoreboard(game);
         }
     }
@@ -898,13 +917,19 @@ public class GameController implements CommandExecutor, Listener {
             teleportPlayerBasedOnTeam(player, game);
         } else if(game.checkIfPlayerIsInRedTeam(player)){
             game.setRedGoals(game.getRedGoals() + 1);
-            player.sendMessage("You scored a goal for the red team!");
+
+            String localPlayerScoredTitle = ChatColor.BLUE + player.getName() + playerScoredTitle;
 
             //for all players in the game, teleport them back to their spawn points
             for(Player p: game.getPlayers()){
-                resetPlayerInventory(player);
+                resetPlayerInventory(p);
                 p.setHealth(20);
                 teleportPlayerBasedOnTeam(p, game);
+
+                p.sendMessage(player.getName() + " scored a goal for the red team!");
+                p.playSound(p.getLocation(), Sound.FIREWORK_LAUNCH, 1, 1);
+
+                p.getActivePotionEffects().forEach(potionEffect -> p.removePotionEffect(potionEffect.getType()));
             }
 //            player.teleport(new Location(game.getWorld(), game.getRedSpawnPoint()[0], game.getRedSpawnPoint()[1], game.getRedSpawnPoint()[2]));
 
@@ -912,12 +937,19 @@ public class GameController implements CommandExecutor, Listener {
             //if the game is not won, start the stalling timer
             //we don't want to clear the cages if the game is won
             if(!gameIsWon(game)) {
-                game.startStallingTimer(() -> {
+                game.startStallingTimer(() -> {//seconds left in this timer;
                     game.clearCages();
+                    for(Player p: game.getPlayers()){
+                        p.resetTitle();
+                    }
+                }, (countdown)->{
+                    String localPlayerScoredSubtitle = subtitle + ChatColor.GOLD + countdown;
+                    for(Player p: game.getPlayers()){
+                        p.sendTitle(localPlayerScoredTitle, localPlayerScoredSubtitle);
+                    }
                 });
             }
 
-            player.playSound(player.getLocation(), Sound.FIREWORK_LAUNCH, 1, 1);
             updateScoreboard(game);
         }
     }
@@ -973,5 +1005,15 @@ public class GameController implements CommandExecutor, Listener {
 
     private boolean gameIsWon(GameModel game){
         return hasTheRedTeamWon(game) || hasTheBlueTeamWon(game);
+    }
+
+    @Override
+    public String toString(){
+        //return a string containing all of the games, the world that game is taking place in, and the state of that game
+        StringBuilder sb = new StringBuilder();
+        for(QueueModel queue: queues){
+            sb.append("Game in world: ").append(queue.getAssociatedGame().getWorld().getName()).append(" is in state: ").append(queue.getAssociatedGame().getGameState()).append("\n");
+        }
+        return sb.toString();
     }
 }

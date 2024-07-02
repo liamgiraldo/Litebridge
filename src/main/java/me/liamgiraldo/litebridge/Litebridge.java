@@ -10,6 +10,7 @@ import me.liamgiraldo.litebridge.models.GameModel;
 import me.liamgiraldo.litebridge.models.QueueModel;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -92,6 +93,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
         getCommand("bridgewand").setExecutor(mapCreator);
         getCommand("litebridge").setExecutor(queueController);
         getCommand("checkqueues").setExecutor(new CheckqueueCommand(this));
+        getCommand("litebridgedebug").setExecutor(new DebugCommand(this));
 
 
     }
@@ -148,5 +150,34 @@ public final class Litebridge extends JavaPlugin implements Listener {
 
     public ArrayList<QueueModel> getQueues(){
         return this.queues;
+    }
+
+    public ArrayList<GameModel> getModels() {
+        return this.models;
+    }
+
+    @Override
+    public String toString(){
+        return this.getName();
+    }
+
+    public GameModel getGameModelByWorld(World world) {
+        for (GameModel model:
+                models) {
+            if(model.getWorld().equals(world)){
+                return model;
+            }
+        }
+        return null;
+    }
+
+    public QueueModel getQueueModelByWorld(World world) {
+        for (QueueModel model:
+                queues) {
+            if(model.getWorld().equals(world)){
+                return model;
+            }
+        }
+        return null;
     }
 }

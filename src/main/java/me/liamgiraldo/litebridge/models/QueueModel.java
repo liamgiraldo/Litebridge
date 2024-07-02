@@ -2,6 +2,7 @@ package me.liamgiraldo.litebridge.models;
 
 import me.liamgiraldo.litebridge.Litebridge;
 import me.liamgiraldo.litebridge.events.QueueFullEvent;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -159,5 +160,41 @@ public class QueueModel {
         for(int i = 0; i < queue.length; i++){
             queue[i] = null;
         }
+    }
+
+    @Override
+    public String toString(){
+        return ChatColor.AQUA + "" + ChatColor.BOLD + "QueueModel{" +
+                ChatColor.GREEN + "queue=" + ChatColor.WHITE + Arrays.toString(queue) + ChatColor.GREEN + ", " +
+                "maxPlayers=" + ChatColor.WHITE + maxPlayers + ChatColor.GREEN + ", " +
+                "worldName=" + ChatColor.WHITE + worldName + ChatColor.GREEN + ", " +
+                "associatedGame=" + ChatColor.WHITE + associatedGame + ChatColor.GREEN + ", " +
+                "world=" + ChatColor.WHITE + world.getName() + ChatColor.GREEN + ", " +
+                "startTimer=" + ChatColor.WHITE + startTimer + ChatColor.GREEN + "}";
+    }
+
+    public boolean isPlayerInQueue(Player player) {
+        for (Player p:
+                queue) {
+            if(p != null && p.getUniqueId().equals(player.getUniqueId())){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int getNumberOfPlayersInQueue(){
+        int count = 0;
+        for (Player p:
+                queue) {
+            if(p != null){
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public float getPercentageFull(){
+        return (float)getNumberOfPlayersInQueue() / (float)maxPlayers;
     }
 }

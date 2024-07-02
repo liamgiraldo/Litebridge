@@ -2,6 +2,7 @@ package me.liamgiraldo.litebridge.models;
 
 import me.liamgiraldo.litebridge.Litebridge;
 import me.liamgiraldo.litebridge.runnables.GameTimer;
+import me.liamgiraldo.litebridge.runnables.OnEverySecond;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
@@ -9,12 +10,14 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class GameModel {
 
@@ -611,13 +614,44 @@ public class GameModel {
         }
     }
 
-    public void startStallingTimer(Runnable onEnd) {
-        new BukkitRunnable() {
+    public void startStallingTimer(Runnable onFinish, OnEverySecond onEverySecond) {
+        int delay = 5; // delay for 5 sec.
+        int period = 1; // repeat every sec.
+        BukkitScheduler scheduler = plugin.getServer().getScheduler();
+        scheduler.scheduleSyncRepeatingTask(plugin, new Runnable() {
+            int countdown = delay;
             @Override
             public void run() {
-                onEnd.run();
+                onEverySecond.run(countdown);
+                countdown--;
+                if (countdown < 0) {
+                    // Actions you want to perform when the timer finishes
+                    onFinish.run();
+                    // Cancel the timer
+                    scheduler.cancelTasks(plugin);
+                }
             }
-        }.runTaskLater(plugin, 5 * 20); // 5 seconds * 20 ticks/second
+        }, 0L, period * 20L);
+    }
+
+    public void startStallingTimer(Runnable onFinish) {
+        int delay = 5; // delay for 5 sec.
+        int period = 1; // repeat every sec.
+        BukkitScheduler scheduler = plugin.getServer().getScheduler();
+        scheduler.scheduleSyncRepeatingTask(plugin, new Runnable() {
+            int countdown = delay;
+            @Override
+            public void run() {
+                System.out.println("Performing action, seconds remaining: " + countdown);
+                countdown--;
+                if (countdown < 0) {
+                    // Actions you want to perform when the timer finishes
+                    onFinish.run();
+                    // Cancel the timer
+                    scheduler.cancelTasks(plugin);
+                }
+            }
+        }, 0L, period * 20L);
     }
 
     public void resetGame() {
@@ -628,5 +662,58 @@ public class GameModel {
         resetCages();
         gameTimer.cancel();
         startStallingTimer(null);
+    }
+
+    @Override
+    public String toString(){
+        return ChatColor.AQUA + "" + ChatColor.BOLD + "GameModel{" +
+                ChatColor.GREEN + "world=" + ChatColor.WHITE + world.getName() + ChatColor.GREEN + ", " +
+                "blueSpawnPoint=" + ChatColor.WHITE + arrayToString(blueSpawnPoint) + ChatColor.GREEN + ", " +
+                "blueGoalBounds=" + ChatColor.WHITE + doubleArrayToString(blueGoalBounds) + ChatColor.GREEN + ", " +
+                "blueCageBounds=" + ChatColor.WHITE + doubleArrayToString(blueCageBounds) + ChatColor.GREEN + ", " +
+                "redSpawnPoint=" + ChatColor.WHITE + arrayToString(redSpawnPoint) + ChatColor.GREEN + ", " +
+                "redGoalBounds=" + ChatColor.WHITE + doubleArrayToString(redGoalBounds) + ChatColor.GREEN + ", " +
+                "redCageBounds=" + ChatColor.WHITE + doubleArrayToString(redCageBounds) + ChatColor.GREEN + ", " +
+                "worldBounds=" + ChatColor.WHITE + doubleArrayToString(worldBounds) + ChatColor.GREEN + ", " +
+                "gameState=" + ChatColor.WHITE + gameState + ChatColor.GREEN + ", " +
+                "goalsToWin=" + ChatColor.WHITE + goalsToWin + ChatColor.GREEN + ", " +
+                "maxPlayers=" + ChatColor.WHITE + maxPlayers + ChatColor.GREEN + ", " +
+                "players=" + ChatColor.WHITE + Arrays.toString(players) + ChatColor.GREEN + ", " +
+                "redTeam=" + ChatColor.WHITE + Arrays.toString(redTeam) + ChatColor.GREEN + ", " +
+                "blueTeam=" + ChatColor.WHITE + Arrays.toString(blueTeam) + ChatColor.GREEN + ", " +
+                "defaultMap=" + ChatColor.WHITE + defaultMap + ChatColor.GREEN + ", " +
+                "gameTimer=" + ChatColor.WHITE + gameTimer.toString() + ChatColor.GREEN + ", " +
+                "gameTimeInSeconds=" + ChatColor.WHITE + gameTimeInSeconds + ChatColor.GREEN + ", " +
+                "plugin=" + ChatColor.WHITE + plugin.toString() + ChatColor.GREEN + ", " +
+                "killPlane=" + ChatColor.WHITE + killPlane + ChatColor.GREEN + "}";
+    }
+
+    private String doubleArrayToString(int[][] array){
+        StringBuilder builder = new StringBuilder();
+        for(int i = 0; i < array.length; i++){
+            builder.append(arrayToString(array[i]));
+            builder.append(" ");
+        }
+        return builder.toString();
+    }
+
+    private String arrayToString(int[] array){
+        StringBuilder builder = new StringBuilder();
+        for(int i = 0; i < array.length; i++){
+            builder.append(array[i]);
+            builder.append(" ");
+        }
+        return builder.toString();
+    }
+
+    public String returnWinner() {
+        //a winner is someone who has reached the max goals
+        if (getRedGoals() >= getGoalsToWin()) {
+            return "Red";
+        } else if (getBlueGoals() >= getGoalsToWin()) {
+            return "Blue";
+        } else {
+            return "No one";
+        }
     }
 }

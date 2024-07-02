@@ -27,4 +27,11 @@ public class GameTimer extends BukkitRunnable {
     public int getCountdown() {
         return countdown;
     }
+
+    @Override
+    public String toString(){
+        return "GameTimer{" +
+                "countdown=" + countdown +
+                '}';
+    }
 }

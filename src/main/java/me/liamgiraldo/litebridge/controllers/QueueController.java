@@ -161,7 +161,11 @@ public class QueueController implements EventListener, CommandExecutor {
         //if the first argument is null
         else{
             //try queuing any fill randomly. This is the same as litebridge random
-            QueueModel queue1 = queues.get((int) (Math.random()*queues.size()));
+
+            //we shouldn't find a random queue if someone does /q.
+            //we should find the most full queue, and add the player to that.
+            //find the most full queue
+            QueueModel queue1 = findQueueWithMostPlayersButNotFull();
             mapName = queue1.getWorld().getName();
             //Grab a random queue
             int recursionDepth = 10;
@@ -281,4 +285,45 @@ public class QueueController implements EventListener, CommandExecutor {
         System.out.println("This player wasn't even in a queue.");
     }
 
+    @Override
+    public String toString(){
+        //return a string containing all of the queues, and their players
+        StringBuilder builder = new StringBuilder();
+        for(QueueModel q: queues){
+            builder.append(q.getWorld().getName());
+            builder.append("\n");
+            for(Player p: q.getQueue()){
+                if(p == null){
+                    builder.append("[Empty], ");
+                } else {
+                    builder.append("[").append(p.getName()).append("], ");
+                }
+            }
+            builder.append("\n");
+        }
+        return builder.toString();
+    }
+
+    private QueueModel findQueueWithMostPlayersButNotFull(){
+        QueueModel mostPlayers = null;
+        //for each queue
+        for(QueueModel q : queues){
+            //if the queue is null, skip it
+            if(q == null) {
+                continue;
+            }
+            else{
+                //if the mostPlayers queue is null, set it to the current queue
+                if(mostPlayers == null){
+                    mostPlayers = q;
+                }
+                //if the current queue has more players than the mostPlayers queue and the current queue isn't full
+                else if(q.getPercentageFull() > mostPlayers.getPercentageFull() && !q.isQueueFull()){
+                    //set the mostPlayers queue to the current queue
+                    mostPlayers = q;
+                }
+            }
+        }
+        return mostPlayers;
+    }
 }
