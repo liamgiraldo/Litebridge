@@ -6,6 +6,11 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+/**
+ * Sets the join message for the server
+ * @deprecated This will be removed in a future update, this is not the responsibility of the plugin
+ */
+@Deprecated
 public class SetMessageCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

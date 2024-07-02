@@ -1,8 +1,8 @@
 package me.liamgiraldo.litebridge.models;
 
+import jdk.internal.org.jline.utils.Display;
 import me.liamgiraldo.litebridge.Litebridge;
 import me.liamgiraldo.litebridge.runnables.GameTimer;
-import me.liamgiraldo.litebridge.runnables.OnEverySecond;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
@@ -10,11 +10,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Score;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.scoreboard.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -88,6 +84,9 @@ public class GameModel {
 
     private GameTimer gameTimer;
     private int gameTimeInSeconds = 900;
+
+    //5 seconds stalling timer
+    private int stallingTimerCountdown = 5;
 
     /**
      * @param world          The bridge map the game will use
@@ -395,6 +394,8 @@ public class GameModel {
             for(int i = 0; i < players.length; i++){
                 if(players[i] == null){
                     players[i] = player;
+                    //make sure the player gets assigned to a team
+                    assignPlayerToTeam(player);
                     break;
                 }
             }
@@ -402,8 +403,26 @@ public class GameModel {
         else{
             player.sendMessage(ChatColor.RED + "We tried to send you to a full game. You should never see this message!");
         }
-        if (checkIfGameIsFull()) {
-            assignPlayerTeams(this.players);
+    }
+
+    private void assignPlayerToTeam(Player p){
+        //if the red team has less players than the blue team, assign them to the red team
+        //if the blue team has less players than the red team, assign them to the blue team
+        //if both teams have the same number of players, assign them to a random team
+        if(howManyPlayersInRedTeam() < howManyPlayersInBlueTeam()){
+            addPlayerToRedTeam(p);
+        }
+        else if(howManyPlayersInBlueTeam() < howManyPlayersInRedTeam()){
+            addPlayerToBlueTeam(p);
+        }
+        else{
+            //if both teams have the same number of players, assign randomly
+            if(Math.random() < 0.5){
+                addPlayerToRedTeam(p);
+            }
+            else{
+                addPlayerToBlueTeam(p);
+            }
         }
     }
 
@@ -614,45 +633,38 @@ public class GameModel {
         }
     }
 
-    public void startStallingTimer(Runnable onFinish, OnEverySecond onEverySecond) {
-        int delay = 5; // delay for 5 sec.
-        int period = 1; // repeat every sec.
-        BukkitScheduler scheduler = plugin.getServer().getScheduler();
-        scheduler.scheduleSyncRepeatingTask(plugin, new Runnable() {
-            int countdown = delay;
+    //This isn't going to work if a player scores a goal in less than 5 seconds before the last one
+    public void startStallingTimer(Runnable onEnd, Runnable onTick) {
+        new BukkitRunnable() {
             @Override
             public void run() {
-                onEverySecond.run(countdown);
-                countdown--;
-                if (countdown < 0) {
-                    // Actions you want to perform when the timer finishes
-                    onFinish.run();
-                    // Cancel the timer
-                    scheduler.cancelTasks(plugin);
+                if (stallingTimerCountdown >= 0) {
+                    if (onTick != null) {
+                        onTick.run();
+                    }
+                    stallingTimerCountdown--;
+                } else {
+                    this.cancel();
+                    if (onEnd != null) {
+                        onEnd.run();
+                        stallingTimerCountdown = 5;
+                    }
                 }
             }
-        }, 0L, period * 20L);
+        }.runTaskTimer(plugin, 0,20);
     }
 
-    public void startStallingTimer(Runnable onFinish) {
-        int delay = 5; // delay for 5 sec.
-        int period = 1; // repeat every sec.
-        BukkitScheduler scheduler = plugin.getServer().getScheduler();
-        scheduler.scheduleSyncRepeatingTask(plugin, new Runnable() {
-            int countdown = delay;
+    public void startStallingTimer(Runnable onEnd) {
+        new BukkitRunnable() {
             @Override
             public void run() {
-                System.out.println("Performing action, seconds remaining: " + countdown);
-                countdown--;
-                if (countdown < 0) {
-                    // Actions you want to perform when the timer finishes
-                    onFinish.run();
-                    // Cancel the timer
-                    scheduler.cancelTasks(plugin);
+                if (onEnd != null) {
+                    onEnd.run();
                 }
             }
-        }, 0L, period * 20L);
+        }.runTaskLater(plugin, 5 * 20); // 5 seconds * 20 ticks/second
     }
+
 
     public void resetGame() {
         setGameState(GameState.INACTIVE);
@@ -661,7 +673,15 @@ public class GameModel {
         setBlueGoals(0);
         resetCages();
         gameTimer.cancel();
-        startStallingTimer(null);
+
+        if (objective != null) {
+            objective.unregister();
+        }
+        objective = scoreboard.registerNewObjective("bridge", "dummy");
+        objective.setDisplayName(ChatColor.GOLD + "Litebridge");
+        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+
+        startStallingTimer(null, null);
     }
 
     @Override
@@ -715,5 +735,9 @@ public class GameModel {
         } else {
             return "No one";
         }
+    }
+
+    public int getStallingTimerCountdown() {
+        return stallingTimerCountdown;
     }
 }

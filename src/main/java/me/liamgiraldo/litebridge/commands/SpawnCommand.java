@@ -12,6 +12,11 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 
+/**
+ * Teleports the player to the spawn location
+ * @deprecated This class is deprecated and will be removed in a future update
+ */
+@Deprecated
 public class SpawnCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

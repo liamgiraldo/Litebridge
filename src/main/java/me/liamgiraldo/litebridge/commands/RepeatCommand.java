@@ -5,6 +5,12 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+
+/**
+ * Repeats the command arguments back to the player
+ * @deprecated This class is deprecated and will be removed in a future update
+ * */
+@Deprecated
 public class RepeatCommand implements CommandExecutor {
 
     @Override

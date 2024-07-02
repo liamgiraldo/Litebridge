@@ -217,11 +217,9 @@ public class GameController implements CommandExecutor, Listener {
                 }
 
                 if(hasTheRedTeamWon(game)){
-                    //TODO: need to change this later to activate fanfare, THEN end the game
                     gameEnd(queue);
                 }
                 if (hasTheBlueTeamWon(game)) {
-                    //TODO: need to change this later to activate fanfare, THEN end the game
                     gameEnd(queue);
                 }
 
@@ -361,7 +359,7 @@ public class GameController implements CommandExecutor, Listener {
      *
      * @param queue The queue associated with the game that should end
      * */
-    private void gameEnd(QueueModel queue){
+    public void gameEnd(QueueModel queue){
         //When a game ends, we want to reset the game state to inactive,
         //We want to clear the queue,
         //We want to teleport all the players back to the lobby
@@ -378,6 +376,17 @@ public class GameController implements CommandExecutor, Listener {
             player.getInventory().clear();
             player.setScoreboard(this.plugin.getServer().getScoreboardManager().getNewScoreboard());
             player.playSound(player.getLocation(), Sound.FIREWORK_LAUNCH, 1, 1);
+            //check who won the game
+            if(hasTheRedTeamWon(game)){
+                player.sendMessage(ChatColor.RED + "Red team won!");
+                player.sendTitle(ChatColor.RED + "Red team won!", null);
+            } else if(hasTheBlueTeamWon(game)){
+                player.sendMessage(ChatColor.BLUE + "Blue team won!");
+                player.sendTitle(ChatColor.BLUE + "Blue team won!", null);
+            } else {
+                player.sendMessage(ChatColor.GRAY + "It's a tie!");
+                player.sendTitle(ChatColor.GRAY + "Tied game!", null);
+            }
         }
         game.startStallingTimer(()->{
             for(Player player: game.getPlayers()){
@@ -386,9 +395,61 @@ public class GameController implements CommandExecutor, Listener {
             }
             resetWorld(game.getWorld());
             game.resetGame();
+            game.resetCages();
             queue.clearQueue();
         });
 
+    }
+
+    /**
+     * Executes game end logic
+     * This method is called when a game ends
+     * This is used if we need to instantly stop a game.
+     *
+     * @param queue The queue associated with the game that should end
+     * */
+    private void instantGameEnd(QueueModel queue){
+        //When a game ends, we want to reset the game state to inactive,
+        //We want to clear the queue,
+        //We want to teleport all the players back to the lobby
+        //We want to reset the game timer
+        GameModel game = queue.getAssociatedGame();
+        resetWorld(game.getWorld());
+        game.setGameState(GameModel.GameState.INACTIVE);
+        //clear every player's inventory as well,
+        //we need to reset the scoreboard for each player
+        for(Player player: game.getPlayers()){
+            if(player==null)
+                continue;
+            player.getInventory().setArmorContents(null);
+            player.getInventory().clear();
+            player.setScoreboard(this.plugin.getServer().getScoreboardManager().getNewScoreboard());
+            player.playSound(player.getLocation(), Sound.FIREWORK_LAUNCH, 1, 1);
+            //check who won the game
+            if(hasTheRedTeamWon(game)){
+                player.sendMessage(ChatColor.RED + "Red team won!");
+                player.sendTitle(ChatColor.RED + "Red team won!", null);
+            } else if(hasTheBlueTeamWon(game)){
+                player.sendMessage(ChatColor.BLUE + "Blue team won!");
+                player.sendTitle(ChatColor.BLUE + "Blue team won!", null);
+            } else {
+                player.sendMessage(ChatColor.GRAY + "It's a tie!");
+                player.sendTitle(ChatColor.GRAY + "Tied game!", null);
+            }
+            player.playSound(player.getLocation(), Sound.ENDERMAN_TELEPORT, 1, 1);
+            player.teleport(lobbyLocation);
+        }
+        resetWorld(game.getWorld());
+        game.resetGame();
+        game.resetCages();
+        queue.clearQueue();
+    }
+
+    public void endAllGamesInstantly(){
+        for(QueueModel queue: queues){
+            GameModel game = queue.getAssociatedGame();
+            instantGameEnd(queue);
+        }
     }
 
     /**
@@ -691,12 +752,16 @@ public class GameController implements CommandExecutor, Listener {
             if (player != null) {
                 player.teleport(redSpawn);
                 System.out.println("Teleporting player " + player.getName() + " to red spawn at " + redSpawn.toString());
+                player.sendMessage("You are on the red team!");
+                player.sendMessage("Teleporting you to " + redSpawn.toString() + "at " + game.getWorld().getName());
             }
         }
         for (Player player : game.getBlueTeam()) {
             if (player != null) {
                 player.teleport(blueSpawn);
                 System.out.println("Teleporting player " + player.getName() + " to blue spawn at " + blueSpawn.toString());
+                player.sendMessage("You are on the blue team!");
+                player.sendMessage("Teleporting you to " + blueSpawn.toString() + "at " + game.getWorld().getName());
             }
         }
     }
@@ -884,22 +949,36 @@ public class GameController implements CommandExecutor, Listener {
 //            player.teleport(new Location(game.getWorld(), game.getBlueSpawnPoint()[0], game.getBlueSpawnPoint()[1], game.getBlueSpawnPoint()[2]));
 
             game.resetCages();
-            if (!gameIsWon(game)) {
-                game.startStallingTimer(() -> {//seconds left in this timer;
+//            if (!gameIsWon(game)) {
+//                game.startStallingTimer(() -> {
+//                    game.clearCages();
+//                });
+//            }
+            if(!gameIsWon(game)){
+                game.startStallingTimer(()->{
                     game.clearCages();
-                    for (Player p : game.getPlayers()) {
-                        p.resetTitle();
-                    }
-                }, (countdown) -> {
-                    String localPlayerScoredSubtitle = subtitle + ChatColor.GOLD + countdown;
-                    for (Player p : game.getPlayers()) {
-                        p.sendTitle(localPlayerScoredTitle, localPlayerScoredSubtitle);
-                    }
+                    resetPlayerTitles(game);
+                },()->{
+                    sendEachPlayerTitleOnGoal(game, game.getStallingTimerCountdown(), player, false);
                 });
             }
 
 
             updateScoreboard(game);
+        }
+    }
+
+    //if somehow, a player dies while in the list of players of the game model, we need to reset their inventory and teleport them back to their spawn point
+    @EventHandler
+    public void onPlayerDeathEvent(PlayerDeathEvent e){
+        Player player = e.getEntity();
+        for(QueueModel queue: queues){
+            GameModel game = queue.getAssociatedGame();
+            if(game.checkIfPlayerIsInGame(player)){
+                player.setHealth(20);
+                resetPlayerInventory(player);
+                teleportPlayerBasedOnTeam(player, game);
+            }
         }
     }
 
@@ -939,15 +1018,8 @@ public class GameController implements CommandExecutor, Listener {
             if(!gameIsWon(game)) {
                 game.startStallingTimer(() -> {//seconds left in this timer;
                     game.clearCages();
-                    for(Player p: game.getPlayers()){
-                        p.resetTitle();
-                    }
-                }, (countdown)->{
-                    String localPlayerScoredSubtitle = subtitle + ChatColor.GOLD + countdown;
-                    for(Player p: game.getPlayers()){
-                        p.sendTitle(localPlayerScoredTitle, localPlayerScoredSubtitle);
-                    }
-                });
+                    resetPlayerTitles(game);
+                }, ()->{sendEachPlayerTitleOnGoal(game, game.getStallingTimerCountdown(), player, true);});
             }
 
             updateScoreboard(game);
@@ -1015,5 +1087,37 @@ public class GameController implements CommandExecutor, Listener {
             sb.append("Game in world: ").append(queue.getAssociatedGame().getWorld().getName()).append(" is in state: ").append(queue.getAssociatedGame().getGameState()).append("\n");
         }
         return sb.toString();
+    }
+
+    private void sendEachPlayerTitleOnGoal(GameModel game, int countdown, Player player, boolean isOnRedTeam){
+        for(Player p: game.getPlayers()){
+            if(countdown > 0)
+                p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 1);
+            if(countdown == 0)
+                p.playSound(p.getLocation(), Sound.EXPLODE, 1, 1);
+            if(isOnRedTeam){
+                p.sendTitle(ChatColor.RED + player.getName() + " scored!", ChatColor.GOLD + "Cages open in: " + ChatColor.GRAY + countdown + " seconds");
+            } else {
+                p.sendTitle(ChatColor.BLUE + player.getName() + " scored!", ChatColor.GOLD + "Cages open in: " + ChatColor.GRAY + countdown + " seconds");
+            }
+        }
+    }
+
+    private void resetPlayerTitles(GameModel gameModel){
+        for(Player p: gameModel.getPlayers()){
+            p.resetTitle();
+        }
+    }
+
+    public ArrayList<GameModel> getGames(){
+        ArrayList<GameModel> games = new ArrayList<>();
+        for(QueueModel queue: queues){
+            games.add(queue.getAssociatedGame());
+        }
+        return games;
+    }
+
+    public ArrayList<QueueModel> getQueues() {
+        return queues;
     }
 }

@@ -74,6 +74,15 @@ commands:
       - lbdebug
       - lbd
       - ld
+  litebridgegame:
+    description: Executes commands for current game(s)
+    usage: /<command> [endall|(gamename)] [end|cagereset|mapreset]
+    permission: litebridge.game
+    permission-message: You don't have permission to execute game commands.
+    aliases:
+      - lbgame
+      - lbg
+      - lg
 permissions:
   litebridge.god:
     description: Allows someone to run the /god command
@@ -83,4 +92,7 @@ permissions:
     default: op
   litebridge.litebridgedebug:
     description: Allows someone to debug the plugin
+    default: op
+  litebridge.litebridgegame:
+    description: Allows someone to execute game commands
     default: op

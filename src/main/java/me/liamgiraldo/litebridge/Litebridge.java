@@ -6,6 +6,7 @@ import me.liamgiraldo.litebridge.controllers.MapCreator;
 import me.liamgiraldo.litebridge.controllers.QueueController;
 import me.liamgiraldo.litebridge.listeners.BedLeaveListener;
 import me.liamgiraldo.litebridge.listeners.PlayerJoinListener;
+import me.liamgiraldo.litebridge.listeners.ReloadListener;
 import me.liamgiraldo.litebridge.models.GameModel;
 import me.liamgiraldo.litebridge.models.QueueModel;
 import org.bukkit.Location;
@@ -80,6 +81,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new BedLeaveListener(),this);
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(), this);
         getServer().getPluginManager().registerEvents(gameController, this);
+        getServer().getPluginManager().registerEvents(new ReloadListener(gameController), this);
 //        TODO: Register events in GameController
 //        getServer().getPluginManager().registerEvents(, this);
         getServer().getPluginManager().registerEvents(mapCreator, this);
@@ -94,6 +96,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
         getCommand("litebridge").setExecutor(queueController);
         getCommand("checkqueues").setExecutor(new CheckqueueCommand(this));
         getCommand("litebridgedebug").setExecutor(new DebugCommand(this));
+//        getCommand("game").setExecutor(new GameCommand(gameController));
 
 
     }
