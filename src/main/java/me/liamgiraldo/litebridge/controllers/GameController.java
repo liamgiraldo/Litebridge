@@ -62,7 +62,9 @@ public class GameController implements CommandExecutor, Listener {
     private String subtitle = ChatColor.GRAY + "Cages open in:";
     private String playerScoredTitle = ChatColor.GRAY + "" + ChatColor.BOLD + "Scored!";
 
-    //Map of world to list of block changes
+    /**
+     * Map of changes made to every game world
+     * */
     private final Map<World, DoublyLinkedList> changes = new HashMap<>();
 
     /**
@@ -289,6 +291,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Gives the kit items to a single player
+     * Kit items are defined in the GameController constructor
+     *
+     * @param player The player to give the kit items to
+     * */
     private void giveKitToSinglePlayer(Player player){
         boolean isPlayerOnRedTeam = false;
 
@@ -501,7 +509,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
-    //when the player drops an item, cancel that event
+    /**
+     * Checks if a player has dropped an item
+     * If this is done in a game, we cancel the event
+     *
+     * @param e The PlayerDropItemEvent
+     * */
     @EventHandler
     public void onPlayerDropEvent(org.bukkit.event.player.PlayerDropItemEvent e){
         Player player = e.getPlayer();
@@ -513,6 +526,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Checks if the player has lost hunger
+     * If the player has lost hunger, we cancel the event
+     *
+     * @param e The FoodLevelChangeEvent
+     * */
     @EventHandler
     public void onHungerLossEvent(org.bukkit.event.entity.FoodLevelChangeEvent e){
         if(e.getEntity() instanceof Player){
@@ -526,6 +545,14 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Checks if a player has consumed a golden apple
+     * If a player has consumed a golden apple,
+     * we cancel the potion effects of the golden apple (leave absorption)
+     * We also set the player's health to 20
+     *
+     * @param e The PlayerItemConsumeEvent
+     * */
     @EventHandler
     public void onPlayerEatGoldenAppleEvent(PlayerItemConsumeEvent e){
         Player player = e.getPlayer();
@@ -541,6 +568,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Checks if the player is taking fall damage
+     * If the player is in a game, we cancel the event
+     *
+     * @param e The EntityDamageEvent
+     * */
     @EventHandler
     public void onPlayerFallDamage(EntityDamageEvent e){
         if(e.getEntity() instanceof Player){
@@ -556,6 +589,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Checks if a piece of armor has lost durability
+     * If a piece of armor has lost durability, we cancel the event
+     *
+     * @param e The PlayerItemDamageEvent
+     * */
     @EventHandler
     public void onArmorDurabilityLossEvent(org.bukkit.event.player.PlayerItemDamageEvent e){
         Player player = e.getPlayer();
@@ -567,7 +606,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
-    //if a player damages another player, and both players are on the same team, cancel the event
+    /**
+     * Checks if a player has damaged another player
+     * If a player has damaged another player, we cancel the event if the players are on the same team
+     *
+     * @param e The EntityDamageByEntityEvent
+     * */
     @EventHandler
     public void onPlayerDamageAnotherPlayer(EntityDamageByEntityEvent e){
         //if the damager is an arrow, and the damaged is a player
@@ -618,8 +662,14 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Checks for a player damage event
+     * Prevents a player from taking damage if the game's state is anything but active
+     *
+     * @param e The EntityDamageEvent
+     * */
     @EventHandler
-    public void onPlayerDamageEvent(EntityDamageEvent e){
+    public void onPlayerDamageInNonActiveGame(EntityDamageEvent e){
         if(e.getEntity() instanceof Player){
             Player player = (Player) e.getEntity();
             for(QueueModel queue: queues){
@@ -634,10 +684,30 @@ public class GameController implements CommandExecutor, Listener {
     }
 
     @EventHandler
+
+    /**
+     * Checks if the weather has changed
+     * Ony cancels the event if the world is a game world
+     * If the weather has changed, we cancel the event
+     *
+     * @param e The WeatherChangeEvent
+     * */
     public void onWeatherChange(org.bukkit.event.weather.WeatherChangeEvent e){
-        e.setCancelled(true);
+        //I only want to cancel the weather change event if the world is a game world
+        for(QueueModel queue: queues){
+            GameModel game = queue.getAssociatedGame();
+            if(game.getWorld() == e.getWorld()){
+                e.setCancelled(true);
+            }
+        }
     }
 
+    /**
+     * Checks if a player has shot a bow.
+     * Gives the player an arrow if they have shot a bow
+     *
+     * @param e The EntityShootBowEvent
+     * */
     @EventHandler
     public void onPlayerShootBow(org.bukkit.event.entity.EntityShootBowEvent e) {
         if (e.getEntity() instanceof Player) {
@@ -656,6 +726,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Checks if a projectile has hit something, if it did, we remove the arrow
+     * This is to prevent arrow duping
+     *
+     * @param e The ProjectileHitEvent
+     * */
     @EventHandler
     public void onProjectileHit(ProjectileHitEvent e){
         if(e.getEntity() instanceof Arrow){
@@ -671,8 +747,16 @@ public class GameController implements CommandExecutor, Listener {
 
 
 
+
+    /**
+     * Checks if the player is going to die from their next hit / damage value,
+     * If the player is going to die, we cancel the event and reset their inventory
+     * We also teleport the player back to their spawn point
+     *
+     * @param e The EntityDamageEvent
+     * */
     @EventHandler
-    public void onDeathEvent(EntityDamageEvent e) //Listens to EntityDamageEvent
+    public void onNearDeathEvent(EntityDamageEvent e) //Listens to EntityDamageEvent
     {
         if(e.getEntity() instanceof  Player) {
             Player player = (Player) e.getEntity();
@@ -730,6 +814,12 @@ public class GameController implements CommandExecutor, Listener {
 
 
 
+    /**
+     * Teleports a player to their respective spawn point based on their team
+     *
+     * @param p The player to teleport
+     * @param game The game to teleport the player in
+     * */
     private void teleportPlayerBasedOnTeam(Player p, GameModel game){
         if(game.checkIfPlayerIsInRedTeam(p)){
             Location redSpawn = new Location(game.getWorld(), game.getRedSpawnPoint()[0], game.getRedSpawnPoint()[1], game.getRedSpawnPoint()[2]);
@@ -742,6 +832,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Teleports all players in a game to their respective spawn points
+     * This method is called when a game starts
+     *
+     * @param game The game to teleport the players in
+     * */
     private void teleportPlayersToSpawn(GameModel game) {
         Location redSpawn = new Location(game.getWorld(), game.getRedSpawnPoint()[0], game.getRedSpawnPoint()[1], game.getRedSpawnPoint()[2]);
         redSpawn.setYaw(game.getRedSpawnYaw());
@@ -767,7 +863,10 @@ public class GameController implements CommandExecutor, Listener {
     }
 
     /**
-     * Adds a block change to the changes map
+     * Adds placed blocks to the list of world changes only if a game is active
+     * Also prevents blocks being placed in certain game states
+     *
+     * @param e The BlockPlaceEvent
      * */
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent e){
@@ -815,6 +914,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Adds broken blocks to the list of world changes only if a game is active
+     * Also prevents blocks being broken in certain game states
+     *
+     * @param e The BlockBreakEvent
+     * */
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e){
         Block block = e.getBlock();
@@ -858,6 +963,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Resets the world to its original state
+     * This method is called when a game ends
+     *
+     * @param world The world to reset
+     * */
     public void resetWorld(World world) {
         DoublyLinkedList changesInChronologicalOrder = changes.get(world);
         if(changesInChronologicalOrder != null) {
@@ -968,7 +1079,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
-    //if somehow, a player dies while in the list of players of the game model, we need to reset their inventory and teleport them back to their spawn point
+    /**
+     * On a player's death, they will be teleported back to their spawn point if they are in a game
+     * Player's should never die in a game, but should it happen they will be teleported back to their spawn point
+     *
+     * @param e The PlayerDeathEvent
+     * */
     @EventHandler
     public void onPlayerDeathEvent(PlayerDeathEvent e){
         Player player = e.getEntity();
@@ -1068,6 +1184,11 @@ public class GameController implements CommandExecutor, Listener {
         return game.getBlueGoals() >= game.getGoalsToWin();
     }
 
+    /**
+     * Resets the inventory of a player
+     *
+     * @param player The player to reset the inventory for
+     * */
     private void resetPlayerInventory(Player player){
         player.getInventory().clear();
         player.getInventory().setArmorContents(null);
@@ -1075,10 +1196,23 @@ public class GameController implements CommandExecutor, Listener {
         giveKitToSinglePlayer(player);
     }
 
+
+    /**
+     * Checks if a game is won
+     *
+     * @param game The game to check if it is won
+     * @return Whether the game is won
+     * */
     private boolean gameIsWon(GameModel game){
         return hasTheRedTeamWon(game) || hasTheBlueTeamWon(game);
     }
 
+    /**
+     * Converts this manager into a readable string,
+     * This string contains all the games, the world that game is taking place in, and the state of that game
+     *
+     * @return A string containing all the games, the world that game is taking place in, and the state of that game
+     * */
     @Override
     public String toString(){
         //return a string containing all of the games, the world that game is taking place in, and the state of that game
@@ -1089,6 +1223,17 @@ public class GameController implements CommandExecutor, Listener {
         return sb.toString();
     }
 
+    /**
+     * Sends all players in a game a title containing the following information:
+     * - The player that scored
+     * - The time left until the cages open
+     * - The team that the player was on
+     *
+     * @param game The game to send the title for
+     * @param countdown The countdown until the cages open
+     * @param player The player that scored
+     * @param isOnRedTeam Whether the player that scored was on the red team
+     * */
     private void sendEachPlayerTitleOnGoal(GameModel game, int countdown, Player player, boolean isOnRedTeam){
         for(Player p: game.getPlayers()){
             if(countdown > 0)
@@ -1103,12 +1248,24 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Resets all the titles for each player in the game
+     * This uses deprecated methods, and should be replaced with a more modern method
+     *
+     * @param gameModel The game model to reset the titles for
+     * */
     private void resetPlayerTitles(GameModel gameModel){
         for(Player p: gameModel.getPlayers()){
             p.resetTitle();
         }
     }
 
+
+    /**
+     * Gets all the games being managed by this manager
+     *
+     * @return The games being managed by this manager
+     * */
     public ArrayList<GameModel> getGames(){
         ArrayList<GameModel> games = new ArrayList<>();
         for(QueueModel queue: queues){
@@ -1117,6 +1274,11 @@ public class GameController implements CommandExecutor, Listener {
         return games;
     }
 
+    /**
+     * Gets all the queues being managed by this manager
+     *
+     * @return The queues being managed by this manager
+     * */
     public ArrayList<QueueModel> getQueues() {
         return queues;
     }

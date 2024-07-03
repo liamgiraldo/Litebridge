@@ -96,9 +96,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
         getCommand("litebridge").setExecutor(queueController);
         getCommand("checkqueues").setExecutor(new CheckqueueCommand(this));
         getCommand("litebridgedebug").setExecutor(new DebugCommand(this));
-//        getCommand("game").setExecutor(new GameCommand(gameController));
-
-
+        getCommand("litebridgegame").setExecutor(new GameCommand(gameController));
     }
 
     @Override
