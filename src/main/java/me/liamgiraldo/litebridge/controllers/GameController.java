@@ -2,6 +2,7 @@ package me.liamgiraldo.litebridge.controllers;
 
 import com.cryptomorin.xseries.XBlock;
 import com.cryptomorin.xseries.XMaterial;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import me.liamgiraldo.litebridge.Litebridge;
 import me.liamgiraldo.litebridge.events.QueueFullEvent;
 import me.liamgiraldo.litebridge.models.BlockChangeModel;
@@ -23,12 +24,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffectType;
@@ -66,6 +65,8 @@ public class GameController implements CommandExecutor, Listener {
      * Map of changes made to every game world
      * */
     private final Map<World, DoublyLinkedList> changes = new HashMap<>();
+    private final Map<Player, Player> lastDamagerMap = new HashMap<>();
+    private final Map<Player, Integer> arrowCountdowns = new HashMap<>();
 
     /**
      * Constructs a new GameController
@@ -109,6 +110,27 @@ public class GameController implements CommandExecutor, Listener {
             }
             //once every second
         }.runTaskTimer(plugin, 0L, 20L);
+    }
+
+    //every time a player shoots an arrow, we need to start their arrow timer.
+    public void startArrowTimer(Runnable onEnd, Runnable onTick, Player player){
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (arrowCountdowns.get(player) > 0) {
+                    if (onTick != null) {
+                        onTick.run();
+                    }
+                    arrowCountdowns.put(player, arrowCountdowns.get(player).intValue() - 1);
+                } else {
+                    this.cancel();
+                    if (onEnd != null) {
+                        onEnd.run();
+                        arrowCountdowns.put(player, 3);
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 0, 20);
     }
 
     /**
@@ -209,6 +231,8 @@ public class GameController implements CommandExecutor, Listener {
                 for(Player player: game.getPlayers()){
                     player.setScoreboard(game.getScoreboard());
 
+                    reduceArrowsToOne(player);
+
                     for(ItemStack item: player.getInventory().getContents()){
                         if(item != null){
                             if(item.getType() == Material.STAINED_CLAY)
@@ -291,6 +315,109 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    //on inventory change event, check if the player has gained an arrow,
+    //if they have, and their amount is more than 1, set it to 1
+    @EventHandler
+    public void onInventoryClick(org.bukkit.event.inventory.InventoryClickEvent e){
+        if(e.getWhoClicked() instanceof Player){
+            Player player = (Player) e.getWhoClicked();
+            for(QueueModel queue: queues){
+                GameModel game = queue.getAssociatedGame();
+                if(game.checkIfPlayerIsInGame(player)){
+                    reduceArrowsToOne(player);
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerPickupItem(PlayerPickupItemEvent event){
+        Player player = event.getPlayer();
+        for(QueueModel queue: queues){
+            GameModel game = queue.getAssociatedGame();
+            if(game.checkIfPlayerIsInGame(player)){
+                if(event.getItem().getItemStack().getType() == Material.ARROW){
+                    reduceArrowsToOne(player);
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks if a player has more than one arrow in their inventory
+     * If a player has more than one arrow in their inventory, we reduce the amount to one
+     *
+     * @param player The player to check
+     * */
+    private void reduceArrowsToOne(Player player){
+        ItemStack[] items = player.getInventory().getContents();
+        int arrowCount = 0;
+        for(ItemStack item: items){
+            if(item != null){
+                if(item.getType() == Material.ARROW){
+                    arrowCount += item.getAmount();
+                }
+            }
+        }
+        if(arrowCount > 1){
+            for(ItemStack item: items){
+                if(item != null){
+                    if(item.getType() == Material.ARROW){
+                        player.getInventory().remove(Material.ARROW);
+                        ItemStack arrow = new ItemStack(Material.ARROW, 1);
+                        player.getInventory().addItem(arrow);
+                    }
+                }
+            }
+        }
+    }
+
+    private void giveKitToPlayersNoArrow(Player[] players, boolean redTeam){
+        //so we want to do the exact same thing as giveKitToPlayers, but without the arrow
+        for(Player p : players){
+            if(p == null)
+                continue;
+            p.getInventory().clear();
+
+            helmetMeta.setColor(redTeam ? Color.RED : Color.BLUE);
+            chestplateMeta.setColor(redTeam ? Color.RED : Color.BLUE);
+            leggingsMeta.setColor(redTeam ? Color.RED : Color.BLUE);
+            bootsMeta.setColor(redTeam ? Color.RED : Color.BLUE);
+
+            helmet.setItemMeta(helmetMeta);
+            chestplate.setItemMeta(chestplateMeta);
+            leggings.setItemMeta(leggingsMeta);
+            boots.setItemMeta(bootsMeta);
+
+            p.getInventory().setHelmet(helmet);
+            p.getInventory().setChestplate(chestplate);
+            p.getInventory().setLeggings(leggings);
+            p.getInventory().setBoots(boots);
+
+            //TODO Implement kit giving
+            ItemStack redClay = XMaterial.RED_TERRACOTTA.parseItem();
+            assert redClay != null;
+            redClay.setAmount(64);
+
+            ItemStack blueClay = XMaterial.BLUE_TERRACOTTA.parseItem();
+            assert blueClay != null;
+            blueClay.setAmount(64);
+
+            for(ItemStack item: kitItems){
+                if(item.getType() == Material.STAINED_CLAY) {
+                    if (redTeam)
+                        p.getInventory().addItem(redClay);
+                    else
+                        p.getInventory().addItem(blueClay);
+                    continue;
+                }
+                if(item.getType() == Material.ARROW)
+                    continue;
+                p.getInventory().addItem(item);
+            }
+        }
+    }
+
     /**
      * Gives the kit items to a single player
      * Kit items are defined in the GameController constructor
@@ -298,6 +425,64 @@ public class GameController implements CommandExecutor, Listener {
      * @param player The player to give the kit items to
      * */
     private void giveKitToSinglePlayer(Player player){
+        boolean isPlayerOnRedTeam = false;
+
+        for(QueueModel queue: queues){
+            GameModel game = queue.getAssociatedGame();
+            if(game.checkIfPlayerIsInGame(player)){
+                if(game.checkIfPlayerIsInRedTeam(player))
+                    isPlayerOnRedTeam = true;
+            }
+        }
+
+        player.getInventory().clear();
+
+        if(isPlayerOnRedTeam){
+            helmetMeta.setColor(Color.RED);
+            chestplateMeta.setColor(Color.RED);
+            leggingsMeta.setColor(Color.RED);
+            bootsMeta.setColor(Color.RED);
+        } else {
+            helmetMeta.setColor(Color.BLUE);
+            chestplateMeta.setColor(Color.BLUE);
+            leggingsMeta.setColor(Color.BLUE);
+            bootsMeta.setColor(Color.BLUE);
+        }
+
+        helmet.setItemMeta(helmetMeta);
+        chestplate.setItemMeta(chestplateMeta);
+        leggings.setItemMeta(leggingsMeta);
+        boots.setItemMeta(bootsMeta);
+
+        player.getInventory().setHelmet(helmet);
+        player.getInventory().setChestplate(chestplate);
+        player.getInventory().setLeggings(leggings);
+        player.getInventory().setBoots(boots);
+
+        //TODO Implement kit giving
+        ItemStack redClay = XMaterial.RED_TERRACOTTA.parseItem();
+        assert redClay != null;
+        redClay.setAmount(64);
+
+        ItemStack blueClay = XMaterial.BLUE_TERRACOTTA.parseItem();
+        assert blueClay != null;
+        blueClay.setAmount(64);
+
+        //Give the player the kit items
+        for(ItemStack item: kitItems){
+            if(item.getType() == Material.STAINED_CLAY) {
+                if (isPlayerOnRedTeam)
+                    player.getInventory().addItem(redClay);
+                else
+                    player.getInventory().addItem(blueClay);
+                continue;
+            }
+            player.getInventory().addItem(item);
+        }
+    }
+
+
+    private void giveKitToSinglePlayerNoArrow(Player player){
         boolean isPlayerOnRedTeam = false;
 
         for(QueueModel queue: queues){
@@ -500,10 +685,22 @@ public class GameController implements CommandExecutor, Listener {
 
                 int killPlane = game.getKillPlane();
                 if(playerLocation.getBlockY() <= killPlane){
+                    Player damager = lastDamagerMap.get(player);
+                    if(damager != null){
+                        damager.sendMessage("You killed " + player.getDisplayName());
+                        damager.playSound(damager.getLocation(), Sound.ORB_PICKUP, 1, 1);
+                        player.sendMessage("You were killed by " + damager.getDisplayName());
+                        lastDamagerMap.remove(player);
+                    }
                     resetPlayerInventory(player);
                     player.setHealth(20);
-                    player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
+                    player.removePotionEffect(PotionEffectType.REGENERATION);
+                    player.removePotionEffect(PotionEffectType.ABSORPTION);
+//                    player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
                     teleportPlayerBasedOnTeam(player, game);
+                    player.playSound(player.getLocation(), Sound.CHICKEN_HURT, 1, 1);
+                    //call the on death event
+
                 }
             }
         }
@@ -638,6 +835,9 @@ public class GameController implements CommandExecutor, Listener {
                             e.setCancelled(true);
                             return;
                         }
+                        else{
+                            lastDamagerMap.put(player, damager);
+                        }
                     }
                 }
             }
@@ -656,6 +856,9 @@ public class GameController implements CommandExecutor, Listener {
                         e.setCancelled(true);
                     } else if(game.checkIfPlayerIsInBlueTeam(damager) && game.checkIfPlayerIsInBlueTeam(player)){
                         e.setCancelled(true);
+                    }
+                    else{
+                        lastDamagerMap.put(player, damager);
                     }
                 }
             }
@@ -715,12 +918,18 @@ public class GameController implements CommandExecutor, Listener {
             for (QueueModel queue : queues) {
                 GameModel game = queue.getAssociatedGame();
                 if (game.checkIfPlayerIsInGame(player)) {
-                    game.startStallingTimer(() -> {
-                        //Give the player an arrow
+                    arrowCountdowns.put(player, 3);
+                    startArrowTimer(() -> {
                         ItemStack arrow = new ItemStack(Material.ARROW, 1);
                         player.playSound(player.getLocation(), Sound.CHICKEN_EGG_POP, 1, 1);
                         player.getInventory().addItem(arrow);
-                    });
+                    }, ()->{player.setLevel(arrowCountdowns.get(player));}, player);
+//                    game.startStallingTimer(() -> {
+//                        //Give the player an arrow
+//                        ItemStack arrow = new ItemStack(Material.ARROW, 1);
+//                        player.playSound(player.getLocation(), Sound.CHICKEN_EGG_POP, 1, 1);
+//                        player.getInventory().addItem(arrow);
+//                    });
                 }
             }
         }
@@ -761,6 +970,9 @@ public class GameController implements CommandExecutor, Listener {
         if(e.getEntity() instanceof  Player) {
             Player player = (Player) e.getEntity();
             Player damager = null;
+            //if the damager is fall damage we don't want to run this code
+            if(e.getCause() == EntityDamageEvent.DamageCause.FALL)
+                return;
             for(QueueModel queue: queues){
                 GameModel game = queue.getAssociatedGame();
                 if(game.checkIfPlayerIsInGame(player)){
@@ -768,6 +980,10 @@ public class GameController implements CommandExecutor, Listener {
                     if(e instanceof EntityDamageByEntityEvent){
                         EntityDamageByEntityEvent entityDamage = (EntityDamageByEntityEvent) e;
                         if(entityDamage.getDamager() instanceof Arrow){
+                            Arrow arrow = (Arrow) entityDamage.getDamager();
+                            if(arrow.getShooter() instanceof Player){
+                                damager = (Player) arrow.getShooter();
+                            }
                             //if the arrow would have killed the player, cancel the event
                             if(player.getHealth() - finalDamage <= 0) {
                                 e.setCancelled(true);
@@ -775,6 +991,22 @@ public class GameController implements CommandExecutor, Listener {
                                 resetPlayerInventory(player);
                                 teleportPlayerBasedOnTeam(player, game);
 //                                player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
+                                if(damager != null){
+                                    //for everyone on the damager's team, play a sound and send them a message
+                                    for(Player p: game.getPlayers()){
+                                        p.sendMessage(ChatColor.RED + player.getName() + " was killed by " + damager.getName());
+                                    }
+                                    if(game.checkIfPlayerIsInRedTeam(damager)){
+                                        for(Player p : game.getRedTeam()){
+                                            p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 1);
+                                        }
+                                    } else if(game.checkIfPlayerIsInBlueTeam(damager)){
+                                        for(Player p: game.getBlueTeam()){
+                                            p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 1);
+                                        }
+                                    }
+                                }
+                                player.playSound(player.getLocation(), Sound.CHICKEN_HURT, 1, 1);
                                 return;
                             }
                         }
@@ -790,6 +1022,7 @@ public class GameController implements CommandExecutor, Listener {
                         player.setHealth(20);
                         resetPlayerInventory(player);
                         teleportPlayerBasedOnTeam(player, game);
+                        player.playSound(player.getLocation(), Sound.CHICKEN_HURT, 1, 1);
 
                         if(damager != null){
                             for(Player p: game.getPlayers()){
@@ -806,6 +1039,27 @@ public class GameController implements CommandExecutor, Listener {
                             }
                         }
 //                        player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks if a player has regained health naturally
+     * Cancels the event if the player is in a game
+     *
+     * @param e The PlayerDeathEvent
+     * */
+    @EventHandler
+    private void onNaturalRegenEvent(EntityRegainHealthEvent e){
+        if(e.getEntity() instanceof Player){
+            Player player = (Player) e.getEntity();
+            for(QueueModel queue: queues){
+                GameModel game = queue.getAssociatedGame();
+                if(game.checkIfPlayerIsInGame(player)){
+                    if(e.getRegainReason() == EntityRegainHealthEvent.RegainReason.SATIATED || e.getRegainReason() == EntityRegainHealthEvent.RegainReason.REGEN){
+                        e.setCancelled(true);
                     }
                 }
             }
@@ -1196,6 +1450,18 @@ public class GameController implements CommandExecutor, Listener {
         giveKitToSinglePlayer(player);
     }
 
+    /**
+     * Resets the inventory of a player without giving them an arrow
+     *
+     * @param player The player to reset the inventory for
+     * */
+    private void resetPlayerInventoryNoArrow(Player player){
+        player.getInventory().clear();
+        player.getInventory().setArmorContents(null);
+
+        giveKitToSinglePlayerNoArrow(player);
+    }
+
 
     /**
      * Checks if a game is won
@@ -1257,6 +1523,7 @@ public class GameController implements CommandExecutor, Listener {
     private void resetPlayerTitles(GameModel gameModel){
         for(Player p: gameModel.getPlayers()){
             p.resetTitle();
+            p.sendTitle("","");
         }
     }
 

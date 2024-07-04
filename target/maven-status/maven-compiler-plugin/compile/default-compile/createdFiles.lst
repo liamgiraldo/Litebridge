@@ -21,9 +21,11 @@ me/liamgiraldo/litebridge/commands/GodCommand.class
 me/liamgiraldo/litebridge/models/GameModel$GameState.class
 me/liamgiraldo/litebridge/models/BlockStateModel.class
 me/liamgiraldo/litebridge/events/QueueFullEvent.class
+me/liamgiraldo/litebridge/events/NearDeathEvent.class
 me/liamgiraldo/litebridge/controllers/MapCreator.class
 me/liamgiraldo/litebridge/listeners/PlayerJoinListener.class
 me/liamgiraldo/litebridge/controllers/QueueController.class
+me/liamgiraldo/litebridge/controllers/GameController$2.class
 me/liamgiraldo/litebridge/models/QueueModel.class
 me/liamgiraldo/litebridge/commands/SetSpawnCommand.class
 me/liamgiraldo/litebridge/commands/StrikeCommand.class

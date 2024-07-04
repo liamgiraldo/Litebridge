@@ -1071,7 +1071,7 @@ public class GameModel {
         new BukkitRunnable() {
             @Override
             public void run() {
-                if (stallingTimerCountdown >= 0) {
+                if (stallingTimerCountdown > 0) {
                     if (onTick != null) {
                         onTick.run();
                     }
