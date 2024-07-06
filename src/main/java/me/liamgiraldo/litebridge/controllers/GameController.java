@@ -4,6 +4,7 @@ import com.cryptomorin.xseries.XBlock;
 import com.cryptomorin.xseries.XMaterial;
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import me.liamgiraldo.litebridge.Litebridge;
+import me.liamgiraldo.litebridge.events.ForceStartEvent;
 import me.liamgiraldo.litebridge.events.QueueFullEvent;
 import me.liamgiraldo.litebridge.models.BlockChangeModel;
 import me.liamgiraldo.litebridge.models.GameModel;
@@ -25,9 +26,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.*;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffectType;
@@ -171,6 +170,19 @@ public class GameController implements CommandExecutor, Listener {
         // however, after this, we need the controller to handle the game logic for all the games.
     }
 
+    @EventHandler
+    public void onForceStart(ForceStartEvent e){
+        QueueModel queue = e.getQueue();
+        GameModel game = queue.getAssociatedGame();
+        Player[] players = queue.getQueue();
+        for(Player p: players){
+            if(p == null)
+                continue;
+            game.addPlayer(p);
+        }
+        gameStartLogic(game);
+    }
+
     /**
      * This method handles game starting logic
      * This includes teleporting players to their spawn points, giving them kits, and starting the game timer
@@ -179,13 +191,15 @@ public class GameController implements CommandExecutor, Listener {
      * */
     private void gameStartLogic(GameModel game) {
         //If the game is full, we want to start the game
-        if (game.checkIfGameIsFull()) {
+//        if (game.checkIfGameIsFull()) {
             System.out.println("Starting a full game!");
             //set the cages back to their original state if they weren't there already
             game.resetCages();
             //Set the game state to starting
             game.setGameState(GameModel.GameState.STARTING);
             for(Player player: game.getPlayers()){
+                if(player == null)
+                    continue;
                 player.setHealth(20);
                 player.setFoodLevel(20);
                 player.setSaturation(20);
@@ -199,7 +213,7 @@ public class GameController implements CommandExecutor, Listener {
             game.startStallingTimer(()->{game.clearCages(); game.setGameState(GameModel.GameState.ACTIVE);});
             //start the game timer
             game.startGameTimer(game.getGameTimeInSeconds());
-        }
+//        }
     }
 
     /**
@@ -229,6 +243,8 @@ public class GameController implements CommandExecutor, Listener {
                 game.updateScoreboard(objective, countdown);
 
                 for(Player player: game.getPlayers()){
+                    if(player == null)
+                        continue;
                     player.setScoreboard(game.getScoreboard());
 
                     reduceArrowsToOne(player);
@@ -583,6 +599,8 @@ public class GameController implements CommandExecutor, Listener {
         }
         game.startStallingTimer(()->{
             for(Player player: game.getPlayers()){
+                if(player==null)
+                    continue;
                 player.playSound(player.getLocation(), Sound.ENDERMAN_TELEPORT, 1, 1);
                 player.teleport(lobbyLocation);
             }
@@ -592,6 +610,15 @@ public class GameController implements CommandExecutor, Listener {
             queue.clearQueue();
         });
 
+    }
+
+    public void gameEndInstantly(GameModel model){
+        for(QueueModel queue: queues){
+            if(queue.getAssociatedGame().equals(model)){
+                instantGameEnd(queue);
+                return;
+            }
+        }
     }
 
     /**
@@ -699,9 +726,42 @@ public class GameController implements CommandExecutor, Listener {
 //                    player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
                     teleportPlayerBasedOnTeam(player, game);
                     player.playSound(player.getLocation(), Sound.CHICKEN_HURT, 1, 1);
+                    player.sendMessage(ChatColor.RED + "You fell into the void!");
                     //call the on death event
 
                 }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerLeaveServer(PlayerQuitEvent e){
+        Player player = e.getPlayer();
+        for(QueueModel queue: queues){
+            GameModel game = queue.getAssociatedGame();
+            if(game.checkIfPlayerIsInGame(player)){
+                game.removePlayer(player);
+                if(game.getAmountOfPlayersOnRedTeam() == 0){
+                    game.setBlueGoals(game.getGoalsToWin());
+                    gameEnd(queue);
+                }
+                if(game.getAmountOfPlayersOnBlueTeam() == 0){
+                    game.setRedGoals(game.getGoalsToWin());
+                    gameEnd(queue);
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerRejoinServer(PlayerJoinEvent e){
+        Player player = e.getPlayer();
+        for(QueueModel queue: queues){
+            GameModel game = queue.getAssociatedGame();
+            if(game.checkIfPlayerIsInGame(player)){
+                game.addPlayer(player);
+                teleportPlayerBasedOnTeam(player, game);
+                giveKitToSinglePlayer(player);
             }
         }
     }
@@ -994,14 +1054,20 @@ public class GameController implements CommandExecutor, Listener {
                                 if(damager != null){
                                     //for everyone on the damager's team, play a sound and send them a message
                                     for(Player p: game.getPlayers()){
+                                        if(p == null)
+                                            continue;
                                         p.sendMessage(ChatColor.RED + player.getName() + " was killed by " + damager.getName());
                                     }
                                     if(game.checkIfPlayerIsInRedTeam(damager)){
                                         for(Player p : game.getRedTeam()){
+                                            if(p == null)
+                                                continue;
                                             p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 1);
                                         }
                                     } else if(game.checkIfPlayerIsInBlueTeam(damager)){
                                         for(Player p: game.getBlueTeam()){
+                                            if(p == null)
+                                                continue;
                                             p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 1);
                                         }
                                     }
@@ -1026,14 +1092,20 @@ public class GameController implements CommandExecutor, Listener {
 
                         if(damager != null){
                             for(Player p: game.getPlayers()){
+                                if(p == null)
+                                    continue;
                                 p.sendMessage(ChatColor.RED + player.getName() + " was killed by " + damager.getName());
                             }
                             if(game.checkIfPlayerIsInRedTeam(damager)){
                                 for(Player p : game.getRedTeam()){
+                                    if(p == null)
+                                        continue;
                                     p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 1);
                                 }
                             } else if(game.checkIfPlayerIsInBlueTeam(damager)){
                                 for(Player p: game.getBlueTeam()){
+                                    if(p == null)
+                                        continue;
                                     p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 1);
                                 }
                             }
@@ -1074,7 +1146,7 @@ public class GameController implements CommandExecutor, Listener {
      * @param p The player to teleport
      * @param game The game to teleport the player in
      * */
-    private void teleportPlayerBasedOnTeam(Player p, GameModel game){
+    public void teleportPlayerBasedOnTeam(Player p, GameModel game){
         if(game.checkIfPlayerIsInRedTeam(p)){
             Location redSpawn = new Location(game.getWorld(), game.getRedSpawnPoint()[0], game.getRedSpawnPoint()[1], game.getRedSpawnPoint()[2]);
             redSpawn.setYaw(game.getRedSpawnYaw());
@@ -1131,8 +1203,7 @@ public class GameController implements CommandExecutor, Listener {
             if(queue.getAssociatedGame().checkIfPlayerIsInGame(p)){
                 GameModel game = queue.getAssociatedGame();
 
-                //TODO: Remove this, this is just for testing
-                if(game.getGameState() == GameModel.GameState.INACTIVE) {
+                if(game.getGameState() == GameModel.GameState.BUILDING) {
                     return;
                 }
 
@@ -1183,8 +1254,7 @@ public class GameController implements CommandExecutor, Listener {
             if(queue.getAssociatedGame().checkIfPlayerIsInGame(p)){
                 GameModel game = queue.getAssociatedGame();
 
-                //TODO: This is just for testing, remove this
-                if(game.getGameState() == GameModel.GameState.INACTIVE) {
+                if(game.getGameState() == GameModel.GameState.BUILDING) {
                     return;
                 }
 
@@ -1301,6 +1371,8 @@ public class GameController implements CommandExecutor, Listener {
 
             //for all players in the game, teleport them back to their spawn points
             for (Player p : game.getPlayers()) {
+                if(p == null)
+                    continue;
                 teleportPlayerBasedOnTeam(p, game);
                 p.setHealth(20);
                 resetPlayerInventory(p);
@@ -1371,6 +1443,8 @@ public class GameController implements CommandExecutor, Listener {
 
             //for all players in the game, teleport them back to their spawn points
             for(Player p: game.getPlayers()){
+                if(p == null)
+                    continue;
                 resetPlayerInventory(p);
                 p.setHealth(20);
                 teleportPlayerBasedOnTeam(p, game);
@@ -1416,6 +1490,8 @@ public class GameController implements CommandExecutor, Listener {
 
         //Update the scoreboard for each player
         for (Player player : game.getPlayers()) {
+            if(player == null)
+                continue;
             player.setScoreboard(game.getScoreboard());
         }
     }
@@ -1502,6 +1578,8 @@ public class GameController implements CommandExecutor, Listener {
      * */
     private void sendEachPlayerTitleOnGoal(GameModel game, int countdown, Player player, boolean isOnRedTeam){
         for(Player p: game.getPlayers()){
+            if(p == null)
+                continue;
             if(countdown > 0)
                 p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 1);
             if(countdown == 0)
@@ -1522,6 +1600,8 @@ public class GameController implements CommandExecutor, Listener {
      * */
     private void resetPlayerTitles(GameModel gameModel){
         for(Player p: gameModel.getPlayers()){
+            if(p == null)
+                continue;
             p.resetTitle();
             p.sendTitle("","");
         }
@@ -1548,5 +1628,10 @@ public class GameController implements CommandExecutor, Listener {
      * */
     public ArrayList<QueueModel> getQueues() {
         return queues;
+    }
+
+    public void teleportPlayerToLobby(Player player){
+        player.getInventory().clear();
+        player.teleport(lobbyLocation);
     }
 }

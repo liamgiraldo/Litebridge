@@ -276,6 +276,10 @@ public class QueueController implements EventListener, CommandExecutor {
         for(QueueModel q: queues){
             for(Player players: q.getQueue()){
                 if(players.getUniqueId() == p.getUniqueId()){
+                    if(q.getAssociatedGame().getGameState() != GameModel.GameState.INACTIVE){
+                        p.sendMessage("You can't leave your queue while your game is in progress.");
+                        return;
+                    }
                     q.removeFromQueue(p);
                     p.sendMessage("You were removed from a queue.");
                     return;

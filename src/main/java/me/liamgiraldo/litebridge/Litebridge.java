@@ -136,17 +136,22 @@ public final class Litebridge extends JavaPlugin implements Listener {
                System.out.println("This model already exists, updating it according to the newly provided one.");
                models.set(i, model);
                return;
-           }
+            }
+            //if the queue for this game already exists, don't create a new one, but if it doesn't, create a new one
+            if(queues.get(i).getAssociatedGame().getWorld().getName().equals(model.getWorld().getName())){
+                System.out.println("This queue already exists, updating it according to the newly provided one.");
+                queues.set(i, new QueueModel(model.getMaxPlayers(), model.getWorld().getName(), model));
+                return;
+            }
        }
        //by reaching the end of the loop, we know it doesn't exist
         System.out.println("This model didn't exist. Adding it to the existing models.");
         models.add(model);
+        queues.add(new QueueModel(model.getMaxPlayers(), model.getWorld().getName(), model));
     }
 
-
-    //TODO Be able to add a queue when a new game model (map) is created
     public void addAQueue(GameModel model){
-
+        queues.add(new QueueModel(model.getMaxPlayers(), model.getWorld().getName(), model));
     }
 
     public ArrayList<QueueModel> getQueues(){
@@ -180,5 +185,19 @@ public final class Litebridge extends JavaPlugin implements Listener {
             }
         }
         return null;
+    }
+
+    public void removeGameFromModels(GameModel model){
+        for(QueueModel queue: queues){
+            if(queue.getAssociatedGame().getWorld().getName().equals(model.getWorld().getName())){
+                queues.remove(queue);
+                models.remove(model);
+                return;
+            }
+        }
+    }
+
+    public void removeMapFromConfig(String mapName){
+        this.getConfig().set(mapName, null);
     }
 }

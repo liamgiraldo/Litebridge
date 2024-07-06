@@ -147,7 +147,8 @@ public class GameModel {
         QUEUEING,
         STARTING,
         ENDING,
-        ACTIVE
+        ACTIVE,
+        BUILDING
     }
 
     /**
@@ -444,6 +445,8 @@ public class GameModel {
      * */
     public void setBlueSpawnPoint(int[] blueSpawnPoint) {
         this.blueSpawnPoint = blueSpawnPoint;
+        plugin.getConfig().set(this.world.getName() + ".blue-spawn", blueSpawnPoint);
+        plugin.saveConfig();
     }
 
     /**
@@ -462,6 +465,8 @@ public class GameModel {
      * */
     public void setBlueGoalBounds(int[][] blueGoalBounds) {
         this.blueGoalBounds = blueGoalBounds;
+        plugin.getConfig().set(this.world.getName() + ".blue-goal", blueGoalBounds);
+        plugin.saveConfig();
     }
 
     /**
@@ -480,6 +485,8 @@ public class GameModel {
      * */
     public void setBlueCageBounds(int[][] blueCageBounds) {
         this.blueCageBounds = blueCageBounds;
+        plugin.getConfig().set(this.world.getName() + ".blue-cage", blueCageBounds);
+        plugin.saveConfig();
     }
 
     /**
@@ -498,6 +505,8 @@ public class GameModel {
      * */
     public void setRedSpawnPoint(int[] redSpawnPoint) {
         this.redSpawnPoint = redSpawnPoint;
+        plugin.getConfig().set(this.world.getName() + ".red-spawn", redSpawnPoint);
+        plugin.saveConfig();
     }
 
     /**
@@ -516,6 +525,8 @@ public class GameModel {
      * */
     public void setRedGoalBounds(int[][] redGoalBounds) {
         this.redGoalBounds = redGoalBounds;
+        plugin.getConfig().set(this.world.getName() + ".red-goal", redGoalBounds);
+        plugin.saveConfig();
     }
 
     /**
@@ -534,6 +545,8 @@ public class GameModel {
      * */
     public void setRedCageBounds(int[][] redCageBounds) {
         this.redCageBounds = redCageBounds;
+        plugin.getConfig().set(this.world.getName() + ".red-cage", redCageBounds);
+        plugin.saveConfig();
     }
 
     /**
@@ -570,6 +583,8 @@ public class GameModel {
      * */
     public void setWorldBounds(int[][] worldBounds) {
         this.worldBounds = worldBounds;
+        plugin.getConfig().set(this.world.getName() + ".world-bounds", worldBounds);
+        plugin.saveConfig();
     }
 
     /**
@@ -606,6 +621,8 @@ public class GameModel {
      * */
     public void setGoalsToWin(int goalsToWin) {
         this.goalsToWin = goalsToWin;
+        plugin.getConfig().set(this.world.getName() + ".goals-required", goalsToWin);
+        plugin.saveConfig();
     }
 
     /**
@@ -624,6 +641,8 @@ public class GameModel {
      * */
     public void setMaxPlayers(int maxPlayers) {
         this.maxPlayers = maxPlayers;
+        plugin.getConfig().set(this.world.getName() + ".max-players", maxPlayers);
+        plugin.saveConfig();
     }
 
     /**
@@ -698,6 +717,8 @@ public class GameModel {
      * */
     public void setBlueSpawnYaw(float blueSpawnYaw) {
         this.blueSpawnYaw = blueSpawnYaw;
+        plugin.getConfig().set(this.world.getName() + ".blue-spawn-yaw", blueSpawnYaw);
+        plugin.saveConfig();
     }
 
     /**
@@ -707,6 +728,8 @@ public class GameModel {
      * */
     public void setRedSpawnYaw(float redSpawnYaw) {
         this.redSpawnYaw = redSpawnYaw;
+        plugin.getConfig().set(this.world.getName() + ".red-spawn-yaw", redSpawnYaw);
+        plugin.saveConfig();
     }
 
     /**
@@ -1025,6 +1048,7 @@ public class GameModel {
         }
     }
 
+
     /**
      * Resets the blue cage to its original state
      * Sets all blocks in the blue cage boundaries to their original block type
@@ -1054,6 +1078,8 @@ public class GameModel {
         clearRedCage();
         clearBlueCage();
         for(Player p : players){
+            if(p == null)
+                continue;
             p.playSound(p.getLocation(), Sound.NOTE_PLING, 1, 1);
         }
     }
@@ -1216,5 +1242,35 @@ public class GameModel {
      * */
     public int getStallingTimerCountdown() {
         return stallingTimerCountdown;
+    }
+
+    public int getAmountOfPlayersOnRedTeam() {
+        int count = 0;
+        for (Player p : redTeam) {
+            if (p != null) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public int getAmountOfPlayersOnBlueTeam() {
+        int count = 0;
+        for (Player p : blueTeam) {
+            if (p != null) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public int getAmountOfPlayersInGame(){
+        int count = 0;
+        for (Player p : players) {
+            if (p != null) {
+                count++;
+            }
+        }
+        return count;
     }
 }
