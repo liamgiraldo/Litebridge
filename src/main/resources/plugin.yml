@@ -83,6 +83,14 @@ commands:
       - lbgame
       - lbg
       - lg
+  litebridgeadmin:
+    description: Executes admin commands for the litebridge plugin
+    usage: There's too many subcommands to list. See documentation.
+    permission: You aren't a litebridge admin.
+    aliases:
+      - lbadmin
+      - lba
+      - la
 permissions:
   litebridge.god:
     description: Allows someone to run the /god command
@@ -95,4 +103,7 @@ permissions:
     default: op
   litebridge.litebridgegame:
     description: Allows someone to execute game commands
+    default: op
+  litebridge.litebridgeadmin:
+    description: Allows someone to execute admin commands
     default: op

@@ -7,6 +7,8 @@ me/liamgiraldo/litebridge/Litebridge.class
 me/liamgiraldo/litebridge/utils/Node.class
 me/liamgiraldo/litebridge/commands/RepeatCommand.class
 me/liamgiraldo/litebridge/commands/FeedCommand.class
+me/liamgiraldo/litebridge/events/ForceStartEvent.class
+me/liamgiraldo/litebridge/commands/AdminCommand.class
 me/liamgiraldo/litebridge/listeners/ReloadListener.class
 me/liamgiraldo/litebridge/utils/DoublyLinkedList.class
 me/liamgiraldo/litebridge/models/GameModel$2.class

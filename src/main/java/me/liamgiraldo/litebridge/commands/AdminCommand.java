@@ -50,13 +50,25 @@ public class AdminCommand implements CommandExecutor {
                     }
                     return mapCommand(newargsArray, p);
                 case "queue":
-                    p.sendMessage("Queue commands not implemented yet");
-                    //TODO: implement queue commands
-                    return queueCommand();
-                case "game":
-                    break;
+                    ArrayList<String> newargsQueue = new ArrayList<>();
+                    for(int i = 1; i < args.length; i++){
+                        newargsQueue.add(args[i]);
+                    }
+                    String[] newargsQueueArray = new String[newargsQueue.size()];
+                    for(int i = 0; i < newargsQueue.size(); i++){
+                        newargsQueueArray[i] = newargsQueue.get(i);
+                    }
+                    return queueCommand(newargsQueueArray, p);
                 case "player":
-                    break;
+                    ArrayList<String> newargsPlayer = new ArrayList<>();
+                    for(int i = 1; i < args.length; i++){
+                        newargsPlayer.add(args[i]);
+                    }
+                    String[] newargsPlayerArray = new String[newargsPlayer.size()];
+                    for(int i = 1; i < newargsPlayer.size(); i++){
+                        newargsPlayerArray[i] = newargsPlayer.get(i);
+                    }
+                    return playerCommand(newargsPlayerArray, p);
                 default:
                     return false;
             }
@@ -82,20 +94,25 @@ public class AdminCommand implements CommandExecutor {
             if(model.getWorld().getName().equals(mapName)){
                 switch(args[0]){
                     case "register":
-                        gameController.gameEndInstantly(model);
+                        if(model.getGameState() == GameModel.GameState.ACTIVE)
+                            gameController.gameEndInstantly(model);
                         litebridge.addToModels(model);
-                        break;
+                        player.sendMessage("Map " + model.getWorld().getName() + " has been registered.");
+                        return true;
                     case "delete":
-                        gameController.gameEndInstantly(model);
+                        if(model.getGameState() == GameModel.GameState.ACTIVE)
+                            gameController.gameEndInstantly(model);
                         //we also need to remove this game from the config
                         litebridge.removeMapFromConfig(args[1]);
                         litebridge.removeGameFromModels(model);
-                        break;
+                        player.sendMessage("Map " + model.getWorld().getName() + " has been deleted.");
+                        return true;
                     case "list":
+                        player.sendMessage("Maps:");
                         for(GameModel gameModel : models){
                             player.sendMessage(gameModel.getWorld().getName());
                         }
-                        break;
+                        return true;
                     case "set":
                         ArrayList<String> newargs = new ArrayList<>();
                         for(int i = 2; i < args.length; i++){
@@ -105,11 +122,17 @@ public class AdminCommand implements CommandExecutor {
                         for(int i = 0; i < newargs.size(); i++){
                             newargsArray[i] = newargs.get(i);
                         }
-                        gameController.gameEndInstantly(model);
+                        if(model.getGameState() == GameModel.GameState.ACTIVE)
+                            gameController.gameEndInstantly(model);
                         return setCommand(newargsArray, player, model);
                     case "get":
                         String arg = args[2];
                         return getCommand(arg, player, model);
+                    case "setcage":
+                        model.setNewDefaultBlueCageBlocks();
+                        model.setNewDefaultRedCageBlocks();
+                        player.sendMessage("Cage blocks set to current state.");
+                        return true;
                     default:
                         return false;
                 }
@@ -136,7 +159,8 @@ public class AdminCommand implements CommandExecutor {
                 }
                 int maxPlayers = Integer.parseInt(args[1]);
                 model.setMaxPlayers(maxPlayers);
-                break;
+                player.sendMessage("Max players set to " + model.getMaxPlayers());
+                return true;
             case "maxgoals":
                 try{
                     Integer.parseInt(args[1]);
@@ -146,7 +170,8 @@ public class AdminCommand implements CommandExecutor {
                 }
                 int maxGoals = Integer.parseInt(args[1]);
                 model.setGoalsToWin(maxGoals);
-                break;
+                player.sendMessage("Max goals set to " + model.getGoalsToWin());
+                return true;
             case "redgoals":
                 try{
                     Integer.parseInt(args[1]);
@@ -156,7 +181,8 @@ public class AdminCommand implements CommandExecutor {
                 }
                 int redgoals = Integer.parseInt(args[1]);
                 model.setRedGoals(redgoals);
-                break;
+                player.sendMessage("Red goals set to " + model.getRedGoals());
+                return true;
             case "bluegoals":
                 try{
                     Integer.parseInt(args[1]);
@@ -166,7 +192,8 @@ public class AdminCommand implements CommandExecutor {
                 }
                 int bluegoals = Integer.parseInt(args[1]);
                 model.setBlueGoals(bluegoals);
-                break;
+                player.sendMessage("Blue goals set to " + model.getBlueGoals());
+                return true;
             case "state":
                 try{
                     GameModel.GameState.valueOf(args[1]);
@@ -176,7 +203,8 @@ public class AdminCommand implements CommandExecutor {
                 }
                 GameModel.GameState state = GameModel.GameState.valueOf(args[1]);
                 model.setGameState(state);
-                break;
+                player.sendMessage("State set to " + model.getGameState());
+                return true;
             case "redspawn":
                 try{
                     Integer.parseInt(args[1]);
@@ -189,7 +217,8 @@ public class AdminCommand implements CommandExecutor {
                 int redY = Integer.parseInt(args[2]);
                 int redZ = Integer.parseInt(args[3]);
                 model.setRedSpawnPoint(new int[]{redX,redY,redZ});
-                break;
+                player.sendMessage("Red spawn set to " + Arrays.toString(model.getRedSpawnPoint()));
+                return true;
             case "bluespawn":
                 try{
                     Integer.parseInt(args[1]);
@@ -202,7 +231,8 @@ public class AdminCommand implements CommandExecutor {
                 int blueY = Integer.parseInt(args[2]);
                 int blueZ = Integer.parseInt(args[3]);
                 model.setBlueSpawnPoint(new int[]{blueX,blueY,blueZ});
-                break;
+                player.sendMessage("Blue spawn set to " + Arrays.toString(model.getBlueSpawnPoint()));
+                return true;
             case "redcagebounds":
                 try{
                     Integer.parseInt(args[1]);
@@ -221,7 +251,8 @@ public class AdminCommand implements CommandExecutor {
                 int redY2 = Integer.parseInt(args[5]);
                 int redZ2 = Integer.parseInt(args[6]);
                 model.setRedCageBounds(new int[][]{{redX1,redY1,redZ1},{redX2,redY2,redZ2}});
-                break;
+                player.sendMessage("Red cage bounds set to " + Arrays.deepToString(model.getRedCageBounds()));
+                return true;
             case "bluecagebounds":
                 try{
                     Integer.parseInt(args[1]);
@@ -240,7 +271,8 @@ public class AdminCommand implements CommandExecutor {
                 int blueY2 = Integer.parseInt(args[5]);
                 int blueZ2 = Integer.parseInt(args[6]);
                 model.setBlueCageBounds(new int[][]{{blueX1,blueY1,blueZ1},{blueX2,blueY2,blueZ2}});
-                break;
+                player.sendMessage("Blue cage bounds set to " + Arrays.deepToString(model.getBlueCageBounds()));
+                return true;
             case "redgoalbounds":
                 try{
                     Integer.parseInt(args[1]);
@@ -259,7 +291,8 @@ public class AdminCommand implements CommandExecutor {
                 int redY2Goal = Integer.parseInt(args[5]);
                 int redZ2Goal = Integer.parseInt(args[6]);
                 model.setRedGoalBounds(new int[][]{{redX1Goal,redY1Goal,redZ1Goal},{redX2Goal,redY2Goal,redZ2Goal}});
-                break;
+                player.sendMessage("Red goal bounds set to " + Arrays.deepToString(model.getRedGoalBounds()));
+                return true;
             case "bluegoalbounds":
                 try{
                     Integer.parseInt(args[1]);
@@ -278,7 +311,8 @@ public class AdminCommand implements CommandExecutor {
                 int blueY2Goal = Integer.parseInt(args[5]);
                 int blueZ2Goal = Integer.parseInt(args[6]);
                 model.setBlueGoalBounds(new int[][]{{blueX1Goal,blueY1Goal,blueZ1Goal},{blueX2Goal,blueY2Goal,blueZ2Goal}});
-                break;
+                player.sendMessage("Blue goal bounds set to " + Arrays.deepToString(model.getBlueGoalBounds()));
+                return true;
             case "worldbounds":
                 try{
                     Integer.parseInt(args[1]);
@@ -297,11 +331,11 @@ public class AdminCommand implements CommandExecutor {
                 int worldY2 = Integer.parseInt(args[5]);
                 int worldZ2 = Integer.parseInt(args[6]);
                 model.setWorldBounds(new int[][]{{worldX1,worldY1,worldZ1},{worldX2,worldY2,worldZ2}});
-                break;
+                player.sendMessage("World bounds set to " + Arrays.deepToString(model.getWorldBounds()));
+                return true;
             default:
                 return false;
         }
-        return false;
     }
 
     public boolean getCommand(String arg, Player player, GameModel model){
@@ -361,7 +395,8 @@ public class AdminCommand implements CommandExecutor {
                         queue.removeFromQueue(playerToRemove);
                         gameController.teleportPlayerToLobby(playerToRemove);
                         queue.getAssociatedGame().removePlayer(playerToRemove);
-                        break;
+                        player.sendMessage("Player " + playerToRemove.getName() + " has been removed from the game.");
+                        return true;
                     case "addplayer":
                         if (args.length < 3) return false;
                         String playerNameToAdd = args[2];
@@ -369,23 +404,110 @@ public class AdminCommand implements CommandExecutor {
                         queue.appendToQueue(playerToAdd);
                         queue.getAssociatedGame().addPlayer(playerToAdd);
                         gameController.teleportPlayerBasedOnTeam(playerToAdd, queue.getAssociatedGame());
-                        break;
+                        player.sendMessage("Player " + playerToAdd.getName() + " has been added to the game.");
+                        return true;
                     case "listplayers":
                         for(Player p : queue.getQueue()){
+                            if(p == null)
+                                continue;
                             player.sendMessage(p.getName());
                         }
-                        break;
+                        return true;
                     case "forcestart":
                         ForceStartEvent event = new ForceStartEvent(queue);
                         litebridge.getServer().getPluginManager().callEvent(event);
                         break;
                     case "forceend":
                         gameController.gameEndInstantly(queue.getAssociatedGame());
-                        break;
+                        player.sendMessage("Game has been ended.");
+                        return true;
                     default:
                         return false;
                 }
             }
+        }
+        return false;
+    }
+
+    public boolean playerCommand(String[] args, Player player) {
+        String playername = args[0];
+        if (args.length < 2) return false;
+        /**
+         * The aviailable player commands are
+         * - dequeue
+         * - enqueue
+         * - currentgame
+         * - addgame
+         * - removegame
+         * */
+        switch(args[1]){
+            case "dequeue":
+                for(QueueModel queue : queues){
+                    for(Player p : queue.getQueue()){
+                        if(p == null)
+                            continue;
+                        if(p.getName().equals(playername)){
+                            queue.removeFromQueue(p);
+//                            gameController.teleportPlayerToLobby(p);
+//                            queue.getAssociatedGame().removePlayer(p);
+                            player.sendMessage("Player " + p.getName() + " has been dequeued.");
+                            return true;
+                        }
+                    }
+                }
+                break;
+            case "enqueue":
+                for(QueueModel queue : queues){
+                    if(queue.getAssociatedGame().getWorld().getName().equals(args[2])){
+                        queue.appendToQueue(litebridge.getServer().getPlayer(playername));
+//                        queue.getAssociatedGame().addPlayer(player);
+//                        gameController.teleportPlayerBasedOnTeam(player, queue.getAssociatedGame());
+                        player.sendMessage("Player " + playername + " has been enqueued.");
+                        return true;
+                    }
+                }
+                break;
+            case "currentgame":
+                for(GameModel model : models){
+                    for(Player p : model.getPlayers()){
+                        if(p == null)
+                            continue;
+                        if(p.getName().equals(playername)){
+                            player.sendMessage(model.getWorld().getName());
+                            return true;
+                        }
+                    }
+                }
+            case "addgame":
+                //TODO: This is wrong, you need to use the player from playerName
+                for(QueueModel queue: queues){
+                    if(queue.getAssociatedGame().getWorld().getName().equals(args[2])){
+                        queue.appendToQueue(player);
+                        queue.getAssociatedGame().addPlayer(player);
+                        gameController.teleportPlayerBasedOnTeam(player, queue.getAssociatedGame());
+                        player.sendMessage("Player " + player.getName() + " has been added to the game.");
+                        return true;
+                    }
+                }
+
+                return false;
+            case "removegame":
+                //TODO: This is wrong, you need to use the player from playerName
+                for(QueueModel queue: queues){
+                    if(queue.getAssociatedGame().getWorld().getName().equals(args[2])){
+                        queue.removeFromQueue(player);
+                        gameController.teleportPlayerToLobby(player);
+                        queue.getAssociatedGame().removePlayer(player);
+                        if(queue.getAssociatedGame().getAmountOfPlayersOnRedTeam() == 0 || queue.getAssociatedGame().getAmountOfPlayersOnBlueTeam() == 0){
+                            gameController.gameEndInstantly(queue.getAssociatedGame());
+                        }
+                        player.sendMessage("Player " + player.getName() + " has been removed from the game.");
+                        return true;
+                    }
+                }
+                return false;
+            default:
+                return false;
         }
         return false;
     }

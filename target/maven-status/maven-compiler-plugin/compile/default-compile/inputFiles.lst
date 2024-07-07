@@ -11,12 +11,14 @@
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/commands/SetMessageCommand.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/Litebridge.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/listeners/ReloadListener.java
+/Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/events/ForceStartEvent.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/commands/DebugCommand.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/utils/Node.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/controllers/QueueController.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/commands/SpawnCommand.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/events/NearDeathEvent.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/commands/CheckqueueCommand.java
+/Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/commands/AdminCommand.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/listeners/PlayerJoinListener.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/events/QueueFullEvent.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/models/BlockChangeModel.java

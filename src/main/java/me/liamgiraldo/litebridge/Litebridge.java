@@ -97,6 +97,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
         getCommand("checkqueues").setExecutor(new CheckqueueCommand(this));
         getCommand("litebridgedebug").setExecutor(new DebugCommand(this));
         getCommand("litebridgegame").setExecutor(new GameCommand(gameController));
+        getCommand("litebridgeadmin").setExecutor(new AdminCommand(queues,models,this, gameController));
     }
 
     @Override
@@ -130,20 +131,23 @@ public final class Litebridge extends JavaPlugin implements Listener {
      * @param model Model to register
      * */
     public void addToModels(GameModel model){
+        boolean isInModels = false;
         for(int i = 0; i < models.size(); i++){
             if(model.getWorld().getName().equals(models.get(i).getWorld().getName())){
                //if the model already exists within the arraylist of models, just update it
                System.out.println("This model already exists, updating it according to the newly provided one.");
                models.set(i, model);
-               return;
+                isInModels = true;
             }
             //if the queue for this game already exists, don't create a new one, but if it doesn't, create a new one
             if(queues.get(i).getAssociatedGame().getWorld().getName().equals(model.getWorld().getName())){
                 System.out.println("This queue already exists, updating it according to the newly provided one.");
                 queues.set(i, new QueueModel(model.getMaxPlayers(), model.getWorld().getName(), model));
-                return;
             }
        }
+        if(isInModels){
+            return;
+        }
        //by reaching the end of the loop, we know it doesn't exist
         System.out.println("This model didn't exist. Adding it to the existing models.");
         models.add(model);

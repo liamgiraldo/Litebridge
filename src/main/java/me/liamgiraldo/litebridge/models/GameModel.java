@@ -175,12 +175,12 @@ public class GameModel {
     /**
      * The red team for this game
      * */
-    private final Player[] redTeam;
+    private Player[] redTeam;
 
     /**
      * The blue team for this game
      * */
-    private final Player[] blueTeam;
+    private Player[] blueTeam;
 
     /**
      * The default map for this game
@@ -641,6 +641,9 @@ public class GameModel {
      * */
     public void setMaxPlayers(int maxPlayers) {
         this.maxPlayers = maxPlayers;
+        this.players = new Player[maxPlayers];
+        this.redTeam = new Player[maxPlayers /2];
+        this.blueTeam = new Player[maxPlayers /2];
         plugin.getConfig().set(this.world.getName() + ".max-players", maxPlayers);
         plugin.saveConfig();
     }
@@ -1272,5 +1275,51 @@ public class GameModel {
             }
         }
         return count;
+    }
+
+    public void setNewDefaultRedCageBlocks(){
+        redCageBlocks.clear();
+
+        int[] redBound1 = redCageBounds[0];
+        int[] redBound2 = redCageBounds[1];
+        int minRedX = Math.min(redBound1[0], redBound2[0]);
+        int maxRedX = Math.max(redBound1[0], redBound2[0]);
+        int minRedY = Math.min(redBound1[1], redBound2[1]);
+        int maxRedY = Math.max(redBound1[1], redBound2[1]);
+        int minRedZ = Math.min(redBound1[2], redBound2[2]);
+        int maxRedZ = Math.max(redBound1[2], redBound2[2]);
+        //now we have the min and max x, y, and z values for the red cage bounds
+        //we can iterate through all of the blocks in the red cage bounds
+        for (int x = minRedX; x <= maxRedX; x++) {
+            for (int y = minRedY; y <= maxRedY; y++) {
+                for (int z = minRedZ; z <= maxRedZ; z++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    redCageBlocks.add(block);
+                }
+            }
+        }
+    }
+
+    public void setNewDefaultBlueCageBlocks(){
+        blueCageBlocks.clear();
+
+        int[] blueBound1 = blueCageBounds[0];
+        int[] blueBound2 = blueCageBounds[1];
+        int minBlueX = Math.min(blueBound1[0], blueBound2[0]);
+        int maxBlueX = Math.max(blueBound1[0], blueBound2[0]);
+        int minBlueY = Math.min(blueBound1[1], blueBound2[1]);
+        int maxBlueY = Math.max(blueBound1[1], blueBound2[1]);
+        int minBlueZ = Math.min(blueBound1[2], blueBound2[2]);
+        int maxBlueZ = Math.max(blueBound1[2], blueBound2[2]);
+        //now we have the min and max x, y, and z values for the blue cage bounds
+        //we can iterate through all of the blocks in the blue cage bounds
+        for (int x = minBlueX; x <= maxBlueX; x++) {
+            for (int y = minBlueY; y <= maxBlueY; y++) {
+                for (int z = minBlueZ; z <= maxBlueZ; z++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    blueCageBlocks.add(block);
+                }
+            }
+        }
     }
 }

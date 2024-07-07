@@ -275,6 +275,8 @@ public class QueueController implements EventListener, CommandExecutor {
     private void leaveQueue(Player p){
         for(QueueModel q: queues){
             for(Player players: q.getQueue()){
+                if(players == null)
+                    continue;
                 if(players.getUniqueId() == p.getUniqueId()){
                     if(q.getAssociatedGame().getGameState() != GameModel.GameState.INACTIVE){
                         p.sendMessage("You can't leave your queue while your game is in progress.");

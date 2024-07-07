@@ -121,7 +121,8 @@ public class GameController implements CommandExecutor, Listener {
                         onTick.run();
                     }
                     arrowCountdowns.put(player, arrowCountdowns.get(player).intValue() - 1);
-                } else {
+                }
+                else {
                     this.cancel();
                     if (onEnd != null) {
                         onEnd.run();
@@ -739,7 +740,7 @@ public class GameController implements CommandExecutor, Listener {
         Player player = e.getPlayer();
         for(QueueModel queue: queues){
             GameModel game = queue.getAssociatedGame();
-            if(game.checkIfPlayerIsInGame(player)){
+            if(game.checkIfPlayerIsInGame(player) && (game.getGameState() == GameModel.GameState.ACTIVE || game.getGameState() == GameModel.GameState.STARTING)){
                 game.removePlayer(player);
                 if(game.getAmountOfPlayersOnRedTeam() == 0){
                     game.setBlueGoals(game.getGoalsToWin());
@@ -758,7 +759,7 @@ public class GameController implements CommandExecutor, Listener {
         Player player = e.getPlayer();
         for(QueueModel queue: queues){
             GameModel game = queue.getAssociatedGame();
-            if(game.checkIfPlayerIsInGame(player)){
+            if(queue.isPlayerInQueue(player) && (game.getGameState() == GameModel.GameState.ACTIVE || game.getGameState() == GameModel.GameState.STARTING)){
                 game.addPlayer(player);
                 teleportPlayerBasedOnTeam(player, game);
                 giveKitToSinglePlayer(player);
@@ -983,7 +984,12 @@ public class GameController implements CommandExecutor, Listener {
                         ItemStack arrow = new ItemStack(Material.ARROW, 1);
                         player.playSound(player.getLocation(), Sound.CHICKEN_EGG_POP, 1, 1);
                         player.getInventory().addItem(arrow);
-                    }, ()->{player.setLevel(arrowCountdowns.get(player));}, player);
+                        player.setLevel(arrowCountdowns.get(player));
+                    }, ()->{
+                        player.setLevel(arrowCountdowns.get(player));
+                        if(arrowCountdowns.get(player) == 0)
+                            player.setLevel(0);
+                        }, player);
 //                    game.startStallingTimer(() -> {
 //                        //Give the player an arrow
 //                        ItemStack arrow = new ItemStack(Material.ARROW, 1);
@@ -1264,6 +1270,15 @@ public class GameController implements CommandExecutor, Listener {
                 }
 
                 if(game.getGameState() == GameModel.GameState.ACTIVE) {
+
+                    //this should prevent players from breaking blocks outside of the world boundaries
+                    int[][] worldBounds = game.getWorldBounds();
+                    int[] worldMinBounds = getMinBounds(worldBounds);
+                    int[] worldMaxBounds = getMaxBounds(worldBounds);
+                    if(!isWithinBounds(block.getLocation(), worldMinBounds, worldMaxBounds)){
+                        e.setCancelled(true);
+                        return;
+                    }
                     //We can't let the player break any blocks that AREN'T stained clay
                     if (block.getType() != Material.STAINED_CLAY && block.getType() != XMaterial.RED_TERRACOTTA.parseMaterial() && block.getType() != XMaterial.BLUE_TERRACOTTA.parseMaterial()) {
                         e.setCancelled(true);
