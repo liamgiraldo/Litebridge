@@ -2,10 +2,7 @@ package me.liamgiraldo.litebridge;
 
 import com.samjakob.spigui.SpiGUI;
 import me.liamgiraldo.litebridge.commands.*;
-import me.liamgiraldo.litebridge.controllers.GUIController;
-import me.liamgiraldo.litebridge.controllers.GameController;
-import me.liamgiraldo.litebridge.controllers.MapCreator;
-import me.liamgiraldo.litebridge.controllers.QueueController;
+import me.liamgiraldo.litebridge.controllers.*;
 import me.liamgiraldo.litebridge.files.HotbarConfig;
 import me.liamgiraldo.litebridge.listeners.BedLeaveListener;
 import me.liamgiraldo.litebridge.listeners.PlayerJoinListener;
@@ -13,6 +10,7 @@ import me.liamgiraldo.litebridge.listeners.ReloadListener;
 import me.liamgiraldo.litebridge.models.GUIModel;
 import me.liamgiraldo.litebridge.models.GameModel;
 import me.liamgiraldo.litebridge.models.QueueModel;
+import me.liamgiraldo.litebridge.models.SpectatorQueueModel;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -38,10 +36,12 @@ public final class Litebridge extends JavaPlugin implements Listener {
 
     private ArrayList<GameModel> models;
     private ArrayList<QueueModel> queues = new ArrayList<>();
+    private ArrayList<SpectatorQueueModel> spectatorQueues = new ArrayList<>();
 
     private QueueController queueController;
     private GameController gameController;
     private GUIController guiController;
+    private SpectatorController spectatorController;
 
     private GUIModel guiModel;
 
@@ -58,10 +58,16 @@ public final class Litebridge extends JavaPlugin implements Listener {
     /**
      * Constructs queues based on existing game models
      * */
-    private void constructQueues(ArrayList<GameModel> models, ArrayList<QueueModel> queues){
-        for (GameModel model:
-                models) {
-            queues.add(new QueueModel(model.getMaxPlayers(), model.getWorld().getName(), model));
+    private void constructQueues(ArrayList<GameModel> models, ArrayList<QueueModel> queues, ArrayList<SpectatorQueueModel> spectatorQueues){
+//        for (GameModel model:
+//                models) {
+//            queues.add(new QueueModel(model.getMaxPlayers(), model.getWorld().getName(), model));
+//            spectatorQueues.add(new SpectatorQueueModel(model.getWorld(), model));
+//        }
+
+        for(int i = 0; i < models.size(); i++){
+            queues.add(new QueueModel(models.get(i).getMaxPlayers(), models.get(i).getWorld().getName(), models.get(i)));
+            spectatorQueues.add(new SpectatorQueueModel(models.get(i).getWorld(), queues.get(i), models.get(i)));
         }
     }
 
@@ -83,7 +89,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
             System.out.println(models.get(i).getMaxPlayers());
         }
 
-        constructQueues(this.models, queues);
+        constructQueues(this.models, queues, spectatorQueues);
 
         this.queueController = new QueueController(queues);
         System.out.println("All queue's max players upon constructor load");
@@ -94,6 +100,10 @@ public final class Litebridge extends JavaPlugin implements Listener {
         this.gameController = new GameController(queues, this);
 
         plugin = this;
+
+        //TODO: Change the location to be a variable in the config file
+        this.spectatorController = new SpectatorController(spectatorQueues, this.getServer().getWorld("lobby").getSpawnLocation(), this);
+
         System.out.println("Litebridge is running.");
 
         getServer().getPluginManager().registerEvents(new BedLeaveListener(),this);
@@ -101,6 +111,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(gameController, this);
         getServer().getPluginManager().registerEvents(new ReloadListener(gameController), this);
         getServer().getPluginManager().registerEvents(this.guiController, this);
+        getServer().getPluginManager().registerEvents(this.spectatorController, this);
 //        TODO: Register events in GameController
 //        getServer().getPluginManager().registerEvents(, this);
         getServer().getPluginManager().registerEvents(mapCreator, this);
@@ -117,6 +128,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
         getCommand("litebridgedebug").setExecutor(new DebugCommand(this));
         getCommand("litebridgegame").setExecutor(new GameCommand(gameController));
         getCommand("litebridgeadmin").setExecutor(new AdminCommand(queues,models,this, gameController));
+        getCommand("litebridgespectator").setExecutor(this.spectatorController);
 
         HotbarConfig.setup();
         HotbarConfig.get().options().copyDefaults(true);
@@ -167,6 +179,12 @@ public final class Litebridge extends JavaPlugin implements Listener {
                 System.out.println("This queue already exists, updating it according to the newly provided one.");
                 queues.set(i, new QueueModel(model.getMaxPlayers(), model.getWorld().getName(), model));
             }
+
+            //if the spectator queue for this game already exists, don't create a new one, but if it doesn't, create a new one
+            if(spectatorQueues.get(i).getWorld().getName().equals(model.getWorld().getName())){
+                System.out.println("This spectator queue already exists, updating it according to the newly provided one.");
+                spectatorQueues.set(i, new SpectatorQueueModel(model.getWorld(), queues.get(i), model));
+            }
        }
         if(isInModels){
             return;
@@ -174,7 +192,9 @@ public final class Litebridge extends JavaPlugin implements Listener {
        //by reaching the end of the loop, we know it doesn't exist
         System.out.println("This model didn't exist. Adding it to the existing models.");
         models.add(model);
-        queues.add(new QueueModel(model.getMaxPlayers(), model.getWorld().getName(), model));
+        QueueModel newQueue = new QueueModel(model.getMaxPlayers(), model.getWorld().getName(), model);
+        queues.add(newQueue);
+        spectatorQueues.add(new SpectatorQueueModel(model.getWorld(), newQueue, model));
     }
 
     public void addAQueue(GameModel model){
@@ -219,6 +239,11 @@ public final class Litebridge extends JavaPlugin implements Listener {
             if(queue.getAssociatedGame().getWorld().getName().equals(model.getWorld().getName())){
                 queues.remove(queue);
                 models.remove(model);
+                for(SpectatorQueueModel spectatorQueue: spectatorQueues){
+                    if(spectatorQueue.getWorld().getName().equals(model.getWorld().getName())){
+                        spectatorQueues.remove(spectatorQueue);
+                    }
+                }
                 return;
             }
         }

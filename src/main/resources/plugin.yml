@@ -91,6 +91,15 @@ commands:
       - lbadmin
       - lba
       - la
+  litebridgespectator:
+    description: Allows a player to spectate a game
+    usage: /<command> (gamename)
+    permission: litebridge.spectator
+    permission-message: You don't have permission to spectate games.
+    aliases:
+      - lbspectator
+      - lbspec
+      - ls
 permissions:
   litebridge.god:
     description: Allows someone to run the /god command
@@ -106,4 +115,7 @@ permissions:
     default: op
   litebridge.litebridgeadmin:
     description: Allows someone to execute admin commands
+    default: op
+  litebridge.litebridgespectator:
+    description: Allows someone to spectate games
     default: op

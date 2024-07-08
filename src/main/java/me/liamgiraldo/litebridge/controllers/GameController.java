@@ -5,6 +5,7 @@ import com.cryptomorin.xseries.XMaterial;
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import me.liamgiraldo.litebridge.Litebridge;
 import me.liamgiraldo.litebridge.events.ForceStartEvent;
+import me.liamgiraldo.litebridge.events.GameEndEvent;
 import me.liamgiraldo.litebridge.events.QueueFullEvent;
 import me.liamgiraldo.litebridge.files.HotbarConfig;
 import me.liamgiraldo.litebridge.models.BlockChangeModel;
@@ -256,6 +257,12 @@ public class GameController implements CommandExecutor, Listener {
                 Objective objective = game.getScoreboard().getObjective("bridge");
                 game.updateScoreboard(objective, countdown);
 
+                for(Player player : game.getWorld().getPlayers()){
+                    if(player == null)
+                        continue;
+                    player.setScoreboard(game.getScoreboard());
+                }
+
                 for(Player player: game.getPlayers()){
                     if(player == null)
                         continue;
@@ -424,6 +431,19 @@ public class GameController implements CommandExecutor, Listener {
                         ItemStack arrow = new ItemStack(Material.ARROW, 1);
                         player.getInventory().addItem(arrow);
                     }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    private void cancelMobSpawnEvent(CreatureSpawnEvent e){
+        //if the world is a game world, and the spawn reason is natural, cancel the event
+        for(QueueModel queue: queues){
+            GameModel game = queue.getAssociatedGame();
+            if(game.getWorld() == e.getLocation().getWorld()){
+                if(e.getSpawnReason() == CreatureSpawnEvent.SpawnReason.NATURAL){
+                    e.setCancelled(true);
                 }
             }
         }
@@ -650,6 +670,11 @@ public class GameController implements CommandExecutor, Listener {
         game.setGameState(GameModel.GameState.INACTIVE);
         //clear every player's inventory as well,
         //we need to reset the scoreboard for each player
+        for(Player player: game.getWorld().getPlayers()){
+            if(player == null)
+                continue;
+            player.setScoreboard(this.plugin.getServer().getScoreboardManager().getNewScoreboard());
+        }
         for(Player player: game.getPlayers()){
             if(player==null)
                 continue;
@@ -676,6 +701,10 @@ public class GameController implements CommandExecutor, Listener {
                 player.playSound(player.getLocation(), Sound.ENDERMAN_TELEPORT, 1, 1);
                 player.teleport(lobbyLocation);
             }
+
+            GameEndEvent event = new GameEndEvent(game);
+            Bukkit.getPluginManager().callEvent(event);
+
             resetWorld(game.getWorld());
             game.resetGame();
             game.resetCages();
@@ -710,6 +739,11 @@ public class GameController implements CommandExecutor, Listener {
         game.setGameState(GameModel.GameState.INACTIVE);
         //clear every player's inventory as well,
         //we need to reset the scoreboard for each player
+        for(Player player: game.getWorld().getPlayers()){
+            if(player == null)
+                continue;
+            player.setScoreboard(this.plugin.getServer().getScoreboardManager().getNewScoreboard());
+        }
         for(Player player: game.getPlayers()){
             if(player==null)
                 continue;
@@ -731,6 +765,8 @@ public class GameController implements CommandExecutor, Listener {
             player.playSound(player.getLocation(), Sound.ENDERMAN_TELEPORT, 1, 1);
             player.teleport(lobbyLocation);
         }
+        GameEndEvent event = new GameEndEvent(game);
+        Bukkit.getPluginManager().callEvent(event);
         resetWorld(game.getWorld());
         game.resetGame();
         game.resetCages();
@@ -760,6 +796,10 @@ public class GameController implements CommandExecutor, Listener {
 
         for(QueueModel queue: queues){
             GameModel game = queue.getAssociatedGame();
+
+            //if the player isn't in this game, we dont need to do anything
+            if(!game.checkIfPlayerIsInGame(player))
+                continue;
 
             if(game.getWorld() == world && game.getGameState() == GameModel.GameState.ACTIVE){
                 // Calculate bounds for red goal
@@ -1575,7 +1615,9 @@ public class GameController implements CommandExecutor, Listener {
         objective.getScore(ChatColor.BLUE + "Blue Goals: " + game.getBlueGoals()).setScore(10);
 
         //Update the scoreboard for each player
-        for (Player player : game.getPlayers()) {
+        //actually I want to update the scoreboard for every player in that world
+
+        for (Player player : game.getWorld().getPlayers()) {
             if(player == null)
                 continue;
             player.setScoreboard(game.getScoreboard());
