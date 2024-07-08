@@ -1097,6 +1097,7 @@ public class GameModel {
      * @param onTick The runnable to run every second
      * */
     public void startStallingTimer(Runnable onEnd, Runnable onTick) {
+        this.stallingTimerCountdown = 5;
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -1278,7 +1279,7 @@ public class GameModel {
     }
 
     public void setNewDefaultRedCageBlocks(){
-        redCageBlocks.clear();
+        this.redCageBlocks = new ArrayList<Block>();
 
         int[] redBound1 = redCageBounds[0];
         int[] redBound2 = redCageBounds[1];
@@ -1298,10 +1299,15 @@ public class GameModel {
                 }
             }
         }
+
+        this.originalRedCageBlocks = new ArrayList<BlockStateModel>();
+        for (Block block : redCageBlocks) {
+            originalRedCageBlocks.add(new BlockStateModel(block.getType(), block.getData()));
+        }
     }
 
     public void setNewDefaultBlueCageBlocks(){
-        blueCageBlocks.clear();
+        this.blueCageBlocks = new ArrayList<Block>();
 
         int[] blueBound1 = blueCageBounds[0];
         int[] blueBound2 = blueCageBounds[1];
@@ -1320,6 +1326,11 @@ public class GameModel {
                     blueCageBlocks.add(block);
                 }
             }
+        }
+
+        this.originalBlueCageBlocks = new ArrayList<BlockStateModel>();
+        for (Block block : redCageBlocks) {
+            originalBlueCageBlocks.add(new BlockStateModel(block.getType(), block.getData()));
         }
     }
 }

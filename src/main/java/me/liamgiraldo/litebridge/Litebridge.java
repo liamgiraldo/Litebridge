@@ -1,12 +1,16 @@
 package me.liamgiraldo.litebridge;
 
+import com.samjakob.spigui.SpiGUI;
 import me.liamgiraldo.litebridge.commands.*;
+import me.liamgiraldo.litebridge.controllers.GUIController;
 import me.liamgiraldo.litebridge.controllers.GameController;
 import me.liamgiraldo.litebridge.controllers.MapCreator;
 import me.liamgiraldo.litebridge.controllers.QueueController;
+import me.liamgiraldo.litebridge.files.HotbarConfig;
 import me.liamgiraldo.litebridge.listeners.BedLeaveListener;
 import me.liamgiraldo.litebridge.listeners.PlayerJoinListener;
 import me.liamgiraldo.litebridge.listeners.ReloadListener;
+import me.liamgiraldo.litebridge.models.GUIModel;
 import me.liamgiraldo.litebridge.models.GameModel;
 import me.liamgiraldo.litebridge.models.QueueModel;
 import org.bukkit.Location;
@@ -37,9 +41,18 @@ public final class Litebridge extends JavaPlugin implements Listener {
 
     private QueueController queueController;
     private GameController gameController;
+    private GUIController guiController;
+
+    private GUIModel guiModel;
+
+    public static SpiGUI spiGUI;
 
     public static Litebridge getPlugin(){
         return plugin;
+    }
+
+    public SpiGUI getSpiGUI(){
+        return spiGUI;
     }
 
     /**
@@ -54,8 +67,13 @@ public final class Litebridge extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-        // Plugin startup logic
+
         saveDefaultConfig();
+
+        spiGUI = new SpiGUI(this);
+
+        this.guiModel = new GUIModel(this);
+        this.guiController = new GUIController(guiModel);
 
         mapCreator = new MapCreator(this);
         this.models = mapCreator.constructGameModels();
@@ -82,6 +100,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(), this);
         getServer().getPluginManager().registerEvents(gameController, this);
         getServer().getPluginManager().registerEvents(new ReloadListener(gameController), this);
+        getServer().getPluginManager().registerEvents(this.guiController, this);
 //        TODO: Register events in GameController
 //        getServer().getPluginManager().registerEvents(, this);
         getServer().getPluginManager().registerEvents(mapCreator, this);
@@ -98,6 +117,10 @@ public final class Litebridge extends JavaPlugin implements Listener {
         getCommand("litebridgedebug").setExecutor(new DebugCommand(this));
         getCommand("litebridgegame").setExecutor(new GameCommand(gameController));
         getCommand("litebridgeadmin").setExecutor(new AdminCommand(queues,models,this, gameController));
+
+        HotbarConfig.setup();
+        HotbarConfig.get().options().copyDefaults(true);
+        HotbarConfig.save();
     }
 
     @Override

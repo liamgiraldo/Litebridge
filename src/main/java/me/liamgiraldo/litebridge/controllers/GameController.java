@@ -6,6 +6,7 @@ import com.sun.org.apache.xpath.internal.operations.Bool;
 import me.liamgiraldo.litebridge.Litebridge;
 import me.liamgiraldo.litebridge.events.ForceStartEvent;
 import me.liamgiraldo.litebridge.events.QueueFullEvent;
+import me.liamgiraldo.litebridge.files.HotbarConfig;
 import me.liamgiraldo.litebridge.models.BlockChangeModel;
 import me.liamgiraldo.litebridge.models.GameModel;
 import me.liamgiraldo.litebridge.models.QueueModel;
@@ -93,7 +94,8 @@ public class GameController implements CommandExecutor, Listener {
 
         //Giving clay
         kitItems.add(new ItemStack(Material.STAINED_CLAY, 64));
-        kitItems.add(new ItemStack(Material.STAINED_CLAY, 64));
+        //I mean it should be stained clay but this is a hacky fix
+        kitItems.add(new ItemStack(Material.WOOL, 64));
 
         ItemStack goldenApple = new ItemStack(Material.GOLDEN_APPLE, 8);
         kitItems.add(goldenApple);
@@ -211,7 +213,18 @@ public class GameController implements CommandExecutor, Listener {
             giveKitToPlayers(game.getRedTeam(), true);
             giveKitToPlayers(game.getBlueTeam(), false);
             //start the stalling timer
-            game.startStallingTimer(()->{game.clearCages(); game.setGameState(GameModel.GameState.ACTIVE);});
+//            game.startStallingTimer(()->{game.clearCages(); game.setGameState(GameModel.GameState.ACTIVE);});
+            game.startStallingTimer(()->{
+                game.clearCages();
+                game.setGameState(GameModel.GameState.ACTIVE);
+                for(Player player: game.getPlayers()){
+                    player.sendTitle("","");
+                }
+            },
+                    ()->{
+                        System.out.println("Stalling timer countdown: " + game.getStallingTimerCountdown());
+                sendEachPlayerStartingTitle(game, game.getStallingTimerCountdown());
+                    });
             //start the game timer
             game.startGameTimer(game.getGameTimeInSeconds());
 //        }
@@ -288,6 +301,8 @@ public class GameController implements CommandExecutor, Listener {
             return;
         }
         for (Player player: players){
+            //so now players have a customizable hotbar, which is stored in the hotbar.yml file
+            //
             if(player == null){
                 System.out.println("I'm trying to give a kit to a null player");
                 continue;
@@ -320,14 +335,39 @@ public class GameController implements CommandExecutor, Listener {
 
             //Give the player the kit items
             for(ItemStack item: kitItems){
-                if(item.getType() == Material.STAINED_CLAY) {
-                    if (redTeam)
-                        player.getInventory().addItem(redClay);
-                    else
-                        player.getInventory().addItem(blueClay);
+                int itemPosition;
+                try{
+                    //from the hotbar config, we get the item position
+                    itemPosition = HotbarConfig.get().getInt(player.getUniqueId().toString() + "." + item.getType().toString());
+
+                    int secondItemPosition = HotbarConfig.get().getInt(player.getUniqueId().toString() + "." + "BOW");
+                    int thirdItemPosition = HotbarConfig.get().getInt(player.getUniqueId().toString() + "." + "DIAMOND_PICKAXE");
+                    if(secondItemPosition == 0 && thirdItemPosition == 0){
+                        itemPosition = -1;
+                    }
+                } catch(NullPointerException e){
+                    itemPosition = -1;
+                }
+                if(item.getType() == Material.STAINED_CLAY || item.getType() == Material.WOOL){
+                    if (redTeam) {
+                        if(itemPosition != -1)
+                            player.getInventory().setItem(itemPosition, redClay);
+                        else
+                            player.getInventory().addItem(redClay);
+                    }
+                    else {
+                        if(itemPosition != -1)
+                            player.getInventory().setItem(itemPosition, blueClay);
+                        else
+                            player.getInventory().addItem(blueClay);
+//                        player.getInventory().addItem(blueClay);
+                    }
                     continue;
                 }
-                player.getInventory().addItem(item);
+                if(itemPosition != -1)
+                    player.getInventory().setItem(itemPosition, item);
+                else
+                    player.getInventory().addItem(item);
             }
         }
     }
@@ -487,11 +527,38 @@ public class GameController implements CommandExecutor, Listener {
 
         //Give the player the kit items
         for(ItemStack item: kitItems){
-            if(item.getType() == Material.STAINED_CLAY) {
-                if (isPlayerOnRedTeam)
-                    player.getInventory().addItem(redClay);
-                else
-                    player.getInventory().addItem(blueClay);
+            int itemPosition;
+            try{
+                //from the hotbar config, we get the item position
+                itemPosition = HotbarConfig.get().getInt(player.getUniqueId().toString() + "." + item.getType().toString());
+
+                int secondItemPosition = HotbarConfig.get().getInt(player.getUniqueId().toString() + "." + "BOW");
+                int thirdItemPosition = HotbarConfig.get().getInt(player.getUniqueId().toString() + "." + "DIAMOND_PICKAXE");
+                if(secondItemPosition == 0 && thirdItemPosition == 0){
+                    itemPosition = -1;
+                }
+            } catch(NullPointerException e){
+                itemPosition = -1;
+            }
+            if(item.getType() == Material.STAINED_CLAY || item.getType() == Material.WOOL){
+                if (isPlayerOnRedTeam) {
+                    if (itemPosition != -1) {
+                        player.getInventory().setItem(itemPosition, redClay);
+                    }
+                    else {
+                        player.getInventory().addItem(redClay);
+                    }
+                }
+//                    player.getInventory().addItem(redClay);
+                else {
+                    if (itemPosition != -1) {
+                        player.getInventory().setItem(itemPosition, blueClay);
+                    }
+                    else {
+                        player.getInventory().addItem(blueClay);
+                    }
+//                    player.getInventory().addItem(blueClay);
+                }
                 continue;
             }
             player.getInventory().addItem(item);
@@ -1605,6 +1672,23 @@ public class GameController implements CommandExecutor, Listener {
                 p.sendTitle(ChatColor.BLUE + player.getName() + " scored!", ChatColor.GOLD + "Cages open in: " + ChatColor.GRAY + countdown + " seconds");
             }
         }
+    }
+
+    private void sendEachPlayerStartingTitle(GameModel game, int countdown){
+        for(Player p: game.getPlayers()){
+            if(p == null)
+                continue;
+            if(countdown > 0)
+                p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 1);
+            if(countdown == 0)
+                p.playSound(p.getLocation(), Sound.EXPLODE, 1, 1);
+            if(game.checkIfPlayerIsInRedTeam(p)){
+                p.sendTitle(ChatColor.RED + "Game starting!", ChatColor.GOLD + "Game starts in: " + ChatColor.GRAY + countdown + " seconds");
+            } else {
+                p.sendTitle(ChatColor.BLUE + "Game starting!", ChatColor.GOLD + "Game starts in: " + ChatColor.GRAY + countdown + " seconds");
+            }
+        }
+
     }
 
     /**
