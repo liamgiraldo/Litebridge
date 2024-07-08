@@ -538,6 +538,7 @@ public class GameController implements CommandExecutor, Listener {
                     itemPosition = -1;
                 }
             } catch(NullPointerException e){
+                player.sendMessage("An error occurred while trying to give you your kit. Please try again.");
                 itemPosition = -1;
             }
             if(item.getType() == Material.STAINED_CLAY || item.getType() == Material.WOOL){
@@ -561,7 +562,10 @@ public class GameController implements CommandExecutor, Listener {
                 }
                 continue;
             }
-            player.getInventory().addItem(item);
+            if(itemPosition != -1)
+                player.getInventory().setItem(itemPosition, item);
+            else
+                player.getInventory().addItem(item);
         }
     }
 
