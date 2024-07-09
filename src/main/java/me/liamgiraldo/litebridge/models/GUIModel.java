@@ -6,10 +6,15 @@ import com.samjakob.spigui.item.ItemBuilder;
 import com.samjakob.spigui.menu.SGMenu;
 import me.liamgiraldo.litebridge.Litebridge;
 import me.liamgiraldo.litebridge.files.HotbarConfig;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class GUIModel {
@@ -20,13 +25,18 @@ public class GUIModel {
     SGMenu customizemenu;
     SGMenu mapmenu;
 
-    public GUIModel(Litebridge plugin){
+    ArrayList<GameModel> games;
+
+    HashMap<Player, Integer> lastSelectedMode = new HashMap<>();
+
+    public GUIModel(Litebridge plugin, ArrayList<GameModel> games){
         this.plugin = plugin;
         this.bridgemainmenu = plugin.getSpiGUI().create("Bridge Main Menu", 3);
         this.bridgeselectmode = plugin.getSpiGUI().create("Bridge Mode Selection", 3);
         this.hotbareditor = plugin.getSpiGUI().create("Hotbar Editor", 3);
         this.customizemenu = plugin.getSpiGUI().create("Customize", 3);
         this.mapmenu = plugin.getSpiGUI().create("Map Menu", 6);
+        this.games = games;
 
         ItemBuilder closeitem = new ItemBuilder(Material.BARRIER);
         closeitem.lore("Click here to close the menu");
@@ -85,6 +95,8 @@ public class GUIModel {
         solositem.amount(1);
         solositem.name("Solos");
         SGButton solos = new SGButton(solositem.build()).withListener((InventoryClickEvent event) -> {
+            lastSelectedMode.put((Player) event.getWhoClicked(), 1);
+            generateMapButtons((Player) event.getWhoClicked());
             event.getWhoClicked().openInventory(mapmenu.getInventory());
         });
 
@@ -93,6 +105,8 @@ public class GUIModel {
         duositem.amount(2);
         duositem.name("Duos");
         SGButton duos = new SGButton(duositem.build()).withListener((InventoryClickEvent event) -> {
+            lastSelectedMode.put((Player) event.getWhoClicked(), 2);
+            generateMapButtons((Player) event.getWhoClicked());
             event.getWhoClicked().openInventory(mapmenu.getInventory());
         });
 
@@ -101,6 +115,8 @@ public class GUIModel {
         triositem.amount(3);
         triositem.name("Trios");
         SGButton trios = new SGButton(triositem.build()).withListener((InventoryClickEvent event) -> {
+            lastSelectedMode.put((Player) event.getWhoClicked(), 3);
+            generateMapButtons((Player) event.getWhoClicked());
             event.getWhoClicked().openInventory(mapmenu.getInventory());
         });
 
@@ -109,6 +125,8 @@ public class GUIModel {
         squadsitem.amount(4);
         squadsitem.name("Squads");
         SGButton squads = new SGButton(squadsitem.build()).withListener((InventoryClickEvent event) -> {
+            lastSelectedMode.put((Player) event.getWhoClicked(), 4);
+            generateMapButtons((Player) event.getWhoClicked());
             event.getWhoClicked().openInventory(mapmenu.getInventory());
         });
 
@@ -205,6 +223,19 @@ public class GUIModel {
         hotbareditor.setButton(0, 26, savebutton);
         hotbareditor.setButton(0, 17, infobutton);
 
+        ItemBuilder randomqbutton = new ItemBuilder(XMaterial.MUSIC_DISC_BLOCKS.parseMaterial());
+        randomqbutton.lore("Click to play a random map");
+        randomqbutton.amount(1);
+        randomqbutton.name("Random Map");
+        SGButton randomq = new SGButton(randomqbutton.build()).withListener((InventoryClickEvent event) -> {
+            event.getWhoClicked().sendMessage("Random map selected");
+            event.getWhoClicked().closeInventory();
+        });
+
+        mapmenu.setButton(0, 49, closebutton);
+        mapmenu.setButton(0, 45, mainmenubutton);
+        mapmenu.setButton(0, 53, randomq);
+
         //TODO: There has to be a better way to do this
         plugin.getSpiGUI().setBlockDefaultInteractions(false);
         bridgemainmenu.setBlockDefaultInteractions(true);
@@ -229,5 +260,76 @@ public class GUIModel {
         HotbarConfig.get().set(event.getWhoClicked().getUniqueId().toString(), hotbar);
         HotbarConfig.save();
         HotbarConfig.reload();
+    }
+
+    public SGMenu getMapmenu() {
+        return mapmenu;
+    }
+
+    public HashMap getPlayerLastSelectedMode() {
+        return lastSelectedMode;
+    }
+
+    public int getLastSelectedMode(Player player) {
+        return lastSelectedMode.get(player);
+    }
+
+
+    private void generateMapButtons(Player player){
+        int i = 0;
+
+        int lastSelectedMode = this.getLastSelectedMode(player);
+
+        for(GameModel game: games){
+            if(game.getWorld().getName().contains(Integer.toString(lastSelectedMode))){
+                continue;
+            }
+            ItemStack item = new ItemStack(Material.MAP);
+            ItemMeta meta = item.getItemMeta();
+            meta.setDisplayName(removeNumbers(game.getWorld().getName()));
+            ArrayList<String> lore = new ArrayList<>();
+            lore.add(ChatColor.GOLD + "In-Game:");
+            for(Player p: game.getPlayers()){
+                if(p == null){
+                    lore.add(ChatColor.GRAY + "Empty");
+                    continue;
+                }
+                ChatColor color;
+                if(game.checkIfPlayerIsInRedTeam(p)){
+                    color = ChatColor.RED;
+                } else {
+                    color = ChatColor.BLUE;
+                }
+                lore.add(color + p.getName());
+            }
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+            SGButton button = new SGButton(item).withListener((InventoryClickEvent event) -> {
+                event.getWhoClicked().closeInventory();
+                if(event.getWhoClicked() instanceof Player){
+                    Player p = (Player) event.getWhoClicked();
+                    String endOfWorldName;
+                    if(!hasNumber(game.getWorld().getName())){
+                        endOfWorldName = "";
+                    } else{
+                        endOfWorldName = Integer.toString(this.getLastSelectedMode(p));
+                    }
+
+                    p.performCommand("q " + this.getLastSelectedMode(p) + " " + game.getWorld().getName() + endOfWorldName);
+                }
+            });
+
+            this.getMapmenu().setButton(i, button);
+            i++;
+        }
+    }
+
+    private String removeNumbers(String str) {
+        return str.replaceAll("\\d", "");
+    }
+
+    //write a method to check if a string has a number in it
+    private boolean hasNumber(String s) {
+        return s.matches(".*\\d.*");
     }
 }

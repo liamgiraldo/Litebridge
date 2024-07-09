@@ -78,9 +78,6 @@ public final class Litebridge extends JavaPlugin implements Listener {
 
         spiGUI = new SpiGUI(this);
 
-        this.guiModel = new GUIModel(this);
-        this.guiController = new GUIController(guiModel);
-
         mapCreator = new MapCreator(this);
         this.models = mapCreator.constructGameModels();
 
@@ -103,6 +100,10 @@ public final class Litebridge extends JavaPlugin implements Listener {
 
         //TODO: Change the location to be a variable in the config file
         this.spectatorController = new SpectatorController(spectatorQueues, this.getServer().getWorld("lobby").getSpawnLocation(), this);
+
+
+        this.guiModel = new GUIModel(this, models);
+        this.guiController = new GUIController(guiModel, models);
 
         System.out.println("Litebridge is running.");
 
