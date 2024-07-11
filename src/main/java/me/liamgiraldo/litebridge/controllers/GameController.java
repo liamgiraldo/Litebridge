@@ -25,12 +25,14 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.material.MaterialData;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Objective;
@@ -76,9 +78,9 @@ public class GameController implements CommandExecutor, Listener {
      * @param queues The queues to manage
      * @param plugin The lite-bridge plugin
      */
-    public GameController(ArrayList<QueueModel> queues, Litebridge plugin) {
+    public GameController(ArrayList<QueueModel> queues, Litebridge plugin, Location lobbyLocation) {
         this.queues = queues;
-        this.lobbyLocation = new Location(plugin.getServer().getWorld("world"), 216, 67, 215);
+        this.lobbyLocation = lobbyLocation;
 
         this.kitItems = new ArrayList<>();
         this.plugin = plugin;
@@ -975,6 +977,19 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    @EventHandler
+    public void onCropTrampleEvent(PlayerInteractEvent e){
+        Player player = e.getPlayer();
+        for(QueueModel queue: queues){
+            GameModel game = queue.getAssociatedGame();
+            if(game.checkIfPlayerIsInGame(player)){
+                if(e.getAction() == Action.PHYSICAL){
+                    e.setCancelled(true);
+                }
+            }
+        }
+    }
+
     /**
      * Checks if a player has damaged another player
      * If a player has damaged another player, we cancel the event if the players are on the same team
@@ -1058,8 +1073,6 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
-    @EventHandler
-
     /**
      * Checks if the weather has changed
      * Ony cancels the event if the world is a game world
@@ -1067,12 +1080,15 @@ public class GameController implements CommandExecutor, Listener {
      *
      * @param e The WeatherChangeEvent
      * */
+    @EventHandler
     public void onWeatherChange(org.bukkit.event.weather.WeatherChangeEvent e){
         //I only want to cancel the weather change event if the world is a game world
         for(QueueModel queue: queues){
             GameModel game = queue.getAssociatedGame();
             if(game.getWorld() == e.getWorld()){
-                e.setCancelled(true);
+                if(e.toWeatherState()){
+                    e.setCancelled(true);
+                }
             }
         }
     }
@@ -1489,6 +1505,10 @@ public class GameController implements CommandExecutor, Listener {
 
         if(game.checkIfPlayerIsInRedTeam(player)){
             player.sendMessage("Wrong goal! Teleporting you back to your spawn point.");
+            player.setHealth(20);
+            resetPlayerInventory(player);
+            player.removePotionEffect(PotionEffectType.REGENERATION);
+            player.removePotionEffect(PotionEffectType.ABSORPTION);
             teleportPlayerBasedOnTeam(player, game);
         } else if(game.checkIfPlayerIsInBlueTeam(player)) {
             game.setBlueGoals(game.getBlueGoals() + 1);
@@ -1562,6 +1582,11 @@ public class GameController implements CommandExecutor, Listener {
         if(game.checkIfPlayerIsInBlueTeam(player)){
             player.sendMessage("Wrong goal! Teleporting you back to your spawn point.");
             teleportPlayerBasedOnTeam(player, game);
+
+            player.setHealth(20);
+            resetPlayerInventory(player);
+            player.removePotionEffect(PotionEffectType.REGENERATION);
+            player.removePotionEffect(PotionEffectType.ABSORPTION);
         } else if(game.checkIfPlayerIsInRedTeam(player)){
             game.setRedGoals(game.getRedGoals() + 1);
 

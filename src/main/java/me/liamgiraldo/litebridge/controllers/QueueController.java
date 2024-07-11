@@ -3,6 +3,7 @@ package me.liamgiraldo.litebridge.controllers;
 import me.liamgiraldo.litebridge.events.QueueFullEvent;
 import me.liamgiraldo.litebridge.models.GameModel;
 import me.liamgiraldo.litebridge.models.QueueModel;
+import me.liamgiraldo.litebridge.models.SpectatorQueueModel;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -12,19 +13,23 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EventListener;
 
-public class QueueController implements EventListener, CommandExecutor {
+public class QueueController implements EventListener, CommandExecutor, Listener {
     private ArrayList<QueueModel> queues;
+    private ArrayList<SpectatorQueueModel> spectatorQueues;
 
-    public QueueController(ArrayList<QueueModel> queues){
+    public QueueController(ArrayList<QueueModel> queues, ArrayList<SpectatorQueueModel> spectatorQueues){
         this.queues = queues;
+        this.spectatorQueues = spectatorQueues;
     }
 
     @Override
@@ -46,6 +51,18 @@ public class QueueController implements EventListener, CommandExecutor {
                     if(p.getUniqueId() == queues.get(i).getQueue()[j].getUniqueId()){
                         p.sendMessage("You're already queueing for a game.");
                         p.sendMessage("If you want to requeue, do /q leave, then /q again.");
+                        return false;
+                    }
+                }
+            }
+
+            for(int i = 0; i < spectatorQueues.size(); i++){
+                for(int j = 0; j < spectatorQueues.get(i).getSpectators().size(); j++){
+                    if(spectatorQueues.get(i).getSpectators().get(j) == null)
+                        continue;
+                    if(p.getUniqueId() == spectatorQueues.get(i).getSpectators().get(j).getUniqueId()){
+                        p.sendMessage("You're spectating / queueing to spectate a game.");
+                        p.sendMessage("If you want to queue for a game, do /ls leave, then /q again.");
                         return false;
                     }
                 }
@@ -331,5 +348,20 @@ public class QueueController implements EventListener, CommandExecutor {
             }
         }
         return mostPlayers;
+    }
+
+    @EventHandler
+    private void onPlayerLeaveServerEvent(PlayerQuitEvent event){
+        //only kick the player out of the queue if their queue's game is inactive
+        if(event.getPlayer() != null){
+            for(QueueModel q: queues){
+                if(q.isPlayerInQueue(event.getPlayer())){
+                    if(q.getAssociatedGame().getGameState() == GameModel.GameState.INACTIVE){
+                        q.removeFromQueue(event.getPlayer());
+                    }
+                }
+            }
+        }
+        leaveQueue(event.getPlayer());
     }
 }

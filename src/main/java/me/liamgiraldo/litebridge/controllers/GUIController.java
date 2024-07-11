@@ -33,28 +33,6 @@ public class GUIController implements Listener {
     }
 
     @EventHandler
-    public void onPlayerJoinLobby(PlayerJoinEvent event) {
-        event.getPlayer().sendMessage("Welcome back!");
-        if(event.getPlayer().getWorld().getName().equals("lobby")) {
-            event.getPlayer().sendMessage("Welcome back to lobby!");
-            event.getPlayer().getInventory().clear();
-
-            ItemStack item = new ItemStack(Material.NETHER_STAR);
-            ItemMeta meta = item.getItemMeta();
-
-            meta.setDisplayName("Main Menu");
-
-            ArrayList<String> itemLore = new ArrayList<>();
-            itemLore.add("Click to open the main menu");
-            meta.setLore(itemLore);
-
-            item.setItemMeta(meta);
-
-            event.getPlayer().getInventory().addItem(item);
-        }
-    }
-
-    @EventHandler
     public void onPlayerRightClickItem(PlayerInteractEvent event) {
         if(event.getItem() == null || event.getItem().getItemMeta() == null) {
             return;

@@ -44,8 +44,11 @@ public final class Litebridge extends JavaPlugin implements Listener {
     private SpectatorController spectatorController;
 
     private GUIModel guiModel;
+    private LobbyManager lobbyManager;
 
     public static SpiGUI spiGUI;
+
+    private Location lobby;
 
     public static Litebridge getPlugin(){
         return plugin;
@@ -76,6 +79,14 @@ public final class Litebridge extends JavaPlugin implements Listener {
 
         saveDefaultConfig();
 
+        //in the config, grab the lobby location
+//        lobby-world: "world"
+//        lobby-x: 0
+//        lobby-y: 100
+//        lobby-z: 0
+        this.lobby = new Location(getServer().getWorld(getConfig().getString("lobby-world")), getConfig().getDouble("lobby-x"), getConfig().getDouble("lobby-y"), getConfig().getDouble("lobby-z"));
+        lobbyManager = new LobbyManager(lobby);
+
         spiGUI = new SpiGUI(this);
 
         mapCreator = new MapCreator(this);
@@ -88,18 +99,19 @@ public final class Litebridge extends JavaPlugin implements Listener {
 
         constructQueues(this.models, queues, spectatorQueues);
 
-        this.queueController = new QueueController(queues);
+        this.spectatorController = new SpectatorController(spectatorQueues, this.getServer().getWorld("lobby").getSpawnLocation(), this);
+
+        this.queueController = new QueueController(queues, spectatorQueues);
         System.out.println("All queue's max players upon constructor load");
         for(int i = 0; i < queues.size(); i++){
             System.out.println(queues.get(i).getAssociatedGame().getMaxPlayers());
         }
 
-        this.gameController = new GameController(queues, this);
+        this.gameController = new GameController(queues, this, lobby);
 
         plugin = this;
 
         //TODO: Change the location to be a variable in the config file
-        this.spectatorController = new SpectatorController(spectatorQueues, this.getServer().getWorld("lobby").getSpawnLocation(), this);
 
 
         this.guiModel = new GUIModel(this, models);
@@ -113,6 +125,8 @@ public final class Litebridge extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new ReloadListener(gameController), this);
         getServer().getPluginManager().registerEvents(this.guiController, this);
         getServer().getPluginManager().registerEvents(this.spectatorController, this);
+        getServer().getPluginManager().registerEvents(this.lobbyManager, this);
+        getServer().getPluginManager().registerEvents(this.queueController, this);
 //        TODO: Register events in GameController
 //        getServer().getPluginManager().registerEvents(, this);
         getServer().getPluginManager().registerEvents(mapCreator, this);

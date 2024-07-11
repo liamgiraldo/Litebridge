@@ -22,6 +22,7 @@ me/liamgiraldo/litebridge/interfaces/SpectatorAction$SpectatorJoin.class
 me/liamgiraldo/litebridge/controllers/GameController$1.class
 me/liamgiraldo/litebridge/models/GameModel.class
 me/liamgiraldo/litebridge/commands/SetMessageCommand.class
+me/liamgiraldo/litebridge/controllers/LobbyManager.class
 me/liamgiraldo/litebridge/commands/GameCommand.class
 me/liamgiraldo/litebridge/controllers/GameController.class
 me/liamgiraldo/litebridge/models/SpectatorQueueModel.class
@@ -31,6 +32,7 @@ me/liamgiraldo/litebridge/models/BlockStateModel.class
 me/liamgiraldo/litebridge/events/QueueFullEvent.class
 me/liamgiraldo/litebridge/events/NearDeathEvent.class
 me/liamgiraldo/litebridge/controllers/MapCreator.class
+me/liamgiraldo/litebridge/models/CustomItem.class
 me/liamgiraldo/litebridge/controllers/SpectatorController.class
 me/liamgiraldo/litebridge/listeners/PlayerJoinListener.class
 me/liamgiraldo/litebridge/controllers/QueueController.class

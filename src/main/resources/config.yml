@@ -1,1 +1,5 @@
 join-message: "&aWelcome back to the server, &c%player%&a!"
+lobby-world: "lobby"
+lobby-x: 0
+lobby-y: 102
+lobby-z: 0
