@@ -143,6 +143,7 @@ public class SpectatorController implements CommandExecutor, Listener {
                     p.teleport(lobby);
                     p.setGameMode(org.bukkit.GameMode.SURVIVAL);
                     p.sendMessage("The game you were spectating has ended");
+                    queue.removeSpectator(p);
                     p.getInventory().clear();
                     clearPlayerScoreboard(p);
                 }

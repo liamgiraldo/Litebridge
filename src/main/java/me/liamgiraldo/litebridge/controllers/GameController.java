@@ -50,12 +50,12 @@ public class GameController implements CommandExecutor, Listener {
 
     ArrayList<ItemStack> kitItems;
 
-    private ItemStack helmet = new ItemStack(Material.LEATHER_HELMET, 1);
+//    private ItemStack helmet = new ItemStack(Material.LEATHER_HELMET, 1);
     private ItemStack chestplate = new ItemStack(Material.LEATHER_CHESTPLATE, 1);
     private ItemStack leggings = new ItemStack(Material.LEATHER_LEGGINGS, 1);
     private ItemStack boots = new ItemStack(Material.LEATHER_BOOTS, 1);
 
-    private LeatherArmorMeta helmetMeta = (LeatherArmorMeta) helmet.getItemMeta();
+//    private LeatherArmorMeta helmetMeta = (LeatherArmorMeta) helmet.getItemMeta();
     private LeatherArmorMeta chestplateMeta = (LeatherArmorMeta) chestplate.getItemMeta();
     private LeatherArmorMeta leggingsMeta = (LeatherArmorMeta) leggings.getItemMeta();
     private LeatherArmorMeta bootsMeta = (LeatherArmorMeta) boots.getItemMeta();
@@ -318,17 +318,17 @@ public class GameController implements CommandExecutor, Listener {
             }
             player.getInventory().clear();
 
-            helmetMeta.setColor(redTeam ? Color.RED : Color.BLUE);
+//            helmetMeta.setColor(redTeam ? Color.RED : Color.BLUE);
             chestplateMeta.setColor(redTeam ? Color.RED : Color.BLUE);
             leggingsMeta.setColor(redTeam ? Color.RED : Color.BLUE);
             bootsMeta.setColor(redTeam ? Color.RED : Color.BLUE);
 
-            helmet.setItemMeta(helmetMeta);
+//            helmet.setItemMeta(helmetMeta);
             chestplate.setItemMeta(chestplateMeta);
             leggings.setItemMeta(leggingsMeta);
             boots.setItemMeta(bootsMeta);
 
-            player.getInventory().setHelmet(helmet);
+//            player.getInventory().setHelmet(helmet);
             player.getInventory().setChestplate(chestplate);
             player.getInventory().setLeggings(leggings);
             player.getInventory().setBoots(boots);
@@ -458,17 +458,17 @@ public class GameController implements CommandExecutor, Listener {
                 continue;
             p.getInventory().clear();
 
-            helmetMeta.setColor(redTeam ? Color.RED : Color.BLUE);
+//            helmetMeta.setColor(redTeam ? Color.RED : Color.BLUE);
             chestplateMeta.setColor(redTeam ? Color.RED : Color.BLUE);
             leggingsMeta.setColor(redTeam ? Color.RED : Color.BLUE);
             bootsMeta.setColor(redTeam ? Color.RED : Color.BLUE);
 
-            helmet.setItemMeta(helmetMeta);
+//            helmet.setItemMeta(helmetMeta);
             chestplate.setItemMeta(chestplateMeta);
             leggings.setItemMeta(leggingsMeta);
             boots.setItemMeta(bootsMeta);
 
-            p.getInventory().setHelmet(helmet);
+//            p.getInventory().setHelmet(helmet);
             p.getInventory().setChestplate(chestplate);
             p.getInventory().setLeggings(leggings);
             p.getInventory().setBoots(boots);
@@ -517,23 +517,23 @@ public class GameController implements CommandExecutor, Listener {
         player.getInventory().clear();
 
         if(isPlayerOnRedTeam){
-            helmetMeta.setColor(Color.RED);
+//            helmetMeta.setColor(Color.RED);
             chestplateMeta.setColor(Color.RED);
             leggingsMeta.setColor(Color.RED);
             bootsMeta.setColor(Color.RED);
         } else {
-            helmetMeta.setColor(Color.BLUE);
+//            helmetMeta.setColor(Color.BLUE);
             chestplateMeta.setColor(Color.BLUE);
             leggingsMeta.setColor(Color.BLUE);
             bootsMeta.setColor(Color.BLUE);
         }
 
-        helmet.setItemMeta(helmetMeta);
+//        helmet.setItemMeta(helmetMeta);
         chestplate.setItemMeta(chestplateMeta);
         leggings.setItemMeta(leggingsMeta);
         boots.setItemMeta(bootsMeta);
 
-        player.getInventory().setHelmet(helmet);
+//        player.getInventory().setHelmet(helmet);
         player.getInventory().setChestplate(chestplate);
         player.getInventory().setLeggings(leggings);
         player.getInventory().setBoots(boots);
@@ -606,23 +606,23 @@ public class GameController implements CommandExecutor, Listener {
         player.getInventory().clear();
 
         if(isPlayerOnRedTeam){
-            helmetMeta.setColor(Color.RED);
+//            helmetMeta.setColor(Color.RED);
             chestplateMeta.setColor(Color.RED);
             leggingsMeta.setColor(Color.RED);
             bootsMeta.setColor(Color.RED);
         } else {
-            helmetMeta.setColor(Color.BLUE);
+//            helmetMeta.setColor(Color.BLUE);
             chestplateMeta.setColor(Color.BLUE);
             leggingsMeta.setColor(Color.BLUE);
             bootsMeta.setColor(Color.BLUE);
         }
 
-        helmet.setItemMeta(helmetMeta);
+//        helmet.setItemMeta(helmetMeta);
         chestplate.setItemMeta(chestplateMeta);
         leggings.setItemMeta(leggingsMeta);
         boots.setItemMeta(bootsMeta);
 
-        player.getInventory().setHelmet(helmet);
+//        player.getInventory().setHelmet(helmet);
         player.getInventory().setChestplate(chestplate);
         player.getInventory().setLeggings(leggings);
         player.getInventory().setBoots(boots);
@@ -1179,6 +1179,16 @@ public class GameController implements CommandExecutor, Listener {
                             }
                             //if the arrow would have killed the player, cancel the event
                             if(player.getHealth() - finalDamage <= 0) {
+
+                                //perhaps fixed?
+                                if(game.checkIfPlayerIsInRedTeam(damager) && game.checkIfPlayerIsInRedTeam(player)){
+                                    e.setCancelled(true);
+                                    return;
+                                } else if(game.checkIfPlayerIsInBlueTeam(damager) && game.checkIfPlayerIsInBlueTeam(player)){
+                                    e.setCancelled(true);
+                                    return;
+                                }
+
                                 e.setCancelled(true);
                                 player.setHealth(20);
                                 resetPlayerInventory(player);
@@ -1217,6 +1227,16 @@ public class GameController implements CommandExecutor, Listener {
                         }
                     }
                     if(player.getHealth() - finalDamage <= 0){
+
+                        //perhaps fixed?
+                        if(game.checkIfPlayerIsInRedTeam(damager) && game.checkIfPlayerIsInRedTeam(player)){
+                            e.setCancelled(true);
+                            return;
+                        } else if(game.checkIfPlayerIsInBlueTeam(damager) && game.checkIfPlayerIsInBlueTeam(player)){
+                            e.setCancelled(true);
+                            return;
+                        }
+
                         e.setCancelled(true);
                         player.setHealth(20);
                         resetPlayerInventory(player);
@@ -1803,5 +1823,22 @@ public class GameController implements CommandExecutor, Listener {
     public void teleportPlayerToLobby(Player player){
         player.getInventory().clear();
         player.teleport(lobbyLocation);
+    }
+
+    /**
+     * this is a pretty hacky fix to players not getting teleported back after a game has ended
+     * */
+    @EventHandler
+    public void onPlayerMoveInInactiveGame(PlayerMoveEvent e){
+        //if the player is within a world that is associated with a game
+        Player player = e.getPlayer();
+        for(QueueModel queue: queues){
+            GameModel game = queue.getAssociatedGame();
+            if(game.getWorld() == player.getWorld()){
+                if(game.getGameState() == GameModel.GameState.INACTIVE){
+                    player.teleport(lobbyLocation);
+                }
+            }
+        }
     }
 }

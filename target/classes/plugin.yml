@@ -93,7 +93,7 @@ commands:
       - la
   litebridgespectator:
     description: Allows a player to spectate a game
-    usage: /<command> (gamename)
+    usage: /<command> join (gamename) or /<command> leave
     permission: litebridge.spectator
     permission-message: You don't have permission to spectate games.
     aliases:

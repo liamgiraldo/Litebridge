@@ -95,7 +95,9 @@ public class GUIModel {
         solositem.amount(1);
         solositem.name("Solos");
         SGButton solos = new SGButton(solositem.build()).withListener((InventoryClickEvent event) -> {
-            lastSelectedMode.put((Player) event.getWhoClicked(), 1);
+            Player p = (Player) event.getWhoClicked();
+            lastSelectedMode.put(p, 1);
+            p.sendMessage("Solos selected");
             generateMapButtons((Player) event.getWhoClicked());
             event.getWhoClicked().openInventory(mapmenu.getInventory());
         });
@@ -105,7 +107,9 @@ public class GUIModel {
         duositem.amount(2);
         duositem.name("Duos");
         SGButton duos = new SGButton(duositem.build()).withListener((InventoryClickEvent event) -> {
-            lastSelectedMode.put((Player) event.getWhoClicked(), 2);
+            Player p = (Player) event.getWhoClicked();
+            lastSelectedMode.put(p, 2);
+            p.sendMessage("Duos selected");
             generateMapButtons((Player) event.getWhoClicked());
             event.getWhoClicked().openInventory(mapmenu.getInventory());
         });
@@ -115,7 +119,9 @@ public class GUIModel {
         triositem.amount(3);
         triositem.name("Trios");
         SGButton trios = new SGButton(triositem.build()).withListener((InventoryClickEvent event) -> {
-            lastSelectedMode.put((Player) event.getWhoClicked(), 3);
+            Player p = (Player) event.getWhoClicked();
+            lastSelectedMode.put(p, 3);
+            p.sendMessage("Trios selected");
             generateMapButtons((Player) event.getWhoClicked());
             event.getWhoClicked().openInventory(mapmenu.getInventory());
         });
@@ -125,7 +131,9 @@ public class GUIModel {
         squadsitem.amount(4);
         squadsitem.name("Squads");
         SGButton squads = new SGButton(squadsitem.build()).withListener((InventoryClickEvent event) -> {
-            lastSelectedMode.put((Player) event.getWhoClicked(), 4);
+            Player p = (Player) event.getWhoClicked();
+            lastSelectedMode.put(p, 4);
+            p.sendMessage("Squads selected");
             generateMapButtons((Player) event.getWhoClicked());
             event.getWhoClicked().openInventory(mapmenu.getInventory());
         });
@@ -187,15 +195,15 @@ public class GUIModel {
         SGButton goldenapplebutton = new SGButton(goldenappleitem.build());
 
         ItemBuilder redclayitem = new ItemBuilder(XMaterial.RED_TERRACOTTA.parseMaterial());
-        redclayitem.lore("Red clay");
+        redclayitem.lore("Clay Stack 1");
         redclayitem.amount(1);
-        redclayitem.name("Red Clay");
+        redclayitem.name("Clay Stack 1");
         SGButton redclaybutton = new SGButton(redclayitem.build());
 
         ItemBuilder blueclayitem = new ItemBuilder(Material.WOOL);
-        blueclayitem.lore("Blue clay");
+        blueclayitem.lore("Clay Stack 1");
         blueclayitem.amount(1);
-        blueclayitem.name("Blue Clay");
+        blueclayitem.name("Clay Stack 1");
         SGButton blueclaybutton = new SGButton(blueclayitem.build());
 
         ItemBuilder diamonditem = new ItemBuilder(XMaterial.DIAMOND.parseMaterial());
@@ -278,15 +286,17 @@ public class GUIModel {
     private void generateMapButtons(Player player){
         int i = 0;
 
+        this.getMapmenu().clearAllButStickiedSlots();
+
         int lastSelectedMode = this.getLastSelectedMode(player);
 
         for(GameModel game: games){
-            if(game.getWorld().getName().contains(Integer.toString(lastSelectedMode))){
+            if((game.getMaxPlayers()/2) != lastSelectedMode){
                 continue;
             }
             ItemStack item = new ItemStack(Material.MAP);
             ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName(removeNumbers(game.getWorld().getName()));
+            meta.setDisplayName((game.getWorld().getName()));
             ArrayList<String> lore = new ArrayList<>();
             lore.add(ChatColor.GOLD + "In-Game:");
             for(Player p: game.getPlayers()){
@@ -308,17 +318,9 @@ public class GUIModel {
                 event.getWhoClicked().closeInventory();
                 if(event.getWhoClicked() instanceof Player){
                     Player p = (Player) event.getWhoClicked();
-                    String endOfWorldName;
-                    if(!hasNumber(game.getWorld().getName())){
-                        endOfWorldName = "";
-                    } else{
-                        endOfWorldName = Integer.toString(this.getLastSelectedMode(p));
-                    }
-
-                    p.performCommand("q " + this.getLastSelectedMode(p) + " " + game.getWorld().getName() + endOfWorldName);
+                    p.performCommand("q " + this.getLastSelectedMode(p) + " " + game.getWorld().getName());
                 }
             });
-
             this.getMapmenu().setButton(i, button);
             i++;
         }

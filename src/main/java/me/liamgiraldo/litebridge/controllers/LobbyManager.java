@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -69,6 +70,18 @@ public class LobbyManager implements Listener {
         if(event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
             if(player.getWorld().getName().equals(lobby.getWorld().getName())) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onHungerLoss(FoodLevelChangeEvent event) {
+        if(event.getEntity() instanceof Player) {
+            Player player = (Player) event.getEntity();
+            if(player.getWorld().getName().equals(lobby.getWorld().getName())) {
+                player.setFoodLevel(20);
+                player.setSaturation(20);
                 event.setCancelled(true);
             }
         }
