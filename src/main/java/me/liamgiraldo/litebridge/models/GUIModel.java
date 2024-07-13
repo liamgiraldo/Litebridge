@@ -13,9 +13,11 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import sun.net.www.content.text.Generic;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class GUIModel {
     Litebridge plugin;
@@ -153,11 +155,26 @@ public class GUIModel {
             onSaveHotbar(event);
             event.getWhoClicked().sendMessage("Hotbar saved");
             event.getWhoClicked().closeInventory();
+            event.getWhoClicked().sendMessage(ChatColor.GREEN + "Here's your hotbar:");
+            //get the hotbar from the config
+            Map<String, Object> hotbar = HotbarConfig.get().getConfigurationSection(event.getWhoClicked().getUniqueId().toString()).getValues(false);
+            for (Map.Entry<String, Object> entry : hotbar.entrySet()) {
+                String key = entry.getKey();
+                if(entry.getKey().equals("WOOL") || entry.getKey().equals("STAINED_CLAY")){
+                    key = "CLAY";
+                }
+                //set the first character of the key to uppercase
+                key = key.toLowerCase();
+                key = key.substring(0, 1).toUpperCase() + key.substring(1);
+                //remove all "_" from the key
+                key = removeNumbers(key);
 
+                event.getWhoClicked().sendMessage(ChatColor.BLUE + key + ChatColor.WHITE + ": " + ChatColor.GRAY +"Slot "+ ChatColor.WHITE +entry.getValue());
+            }
         });
 
         ItemBuilder infoitem = new ItemBuilder(XMaterial.PAPER.parseMaterial());
-        infoitem.lore("Shift items up a row to move them");
+        infoitem.lore("Move the top row of items to move them");
         infoitem.amount(1);
         infoitem.name("Hotbar help");
         SGButton infobutton = new SGButton(infoitem.build()).withListener((InventoryClickEvent event) -> {
@@ -195,15 +212,15 @@ public class GUIModel {
         SGButton goldenapplebutton = new SGButton(goldenappleitem.build());
 
         ItemBuilder redclayitem = new ItemBuilder(XMaterial.RED_TERRACOTTA.parseMaterial());
-        redclayitem.lore("Clay Stack 1");
+        redclayitem.lore("Blocky clay");
         redclayitem.amount(1);
         redclayitem.name("Clay Stack 1");
         SGButton redclaybutton = new SGButton(redclayitem.build());
 
         ItemBuilder blueclayitem = new ItemBuilder(Material.WOOL);
-        blueclayitem.lore("Clay Stack 1");
+        blueclayitem.lore("Rough clay");
         blueclayitem.amount(1);
-        blueclayitem.name("Clay Stack 1");
+        blueclayitem.name("Clay Stack 2");
         SGButton blueclaybutton = new SGButton(blueclayitem.build());
 
         ItemBuilder diamonditem = new ItemBuilder(XMaterial.DIAMOND.parseMaterial());
@@ -212,19 +229,19 @@ public class GUIModel {
         diamonditem.name("Taunt");
         SGButton diamondbutton = new SGButton(diamonditem.build());
 
-        int[] paneslots = {19, 20, 21, 23, 24, 25};
+        int[] paneslots = {9,10,11,12,13,14,15,16,19, 20, 21, 23, 24, 25};
         for (int i = 0; i < paneslots.length; i++) {
             hotbareditor.setButton(0, paneslots[i], new SGButton(new ItemBuilder(XMaterial.GRAY_STAINED_GLASS_PANE.parseMaterial()).name(" ").build()));
         }
 
-        hotbareditor.setButton(0, 9, pickaxebutton);
-        hotbareditor.setButton(0, 10, swordbutton);
-        hotbareditor.setButton(0, 11, bowbutton);
-        hotbareditor.setButton(0, 12, arrowbutton);
-        hotbareditor.setButton(0, 13, goldenapplebutton);
-        hotbareditor.setButton(0, 14, redclaybutton);
-        hotbareditor.setButton(0, 15, blueclaybutton);
-        hotbareditor.setButton(0, 16, diamondbutton);
+        hotbareditor.setButton(0, 0, pickaxebutton);
+        hotbareditor.setButton(0, 1, swordbutton);
+        hotbareditor.setButton(0, 2, bowbutton);
+        hotbareditor.setButton(0, 3, arrowbutton);
+        hotbareditor.setButton(0, 4, goldenapplebutton);
+        hotbareditor.setButton(0, 5, redclaybutton);
+        hotbareditor.setButton(0, 6, blueclaybutton);
+        hotbareditor.setButton(0, 7, diamondbutton);
 
         hotbareditor.setButton(0, 22, closebutton);
         hotbareditor.setButton(0, 18, mainmenubutton);
@@ -237,6 +254,7 @@ public class GUIModel {
         randomqbutton.name("Random Map");
         SGButton randomq = new SGButton(randomqbutton.build()).withListener((InventoryClickEvent event) -> {
             event.getWhoClicked().sendMessage("Random map selected");
+            event.getWhoClicked().sendMessage("This feature is not yet implemented");
             event.getWhoClicked().closeInventory();
         });
 
@@ -312,6 +330,7 @@ public class GUIModel {
                 }
                 lore.add(color + p.getName());
             }
+            lore.add(ChatColor.GOLD + "State: " + org.bukkit.ChatColor.GRAY + game.getGameState().toString());
             meta.setLore(lore);
             item.setItemMeta(meta);
             SGButton button = new SGButton(item).withListener((InventoryClickEvent event) -> {

@@ -29,6 +29,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.*;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -244,7 +245,7 @@ public class GameController implements CommandExecutor, Listener {
             GameModel game = queue.getAssociatedGame();
 //            System.out.println("Checking game in world: " + game.getWorld().getName() + ", state: " + game.getGameState());
             if(game.getGameState() == GameModel.GameState.ACTIVE || game.getGameState() == GameModel.GameState.STARTING){
-                System.out.println("Handling an active game at world " + game.getWorld().getName() + " with " + game.getPlayers().length + " players.");
+//                System.out.println("Handling an active game at world " + game.getWorld().getName() + " with " + game.getPlayers().length + " players.");
                 GameTimer timer = game.getGameTimer();
 
                 int countdown = timer.getCountdown();
@@ -252,7 +253,7 @@ public class GameController implements CommandExecutor, Listener {
                 if(countdown == game.getGameTimeInSeconds() - 5) {
                     game.setGameState(GameModel.GameState.ACTIVE);
                     for(Player player: game.getPlayers()){
-                        player.sendMessage("Game starting now!");
+                        player.sendMessage(ChatColor.GREEN + "Game starting now!");
                     }
                 }
 
@@ -560,7 +561,7 @@ public class GameController implements CommandExecutor, Listener {
                     itemPosition = -1;
                 }
             } catch(NullPointerException e){
-                player.sendMessage("An error occurred while trying to give you your kit. Please try again.");
+                player.sendMessage(ChatColor.GRAY + "An error occurred while trying to give you your kit. Please try again.");
                 itemPosition = -1;
             }
             if(item.getType() == Material.STAINED_CLAY || item.getType() == Material.WOOL){
@@ -669,7 +670,6 @@ public class GameController implements CommandExecutor, Listener {
         //We want to reset the game timer
         GameModel game = queue.getAssociatedGame();
         resetWorld(game.getWorld());
-        game.setGameState(GameModel.GameState.INACTIVE);
         //clear every player's inventory as well,
         //we need to reset the scoreboard for each player
         for(Player player: game.getWorld().getPlayers()){
@@ -686,10 +686,10 @@ public class GameController implements CommandExecutor, Listener {
             player.playSound(player.getLocation(), Sound.FIREWORK_LAUNCH, 1, 1);
             //check who won the game
             if(hasTheRedTeamWon(game)){
-                player.sendMessage(ChatColor.RED + "Red team won!");
+                player.sendMessage(ChatColor.RED + "Red team has won the game!");
                 player.sendTitle(ChatColor.RED + "Red team won!", null);
             } else if(hasTheBlueTeamWon(game)){
-                player.sendMessage(ChatColor.BLUE + "Blue team won!");
+                player.sendMessage(ChatColor.BLUE + "Blue team has won the game!");
                 player.sendTitle(ChatColor.BLUE + "Blue team won!", null);
             } else {
                 player.sendMessage(ChatColor.GRAY + "It's a tie!");
@@ -703,6 +703,8 @@ public class GameController implements CommandExecutor, Listener {
                 player.playSound(player.getLocation(), Sound.ENDERMAN_TELEPORT, 1, 1);
                 player.teleport(lobbyLocation);
             }
+
+            game.setGameState(GameModel.GameState.INACTIVE);
 
             GameEndEvent event = new GameEndEvent(game);
             Bukkit.getPluginManager().callEvent(event);
@@ -755,10 +757,10 @@ public class GameController implements CommandExecutor, Listener {
             player.playSound(player.getLocation(), Sound.FIREWORK_LAUNCH, 1, 1);
             //check who won the game
             if(hasTheRedTeamWon(game)){
-                player.sendMessage(ChatColor.RED + "Red team won!");
+                player.sendMessage(ChatColor.RED + "Red team has won the game!");
                 player.sendTitle(ChatColor.RED + "Red team won!", null);
             } else if(hasTheBlueTeamWon(game)){
-                player.sendMessage(ChatColor.BLUE + "Blue team won!");
+                player.sendMessage(ChatColor.BLUE + "Blue team has won the game!");
                 player.sendTitle(ChatColor.BLUE + "Blue team won!", null);
             } else {
                 player.sendMessage(ChatColor.GRAY + "It's a tie!");
@@ -779,6 +781,62 @@ public class GameController implements CommandExecutor, Listener {
         for(QueueModel queue: queues){
             GameModel game = queue.getAssociatedGame();
             instantGameEnd(queue);
+        }
+    }
+
+    private String getChatColorBasedOnTeam(Player p , GameModel g){
+        if(g.checkIfPlayerIsInRedTeam(p)){
+            return ChatColor.RED + "";
+        } else {
+            return ChatColor.BLUE + "";
+        }
+    }
+
+    private void playSoundForAllPlayersInGame(GameModel game, Sound sound){
+        for(Player player: game.getPlayers()){
+            if(player == null)
+                continue;
+            player.playSound(player.getLocation(), sound, 1, 1);
+        }
+    }
+
+    private void playSoundForAllPlayersOnRedTeam(GameModel game, Sound sound){
+        for(Player player: game.getRedTeam()){
+            if(player == null)
+                continue;
+            player.playSound(player.getLocation(), sound, 1, 1);
+        }
+    }
+
+    private void playSoundForAllPlayersOnBlueTeam(GameModel game, Sound sound){
+        for(Player player: game.getBlueTeam()){
+            if(player == null)
+                continue;
+            player.playSound(player.getLocation(), sound, 1, 1);
+        }
+    }
+
+    private void playSoundForSpecificPlayersTeam(GameModel game, Player player, Sound sound){
+        if(game.checkIfPlayerIsInRedTeam(player)){
+            playSoundForAllPlayersOnRedTeam(game, sound);
+        } else {
+            playSoundForAllPlayersOnBlueTeam(game, sound);
+        }
+    }
+
+    private void playSoundForOppositeTeam(GameModel game, Player player, Sound sound){
+        if(game.checkIfPlayerIsInRedTeam(player)){
+            playSoundForAllPlayersOnBlueTeam(game, sound);
+        } else {
+            playSoundForAllPlayersOnRedTeam(game, sound);
+        }
+    }
+
+    private void sendMessageToAllPlayersInGame(GameModel game, String message){
+        for(Player player: game.getPlayers()){
+            if(player == null)
+                continue;
+            player.sendMessage(message);
         }
     }
 
@@ -828,9 +886,11 @@ public class GameController implements CommandExecutor, Listener {
                 if(playerLocation.getBlockY() <= killPlane){
                     Player damager = lastDamagerMap.get(player);
                     if(damager != null){
-                        damager.sendMessage("You killed " + player.getDisplayName());
+                        sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getDisplayName() + ChatColor.GRAY + " was killed by " + getChatColorBasedOnTeam(damager, game) + damager.getDisplayName());
+//                        damager.sendMessage("You killed " + player.getDisplayName());
                         damager.playSound(damager.getLocation(), Sound.ORB_PICKUP, 1, 1);
-                        player.sendMessage("You were killed by " + damager.getDisplayName());
+                        playSoundForSpecificPlayersTeam(game, damager, Sound.ORB_PICKUP);
+//                        player.sendMessage("You were killed by " + damager.getDisplayName());
                         lastDamagerMap.remove(player);
                     }
                     resetPlayerInventory(player);
@@ -840,7 +900,8 @@ public class GameController implements CommandExecutor, Listener {
 //                    player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
                     teleportPlayerBasedOnTeam(player, game);
                     player.playSound(player.getLocation(), Sound.CHICKEN_HURT, 1, 1);
-                    player.sendMessage(ChatColor.RED + "You fell into the void!");
+                    playSoundForOppositeTeam(game, player, Sound.ORB_PICKUP);
+//                    player.sendMessage(ChatColor.RED + "You fell into the void!");
                     //call the on death event
 
                 }
@@ -1196,24 +1257,8 @@ public class GameController implements CommandExecutor, Listener {
 //                                player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
                                 if(damager != null){
                                     //for everyone on the damager's team, play a sound and send them a message
-                                    for(Player p: game.getPlayers()){
-                                        if(p == null)
-                                            continue;
-                                        p.sendMessage(ChatColor.RED + player.getName() + " was killed by " + damager.getName());
-                                    }
-                                    if(game.checkIfPlayerIsInRedTeam(damager)){
-                                        for(Player p : game.getRedTeam()){
-                                            if(p == null)
-                                                continue;
-                                            p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 1);
-                                        }
-                                    } else if(game.checkIfPlayerIsInBlueTeam(damager)){
-                                        for(Player p: game.getBlueTeam()){
-                                            if(p == null)
-                                                continue;
-                                            p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 1);
-                                        }
-                                    }
+                                    sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getName() + ChatColor.GRAY + " was killed by " + getChatColorBasedOnTeam(damager, game) + damager.getName());
+                                    playSoundForSpecificPlayersTeam(game, damager, Sound.ORB_PICKUP);
                                 }
                                 player.playSound(player.getLocation(), Sound.CHICKEN_HURT, 1, 1);
                                 return;
@@ -1244,24 +1289,8 @@ public class GameController implements CommandExecutor, Listener {
                         player.playSound(player.getLocation(), Sound.CHICKEN_HURT, 1, 1);
 
                         if(damager != null){
-                            for(Player p: game.getPlayers()){
-                                if(p == null)
-                                    continue;
-                                p.sendMessage(ChatColor.RED + player.getName() + " was killed by " + damager.getName());
-                            }
-                            if(game.checkIfPlayerIsInRedTeam(damager)){
-                                for(Player p : game.getRedTeam()){
-                                    if(p == null)
-                                        continue;
-                                    p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 1);
-                                }
-                            } else if(game.checkIfPlayerIsInBlueTeam(damager)){
-                                for(Player p: game.getBlueTeam()){
-                                    if(p == null)
-                                        continue;
-                                    p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 1);
-                                }
-                            }
+                            sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getName() + ChatColor.GRAY + " was killed by " + getChatColorBasedOnTeam(damager, game) + damager.getName());
+                            playSoundForSpecificPlayersTeam(game, damager, Sound.ORB_PICKUP);
                         }
 //                        player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
                     }
@@ -1326,17 +1355,17 @@ public class GameController implements CommandExecutor, Listener {
         for (Player player : game.getRedTeam()) {
             if (player != null) {
                 player.teleport(redSpawn);
-                System.out.println("Teleporting player " + player.getName() + " to red spawn at " + redSpawn.toString());
-                player.sendMessage("You are on the red team!");
-                player.sendMessage("Teleporting you to " + redSpawn.toString() + "at " + game.getWorld().getName());
+//                System.out.println("Teleporting player " + player.getName() + " to red spawn at " + redSpawn.toString());
+                player.sendMessage(ChatColor.GRAY + "You are on the" + ChatColor.RED + " red " + ChatColor.GRAY + "team!");
+//                player.sendMessage("Teleporting you to " + redSpawn.toString() + "at " + game.getWorld().getName());
             }
         }
         for (Player player : game.getBlueTeam()) {
             if (player != null) {
                 player.teleport(blueSpawn);
-                System.out.println("Teleporting player " + player.getName() + " to blue spawn at " + blueSpawn.toString());
-                player.sendMessage("You are on the blue team!");
-                player.sendMessage("Teleporting you to " + blueSpawn.toString() + "at " + game.getWorld().getName());
+//                System.out.println("Teleporting player " + player.getName() + " to blue spawn at " + blueSpawn.toString());
+                player.sendMessage(ChatColor.GRAY + "You are on the" + ChatColor.BLUE + " blue " + ChatColor.GRAY + "team!");
+//                player.sendMessage("Teleporting you to " + blueSpawn.toString() + "at " + game.getWorld().getName());
             }
         }
     }
@@ -1458,12 +1487,12 @@ public class GameController implements CommandExecutor, Listener {
     public void resetWorld(World world) {
         DoublyLinkedList changesInChronologicalOrder = changes.get(world);
         if(changesInChronologicalOrder != null) {
-            System.out.println(changesInChronologicalOrder.toString());
+//            System.out.println(changesInChronologicalOrder.toString());
             //So this variable "changesInChronologicalOrder" is a doubly linked list of block changes
             //The changes at the end are the most recent changes
             //We want to iterate through the list in reverse order, so we can undo the changes in the order they were made
             for (int i = changesInChronologicalOrder.size() - 1; i >= 0; i--) {
-                System.out.println("Resetting block " + i + " in world " + world.getName());
+//                System.out.println("Resetting block " + i + " in world " + world.getName());
                 BlockChangeModel change = (BlockChangeModel) changesInChronologicalOrder.get(i);
                 change.getLocation().getBlock().setType(change.getBefore().parseMaterial());
                 change.getLocation().getBlock().setData(change.getData());
@@ -1524,7 +1553,7 @@ public class GameController implements CommandExecutor, Listener {
         System.out.println("Player " + player.getName() + " is within the bounds of the red goal!");
 
         if(game.checkIfPlayerIsInRedTeam(player)){
-            player.sendMessage("Wrong goal! Teleporting you back to your spawn point.");
+            player.sendMessage(ChatColor.GRAY + "Wrong goal! Teleporting you back to your spawn point.");
             player.setHealth(20);
             resetPlayerInventory(player);
             player.removePotionEffect(PotionEffectType.REGENERATION);
@@ -1543,7 +1572,7 @@ public class GameController implements CommandExecutor, Listener {
                 p.setHealth(20);
                 resetPlayerInventory(p);
 
-                p.sendMessage(player.getName() + " scored a goal for the blue team!");
+                p.sendMessage(getChatColorBasedOnTeam(player, game) + player.getName() + ChatColor.GRAY + " scored a goal for the blue team!");
                 p.playSound(p.getLocation(), Sound.FIREWORK_LAUNCH, 1, 1);
 
                 //we also need to reset all potion effects
@@ -1567,7 +1596,8 @@ public class GameController implements CommandExecutor, Listener {
             }
 
 
-            updateScoreboard(game);
+//            updateScoreboard(game);
+            game.updateScoreboard(game.getScoreboard().getObjective("bridge"), game.getGameTimer().getCountdown());
         }
     }
 
@@ -1600,7 +1630,7 @@ public class GameController implements CommandExecutor, Listener {
         System.out.println("Player " + player.getName() + " is within the bounds of the blue goal!");
 
         if(game.checkIfPlayerIsInBlueTeam(player)){
-            player.sendMessage("Wrong goal! Teleporting you back to your spawn point.");
+            player.sendMessage(ChatColor.GRAY + "Wrong goal! Teleporting you back to your spawn point.");
             teleportPlayerBasedOnTeam(player, game);
 
             player.setHealth(20);
@@ -1620,7 +1650,7 @@ public class GameController implements CommandExecutor, Listener {
                 p.setHealth(20);
                 teleportPlayerBasedOnTeam(p, game);
 
-                p.sendMessage(player.getName() + " scored a goal for the red team!");
+                p.sendMessage(getChatColorBasedOnTeam(player, game) + player.getName() + ChatColor.GRAY + " scored a goal for the red team!");
                 p.playSound(p.getLocation(), Sound.FIREWORK_LAUNCH, 1, 1);
 
                 p.getActivePotionEffects().forEach(potionEffect -> p.removePotionEffect(potionEffect.getType()));
@@ -1637,7 +1667,7 @@ public class GameController implements CommandExecutor, Listener {
                 }, ()->{sendEachPlayerTitleOnGoal(game, game.getStallingTimerCountdown(), player, true);});
             }
 
-            updateScoreboard(game);
+            game.updateScoreboard(game.getScoreboard().getObjective("bridge"), game.getGameTimer().getCountdown());
         }
     }
 
@@ -1837,7 +1867,20 @@ public class GameController implements CommandExecutor, Listener {
             if(game.getWorld() == player.getWorld()){
                 if(game.getGameState() == GameModel.GameState.INACTIVE){
                     player.teleport(lobbyLocation);
+                    player.getInventory().setArmorContents(null);
                 }
+            }
+        }
+    }
+
+    @EventHandler
+    //if the player tries to move items around in their inventory while in a game, cancel the event
+    public void onInventoryClickEvent(InventoryClickEvent e){
+        Player player = (Player) e.getWhoClicked();
+        for(QueueModel queue: queues){
+            GameModel game = queue.getAssociatedGame();
+            if(game.checkIfPlayerIsInGame(player)){
+                e.setCancelled(true);
             }
         }
     }

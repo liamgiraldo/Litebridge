@@ -15,6 +15,7 @@ import org.bukkit.scoreboard.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 public class GameModel {
 
@@ -205,6 +206,8 @@ public class GameModel {
      * */
     private int stallingTimerCountdown = 5;
 
+    private HashMap<Player, Integer> playerKillCounts = new HashMap<>();
+
     /**
      * @param world          The bridge map the game will use
      * @param blueSpawnPoint The blue team's spawn point
@@ -321,8 +324,8 @@ public class GameModel {
         //in case we need to reset the cage boundaries
 
 
-        objective.setDisplayName(ChatColor.GOLD + "Litebridge");
-        objective.setDisplaySlot(org.bukkit.scoreboard.DisplaySlot.SIDEBAR);
+//        objective.setDisplayName(ChatColor.GOLD + "Litebridge");
+//        objective.setDisplaySlot(org.bukkit.scoreboard.DisplaySlot.SIDEBAR);
 
 //        redScoreboardScore = objective.getScore(ChatColor.RED + "Red Goals: ");
 //        redScoreboardScore.setScore(11);
@@ -330,6 +333,10 @@ public class GameModel {
 //        blueScoreboardScore = objective.getScore(ChatColor.BLUE + "Blue Goals: ");
 //        blueScoreboardScore.setScore(10);
 
+        objective.setDisplayName(ChatColor.GOLD + "Litebridge");
+        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+
+        initializeScoreboardTeams();
     }
 
     /**
@@ -772,17 +779,21 @@ public class GameModel {
     private void assignPlayerToTeam(Player p){
         if(howManyPlayersInRedTeam() < howManyPlayersInBlueTeam()){
             addPlayerToRedTeam(p);
+            addPlayerToTeamScoreboard(p, true);
         }
         else if(howManyPlayersInBlueTeam() < howManyPlayersInRedTeam()){
             addPlayerToBlueTeam(p);
+            addPlayerToTeamScoreboard(p, false);
         }
         else{
             //if both teams have the same number of players, assign randomly
             if(Math.random() < 0.5){
                 addPlayerToRedTeam(p);
+                addPlayerToTeamScoreboard(p, true);
             }
             else{
                 addPlayerToBlueTeam(p);
+                addPlayerToTeamScoreboard(p, false);
             }
         }
     }
@@ -803,12 +814,14 @@ public class GameModel {
         for(int i = 0; i < redTeam.length; i++){
             if(redTeam[i] == player){
                 redTeam[i] = null;
+                removePlayerFromTeamScoreboard(player, true);
                 break;
             }
         }
         for(int i = 0; i < blueTeam.length; i++){
             if(blueTeam[i] == player){
                 blueTeam[i] = null;
+                removePlayerFromTeamScoreboard(player, false);
                 break;
             }
         }
@@ -1012,14 +1025,185 @@ public class GameModel {
      * @param countdown The current countdown
      * */
     public void updateScoreboard(Objective objective, int countdown) {
-        scoreboard.resetScores(ChatColor.GREEN + "Time: 0");
-        scoreboard.resetScores(ChatColor.GREEN + "Time: " + (countdown + 1));
-        Score timerScore = objective.getScore(ChatColor.GREEN + "Time: " + countdown);
-        timerScore.setScore(12);
 
-        setScoreboardRedGoals(getRedGoals());
-        setScoreboardBlueGoals(getBlueGoals());
+        System.out.println("Objective Display Slot: " + objective.getDisplaySlot());
+        //I don't think objective is necessary here
+//        scoreboard.resetScores(ChatColor.GREEN + "Time: 0");
+//        scoreboard.resetScores(ChatColor.GREEN + "Time: " + (countdown + 1));
+//        Score timerScore = objective.getScore(ChatColor.GREEN + "Time: " + countdown);
+//        timerScore.setScore(12);
+//        objective.getScore(ChatColor.GREEN + "Time: " + (countdown + 1)).setScore(13);
+//
+//        Team redTeam = scoreboard.getTeam("red");
+//        redTeam.addEntry(ChatColor.RED + "Red Goals: " + redGoals);
+//
+//        Team blueTeam = scoreboard.getTeam("blue");
+//        blueTeam.addEntry(ChatColor.BLUE + "Blue Goals: " + blueGoals);
+//
+//        Team timeTeam = scoreboard.getTeam("time");
+//        timeTeam.addEntry(ChatColor.GREEN + "Time: " + countdown);
+
+//        setScoreboardRedGoals(getRedGoals());
+//        setScoreboardBlueGoals(getBlueGoals());'
+//        System.out.println("Updating scoreboard...");
+
+        // Initialize the teams if they haven't been already
+        initializeScoreboardTeams();
+
+        Team redTeam = scoreboard.getTeam("Red");
+        if (redTeam != null) {
+//            System.out.println("Red team goals: " + getRedGoals());
+            redTeam.setPrefix(clampStringTo16Characters(ChatColor.RED + "Red " + ChatColor.WHITE + " -> "));
+            redTeam.setSuffix(clampStringTo16Characters(ChatColor.RED + Integer.toString(getRedGoals()) + ChatColor.GRAY + "/" + goalsToWin));
+        }
+
+        Team blueTeam = scoreboard.getTeam("Blue");
+        if (blueTeam != null) {
+//            System.out.println("Blue team goals: " + getBlueGoals());
+            blueTeam.setPrefix(clampStringTo16Characters(ChatColor.BLUE + "Blue " + ChatColor.WHITE + " -> "));
+            blueTeam.setSuffix(clampStringTo16Characters(ChatColor.BLUE + Integer.toString(getBlueGoals()) + ChatColor.GRAY + "/" + goalsToWin));
+        }
+
+        Team timeTeam = scoreboard.getTeam("Time");
+        if (timeTeam != null) {
+//            System.out.println("Countdown: " + countdown);
+            timeTeam.setSuffix(ChatColor.GRAY + "Time: " + ChatColor.WHITE + this.gameTimer.getCountdownInMinutes());
+        }
+
+        Team redPlayers = scoreboard.getTeam("RedPlayers");
+        if (redPlayers != null) {
+            redPlayers.setSuffix(ChatColor.RED + "");
+        }
+
+        Team bluePlayers = scoreboard.getTeam("BluePlayers");
+        if (bluePlayers != null) {
+            bluePlayers.setSuffix(ChatColor.BLUE + "");
+        }
+
+        Team dateTeam = scoreboard.getTeam("Date");
+        if (dateTeam != null) {
+            dateTeam.setSuffix(ChatColor.GRAY + java.time.LocalDate.now().toString());
+        }
+
+        Team mapTeam = scoreboard.getTeam("Map");
+        if (mapTeam != null) {
+            mapTeam.setPrefix(clampStringTo16Characters(ChatColor.WHITE + world.getName()) + " ");
+            mapTeam.setSuffix(clampStringTo16Characters(ChatColor.GRAY + "(" + maxPlayers/2 + "v" + maxPlayers/2 + ")"));
+        }
+
+
+        //red goals
+        objective.getScore(ChatColor.RED + "" + ChatColor.WHITE).setScore(2);
+
+        //blue goals
+        objective.getScore(ChatColor.BLUE + "" + ChatColor.WHITE).setScore(3);
+
+        //timer
+        objective.getScore(ChatColor.GREEN + "" + ChatColor.WHITE).setScore(5);
+        
+        //date
+        objective.getScore(ChatColor.GREEN + "" + ChatColor.GRAY).setScore(7);
+
+        //map
+        objective.getScore(ChatColor.GREEN + "" + ChatColor.DARK_GRAY).setScore(0);
+
+        //set a blank line at lines 1, 4, and 6
+        objective.getScore(" ").setScore(1);
+        objective.getScore("  ").setScore(4);
+        objective.getScore("   ").setScore(6);
+
+        for (Player p : players) {
+            if (p != null) {
+//                System.out.println("Setting scoreboard for player: " + p.getName());
+                p.setScoreboard(scoreboard);
+            }
+        }
     }
+
+    public void initializeScoreboardTeams() {
+        //red is just used for the scoreboard
+        if (scoreboard.getTeam("Red") == null) {
+            Team redTeam = scoreboard.registerNewTeam("Red");
+            redTeam.setPrefix(ChatColor.RED.toString());
+            redTeam.setDisplayName("Red Team");
+            redTeam.addEntry(ChatColor.RED + "" + ChatColor.WHITE);
+        }
+        //red players is used for the players on the red team
+        if(scoreboard.getTeam("RedPlayers") == null){
+            Team redPlayers = scoreboard.registerNewTeam("RedPlayers");
+            redPlayers.setPrefix(ChatColor.RED.toString());
+            redPlayers.setDisplayName("Red Players");
+            redPlayers.addEntry(ChatColor.RED + "" + ChatColor.GRAY);
+        }
+        //blue is just used for the scoreboard
+        if (scoreboard.getTeam("Blue") == null) {
+            Team blueTeam = scoreboard.registerNewTeam("Blue");
+            blueTeam.setPrefix(ChatColor.BLUE.toString());
+            blueTeam.setDisplayName("Blue Team");
+            blueTeam.addEntry(ChatColor.BLUE + "" + ChatColor.WHITE);
+        }
+        //blue players is used for the players on the blue team
+        if(scoreboard.getTeam("BluePlayers") == null){
+            Team bluePlayers = scoreboard.registerNewTeam("BluePlayers");
+            bluePlayers.setPrefix(ChatColor.BLUE.toString());
+            bluePlayers.setDisplayName("Blue Players");
+            bluePlayers.addEntry(ChatColor.BLUE + "" + ChatColor.GRAY);
+        }
+        //time is used for the game time on the scoreboard
+        if(scoreboard.getTeam("Time") == null){
+            Team timeTeam = scoreboard.registerNewTeam("Time");
+            timeTeam.setPrefix(ChatColor.GREEN.toString());
+            timeTeam.setDisplayName("Time");
+            timeTeam.addEntry(ChatColor.GREEN + "" + ChatColor.WHITE);
+        }
+
+        if(scoreboard.getTeam("Date") == null){
+            Team dateTeam = scoreboard.registerNewTeam("Date");
+            dateTeam.setPrefix(ChatColor.GREEN.toString());
+            dateTeam.setDisplayName("Date");
+            dateTeam.addEntry(ChatColor.GREEN + "" + ChatColor.GRAY);
+        }
+
+        if(scoreboard.getTeam("Map") == null){
+            Team mapTeam = scoreboard.registerNewTeam("Map");
+            mapTeam.setPrefix(ChatColor.GREEN.toString());
+            mapTeam.setDisplayName("Map");
+            mapTeam.addEntry(ChatColor.GREEN + "" + ChatColor.DARK_GRAY);
+        }
+    }
+
+    public String clampStringTo24Characters(String s) {
+        if (s.length() > 24) {
+            return s.substring(0, 24);
+        }
+        return s;
+    }
+
+    public String clampStringTo16Characters(String s) {
+        if (s.length() > 16) {
+            return s.substring(0, 16);
+        }
+        return s;
+    }
+
+    public void addPlayerToTeamScoreboard(Player player, boolean isRedTeam) {
+        initializeScoreboardTeams(); // Ensure teams are initialized
+        Team team = scoreboard.getTeam(isRedTeam ? "RedPlayers" : "BluePlayers");
+        if (team != null) {
+            team.addEntry(player.getName());
+        }
+    }
+
+    public void removePlayerFromTeamScoreboard(Player player, boolean isRedTeam) {
+        Team team = scoreboard.getTeam(isRedTeam ? "RedPlayers" : "BluePlayers");
+        if (team != null) {
+            team.removeEntry(player.getName());
+        }
+    }
+
+
+
+
 
     /**
      * Clears the red cage by setting all blocks in the red cage boundaries to air
@@ -1330,8 +1514,21 @@ public class GameModel {
         }
 
         this.originalBlueCageBlocks = new ArrayList<BlockStateModel>();
-        for (Block block : redCageBlocks) {
+        for (Block block : blueCageBlocks) {
             originalBlueCageBlocks.add(new BlockStateModel(block.getType(), block.getData()));
+        }
+    }
+
+    public void resetPlayerKillCounts(){
+        this.playerKillCounts = new HashMap<Player, Integer>();
+    }
+
+    public void incrementPlayerKillCount(Player player){
+        if(playerKillCounts.containsKey(player)){
+            playerKillCounts.put(player, playerKillCounts.get(player) + 1);
+        }
+        else{
+            playerKillCounts.put(player, 1);
         }
     }
 }

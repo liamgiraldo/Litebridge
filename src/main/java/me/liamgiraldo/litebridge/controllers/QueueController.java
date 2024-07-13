@@ -61,7 +61,7 @@ public class QueueController implements EventListener, CommandExecutor, Listener
                     if(spectatorQueues.get(i).getSpectators().get(j) == null)
                         continue;
                     if(p.getUniqueId() == spectatorQueues.get(i).getSpectators().get(j).getUniqueId()){
-                        p.sendMessage("You're spectating / queueing to spectate a game.");
+                        p.sendMessage("You're spectating a game.");
                         p.sendMessage("If you want to queue for a game, do /ls leave, then /q again.");
                         return false;
                     }

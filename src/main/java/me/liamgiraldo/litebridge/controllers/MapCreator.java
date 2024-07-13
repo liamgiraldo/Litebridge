@@ -402,6 +402,12 @@ public class MapCreator implements CommandExecutor, Listener {
      * @param array The double array to send
      * */
     private void printDoubleArray(int[][] array){
+        if (array == null || array.length == 0) {
+            return;
+        }
+        if (array[0] == null || array[1] == null || array[0].length == 0 || array[1].length == 0) {
+            return;
+        }
         String first = Arrays.toString(array[0]);
         String second = Arrays.toString(array[1]);
         System.out.println(Arrays.toString(new String[]{first, second}));
@@ -545,6 +551,9 @@ public class MapCreator implements CommandExecutor, Listener {
      * @return the resulting 2D array
      */
     private int[][] listToArray2D(List<?> list) {
+        if(list == null){
+            return new int[0][0];
+        }
         int[][] array = new int[list.size()][];
         for (int i = 0; i < list.size(); i++) {
             array[i] = listToArray((List<Integer>) list.get(i));

@@ -28,6 +28,12 @@ public class GameTimer extends BukkitRunnable {
         return countdown;
     }
 
+    public String getCountdownInMinutes() {
+        int minutes = countdown / 60;
+        int seconds = countdown % 60;
+        return minutes + ":" + seconds;
+    }
+
     @Override
     public String toString(){
         return "GameTimer{" +

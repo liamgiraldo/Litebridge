@@ -70,6 +70,14 @@ public class SpectatorController implements CommandExecutor, Listener {
                         p.sendMessage("Please specify a world to spectate");
                         return true;
                     }
+                    for(SpectatorQueueModel queue: spectatorQueues){
+                        //if the player is already spectating a game, don't let them join another
+                        if(queue.getSpectators().contains(p)){
+                            p.sendMessage("You are already spectating a game");
+                            return true;
+                        }
+                    }
+
                     for(SpectatorQueueModel queue : spectatorQueues){
                         if(queue.getWorld().getName().equals(args[1])){
                             if(queue.getAssociatedGame().getGameState() != GameModel.GameState.ACTIVE){
@@ -190,6 +198,7 @@ public class SpectatorController implements CommandExecutor, Listener {
                 maxZ += 100;
                 if(e.getTo().getBlockX() < minX || e.getTo().getBlockX() > maxX || e.getTo().getBlockY() < minY || e.getTo().getBlockY() > maxY || e.getTo().getBlockZ() < minZ || e.getTo().getBlockZ() > maxZ){
                     e.getPlayer().teleport(queue.getWorld().getSpawnLocation());
+                    e.getPlayer().sendMessage("You cannot leave the bounds of the game you are spectating");
                 }
             }
         }
