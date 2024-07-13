@@ -331,13 +331,26 @@ public class GUIModel {
                 lore.add(color + p.getName());
             }
             lore.add(ChatColor.GOLD + "State: " + org.bukkit.ChatColor.GRAY + game.getGameState().toString());
+
+            if(game.checkIfGameIsFull()){
+                item.addEnchantment(org.bukkit.enchantments.Enchantment.DURABILITY, 1);
+                lore.add(ChatColor.RED + "Game is full, click to spectate");
+            }
+
             meta.setLore(lore);
             item.setItemMeta(meta);
             SGButton button = new SGButton(item).withListener((InventoryClickEvent event) -> {
                 event.getWhoClicked().closeInventory();
                 if(event.getWhoClicked() instanceof Player){
                     Player p = (Player) event.getWhoClicked();
-                    p.performCommand("q " + this.getLastSelectedMode(p) + " " + game.getWorld().getName());
+                    if(!game.checkIfGameIsFull()){
+                        p.sendMessage("Joining " + game.getWorld().getName());
+                        p.performCommand("q " + this.getLastSelectedMode(p) + " " + game.getWorld().getName());
+                    } else {
+                        p.sendMessage("Joining " + game.getWorld().getName() + " as a spectator");
+                        p.performCommand("ls " + "join " + game.getWorld().getName());
+                    }
+//                    p.performCommand("q " + this.getLastSelectedMode(p) + " " + game.getWorld().getName());
                 }
             });
             this.getMapmenu().setButton(i, button);

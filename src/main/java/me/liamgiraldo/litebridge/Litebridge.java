@@ -11,6 +11,7 @@ import me.liamgiraldo.litebridge.models.GUIModel;
 import me.liamgiraldo.litebridge.models.GameModel;
 import me.liamgiraldo.litebridge.models.QueueModel;
 import me.liamgiraldo.litebridge.models.SpectatorQueueModel;
+import me.stephenminer.litecoin.LiteCoin;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -49,6 +50,8 @@ public final class Litebridge extends JavaPlugin implements Listener {
     public static SpiGUI spiGUI;
 
     private Location lobby;
+
+    private LiteCoin litecoin;
 
     public static Litebridge getPlugin(){
         return plugin;
@@ -107,7 +110,16 @@ public final class Litebridge extends JavaPlugin implements Listener {
             System.out.println(queues.get(i).getAssociatedGame().getMaxPlayers());
         }
 
-        this.gameController = new GameController(queues, this, lobby);
+
+        litecoin = (LiteCoin) getServer().getPluginManager().getPlugin("LiteCoin");
+        if(litecoin == null){
+            System.out.println("Litebridge could not find the LiteCoin plugin, continuing without it.");
+        }
+        else{
+            System.out.println("LiteCoin found, will be used for currency transactions.");
+        }
+
+        this.gameController = new GameController(queues, this, lobby, litecoin);
 
         plugin = this;
 
@@ -266,5 +278,13 @@ public final class Litebridge extends JavaPlugin implements Listener {
 
     public void removeMapFromConfig(String mapName){
         this.getConfig().set(mapName, null);
+    }
+
+    public JavaPlugin getLitecoin(){
+        if(litecoin == null){
+            System.out.println("Litebridge could not find the LiteCoin plugin, continuing without it.");
+            return null;
+        }
+        return litecoin;
     }
 }

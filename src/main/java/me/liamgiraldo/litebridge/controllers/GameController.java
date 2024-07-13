@@ -13,6 +13,7 @@ import me.liamgiraldo.litebridge.models.GameModel;
 import me.liamgiraldo.litebridge.models.QueueModel;
 import me.liamgiraldo.litebridge.runnables.GameTimer;
 import me.liamgiraldo.litebridge.utils.DoublyLinkedList;
+import me.stephenminer.litecoin.LiteCoin;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -34,6 +35,7 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.material.MaterialData;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Objective;
@@ -72,6 +74,8 @@ public class GameController implements CommandExecutor, Listener {
     private final Map<Player, Player> lastDamagerMap = new HashMap<>();
     private final Map<Player, Integer> arrowCountdowns = new HashMap<>();
 
+    private LiteCoin litecoin;
+
     /**
      * Constructs a new GameController
      * We use the GameController to manage all the active games and their corresponding queues.
@@ -79,12 +83,14 @@ public class GameController implements CommandExecutor, Listener {
      * @param queues The queues to manage
      * @param plugin The lite-bridge plugin
      */
-    public GameController(ArrayList<QueueModel> queues, Litebridge plugin, Location lobbyLocation) {
+    public GameController(ArrayList<QueueModel> queues, Litebridge plugin, Location lobbyLocation, LiteCoin litecoin) {
         this.queues = queues;
         this.lobbyLocation = lobbyLocation;
 
         this.kitItems = new ArrayList<>();
         this.plugin = plugin;
+
+        this.litecoin = litecoin;
 
         ItemStack sword = new ItemStack(Material.IRON_SWORD, 1);
         kitItems.add(sword);
@@ -669,6 +675,7 @@ public class GameController implements CommandExecutor, Listener {
         //We want to teleport all the players back to the lobby
         //We want to reset the game timer
         GameModel game = queue.getAssociatedGame();
+        game.setGameState(GameModel.GameState.ENDING);
         resetWorld(game.getWorld());
         //clear every player's inventory as well,
         //we need to reset the scoreboard for each player
@@ -702,6 +709,14 @@ public class GameController implements CommandExecutor, Listener {
                     continue;
                 player.playSound(player.getLocation(), Sound.ENDERMAN_TELEPORT, 1, 1);
                 player.teleport(lobbyLocation);
+
+                if(litecoin != null) {
+                    player.sendMessage(ChatColor.GOLD + "+1 Litecoin" + ChatColor.DARK_GRAY + " (Participation)");
+                    litecoin.incrementBalance(player.getUniqueId(), 1);
+                }
+                else{
+                    System.out.println("Litecoin is null");
+                }
             }
 
             game.setGameState(GameModel.GameState.INACTIVE);
@@ -886,7 +901,7 @@ public class GameController implements CommandExecutor, Listener {
                 if(playerLocation.getBlockY() <= killPlane){
                     Player damager = lastDamagerMap.get(player);
                     if(damager != null){
-                        sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getDisplayName() + ChatColor.GRAY + " was killed by " + getChatColorBasedOnTeam(damager, game) + damager.getDisplayName());
+                        sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getDisplayName() + ChatColor.GRAY + " was voided by " + getChatColorBasedOnTeam(damager, game) + damager.getDisplayName());
 //                        damager.sendMessage("You killed " + player.getDisplayName());
                         damager.playSound(damager.getLocation(), Sound.ORB_PICKUP, 1, 1);
                         playSoundForSpecificPlayersTeam(game, damager, Sound.ORB_PICKUP);
@@ -902,6 +917,7 @@ public class GameController implements CommandExecutor, Listener {
                     player.playSound(player.getLocation(), Sound.CHICKEN_HURT, 1, 1);
                     playSoundForOppositeTeam(game, player, Sound.ORB_PICKUP);
 //                    player.sendMessage(ChatColor.RED + "You fell into the void!");
+                    sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getDisplayName() + ChatColor.GRAY + " fell into the void!");
                     //call the on death event
 
                 }
@@ -1126,7 +1142,7 @@ public class GameController implements CommandExecutor, Listener {
             for(QueueModel queue: queues){
                 GameModel game = queue.getAssociatedGame();
                 if(game.checkIfPlayerIsInGame(player)){
-                    if(game.getGameState() == GameModel.GameState.STARTING || game.getGameState() == GameModel.GameState.INACTIVE || game.getGameState() == GameModel.GameState.QUEUEING){
+                    if(game.getGameState() != GameModel.GameState.ACTIVE){
                         e.setCancelled(true);
                     }
                 }
@@ -1257,7 +1273,7 @@ public class GameController implements CommandExecutor, Listener {
 //                                player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
                                 if(damager != null){
                                     //for everyone on the damager's team, play a sound and send them a message
-                                    sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getName() + ChatColor.GRAY + " was killed by " + getChatColorBasedOnTeam(damager, game) + damager.getName());
+                                    sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getName() + ChatColor.GRAY + " was shot by " + getChatColorBasedOnTeam(damager, game) + damager.getName());
                                     playSoundForSpecificPlayersTeam(game, damager, Sound.ORB_PICKUP);
                                 }
                                 player.playSound(player.getLocation(), Sound.CHICKEN_HURT, 1, 1);
@@ -1389,7 +1405,7 @@ public class GameController implements CommandExecutor, Listener {
                     return;
                 }
 
-                if(game.getGameState() == GameModel.GameState.STARTING || game.getGameState() == GameModel.GameState.INACTIVE || game.getGameState() == GameModel.GameState.QUEUEING){
+                if(game.getGameState() != GameModel.GameState.ACTIVE){
                     e.setCancelled(true);
                     return;
                 }
@@ -1440,7 +1456,7 @@ public class GameController implements CommandExecutor, Listener {
                     return;
                 }
 
-                if(game.getGameState() == GameModel.GameState.STARTING || game.getGameState() == GameModel.GameState.INACTIVE || game.getGameState() == GameModel.GameState.QUEUEING){
+                if(game.getGameState() != GameModel.GameState.ACTIVE){
                     e.setCancelled(true);
                     return;
                 }
@@ -1554,6 +1570,7 @@ public class GameController implements CommandExecutor, Listener {
 
         if(game.checkIfPlayerIsInRedTeam(player)){
             player.sendMessage(ChatColor.GRAY + "Wrong goal! Teleporting you back to your spawn point.");
+            sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getName() + ChatColor.GRAY + " fell into their own goal");
             player.setHealth(20);
             resetPlayerInventory(player);
             player.removePotionEffect(PotionEffectType.REGENERATION);
@@ -1630,7 +1647,9 @@ public class GameController implements CommandExecutor, Listener {
         System.out.println("Player " + player.getName() + " is within the bounds of the blue goal!");
 
         if(game.checkIfPlayerIsInBlueTeam(player)){
-            player.sendMessage(ChatColor.GRAY + "Wrong goal! Teleporting you back to your spawn point.");
+//            player.sendMessage(ChatColor.GRAY + "Wrong goal! Teleporting you back to your spawn point.");
+
+            sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getName() + ChatColor.GRAY + " fell into their own goal");
             teleportPlayerBasedOnTeam(player, game);
 
             player.setHealth(20);

@@ -119,3 +119,5 @@ permissions:
   litebridge.litebridgespectator:
     description: Allows someone to spectate games
     default: op
+softdepend:
+  - LiteCoin

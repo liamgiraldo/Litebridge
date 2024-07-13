@@ -31,6 +31,9 @@ public class GameTimer extends BukkitRunnable {
     public String getCountdownInMinutes() {
         int minutes = countdown / 60;
         int seconds = countdown % 60;
+        if(seconds < 10) {
+            return minutes + ":0" + seconds;
+        }
         return minutes + ":" + seconds;
     }
 

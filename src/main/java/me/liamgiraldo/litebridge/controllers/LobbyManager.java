@@ -32,7 +32,6 @@ public class LobbyManager implements Listener {
     public void onPlayerJoinLobby(PlayerJoinEvent event) {
         event.getPlayer().sendMessage("Welcome back!");
         if(event.getPlayer().getWorld().getName().equals(lobby.getWorld().getName())) {
-            event.getPlayer().sendMessage("Welcome back to Litebridge!");
             event.getPlayer().getInventory().clear();
 
             if(event.getPlayer().getInventory().contains(mainMenu.getItemStack())){
@@ -46,7 +45,6 @@ public class LobbyManager implements Listener {
     @EventHandler
     public void onPlayerTeleportToLobby(PlayerTeleportEvent event) {
         if(event.getTo().getWorld().getName().equals(lobby.getWorld().getName())) {
-            event.getPlayer().sendMessage("Welcome back to Litebridge!");
             event.getPlayer().getInventory().clear();
 
             if(event.getPlayer().getInventory().contains(mainMenu.getItemStack())){

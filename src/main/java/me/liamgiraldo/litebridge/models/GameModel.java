@@ -198,6 +198,8 @@ public class GameModel {
 
     /***
      * The amount of time in seconds that the game will run for
+     * Default is 15 minutes
+     * 15 minutes = 900 seconds
      * */
     private int gameTimeInSeconds = 900;
 
@@ -1072,12 +1074,12 @@ public class GameModel {
 
         Team redPlayers = scoreboard.getTeam("RedPlayers");
         if (redPlayers != null) {
-            redPlayers.setSuffix(ChatColor.RED + "");
+//            redPlayers.setSuffix(ChatColor.RED + "");
         }
 
         Team bluePlayers = scoreboard.getTeam("BluePlayers");
         if (bluePlayers != null) {
-            bluePlayers.setSuffix(ChatColor.BLUE + "");
+//            bluePlayers.setSuffix(ChatColor.BLUE + "");
         }
 
         Team dateTeam = scoreboard.getTeam("Date");
