@@ -51,6 +51,9 @@ public class SpectatorController implements CommandExecutor, Listener {
                         if(queue.getSpectators().contains(p)){
                             queue.removeSpectator(p);
                             p.teleport(lobby);
+                            p.setGameMode(GameMode.SURVIVAL);
+//                            p.getInventory().clear();
+                            clearPlayerScoreboard(p);
 
                             new BukkitRunnable(){
                                 @Override
@@ -146,13 +149,14 @@ public class SpectatorController implements CommandExecutor, Listener {
     @EventHandler
     public void onGameEnd(GameEndEvent e){
         for(SpectatorQueueModel queue : spectatorQueues){
+            //careful make sure to shift indexes if you remove an element from the list
             if(queue.getAssociatedGame().equals(e.getGame())){
                 for(Player p : queue.getSpectators()){
                     p.teleport(lobby);
                     p.setGameMode(org.bukkit.GameMode.SURVIVAL);
                     p.sendMessage("The game you were spectating has ended");
                     queue.removeSpectator(p);
-                    p.getInventory().clear();
+//                    p.getInventory().clear();
                     clearPlayerScoreboard(p);
                 }
             }

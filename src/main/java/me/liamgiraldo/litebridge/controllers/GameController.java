@@ -703,6 +703,15 @@ public class GameController implements CommandExecutor, Listener {
                 player.sendTitle(ChatColor.GRAY + "Tied game!", null);
             }
         }
+
+        sendMessageToAllPlayersInGame(game, ChatColor.GRAY + "Top Killer: ");
+        sendMessageToAllPlayersInGame(game, ChatColor.GOLD + game.getTopKiller().getName() + ChatColor.GRAY + " with " + ChatColor.GOLD + game.getTopKillerKills() + ChatColor.GRAY + " kills");
+
+        if(litecoin!= null){
+            game.getTopKiller().sendMessage(ChatColor.GOLD + "+1 Litecoin" + ChatColor.DARK_GRAY + " (Top Killer)");
+            litecoin.incrementBalance(game.getTopKiller().getUniqueId(), 1);
+        }
+
         game.startStallingTimer(()->{
             for(Player player: game.getPlayers()){
                 if(player==null)
@@ -726,6 +735,7 @@ public class GameController implements CommandExecutor, Listener {
 
             resetWorld(game.getWorld());
             game.resetGame();
+            game.resetPlayerKillCounts();
             game.resetCages();
             queue.clearQueue();
         });
@@ -789,6 +799,7 @@ public class GameController implements CommandExecutor, Listener {
         resetWorld(game.getWorld());
         game.resetGame();
         game.resetCages();
+        game.resetPlayerKillCounts();
         queue.clearQueue();
     }
 
@@ -902,6 +913,7 @@ public class GameController implements CommandExecutor, Listener {
                     Player damager = lastDamagerMap.get(player);
                     if(damager != null){
                         sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getDisplayName() + ChatColor.GRAY + " was voided by " + getChatColorBasedOnTeam(damager, game) + damager.getDisplayName());
+                        game.incrementPlayerKillCount(damager);
 //                        damager.sendMessage("You killed " + player.getDisplayName());
                         damager.playSound(damager.getLocation(), Sound.ORB_PICKUP, 1, 1);
                         playSoundForSpecificPlayersTeam(game, damager, Sound.ORB_PICKUP);
@@ -1275,6 +1287,7 @@ public class GameController implements CommandExecutor, Listener {
                                     //for everyone on the damager's team, play a sound and send them a message
                                     sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getName() + ChatColor.GRAY + " was shot by " + getChatColorBasedOnTeam(damager, game) + damager.getName());
                                     playSoundForSpecificPlayersTeam(game, damager, Sound.ORB_PICKUP);
+                                    game.incrementPlayerKillCount(damager);
                                 }
                                 player.playSound(player.getLocation(), Sound.CHICKEN_HURT, 1, 1);
                                 return;
@@ -1307,6 +1320,7 @@ public class GameController implements CommandExecutor, Listener {
                         if(damager != null){
                             sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getName() + ChatColor.GRAY + " was killed by " + getChatColorBasedOnTeam(damager, game) + damager.getName());
                             playSoundForSpecificPlayersTeam(game, damager, Sound.ORB_PICKUP);
+                            game.incrementPlayerKillCount(damager);
                         }
 //                        player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
                     }

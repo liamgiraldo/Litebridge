@@ -333,7 +333,8 @@ public class GUIModel {
             lore.add(ChatColor.GOLD + "State: " + org.bukkit.ChatColor.GRAY + game.getGameState().toString());
 
             if(game.checkIfGameIsFull()){
-                item.addEnchantment(org.bukkit.enchantments.Enchantment.DURABILITY, 1);
+                //add enchant glint to the item
+                item.addUnsafeEnchantment(org.bukkit.enchantments.Enchantment.DURABILITY, 1);
                 lore.add(ChatColor.RED + "Game is full, click to spectate");
             }
 

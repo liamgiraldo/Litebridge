@@ -1533,4 +1533,26 @@ public class GameModel {
             playerKillCounts.put(player, 1);
         }
     }
+
+    public Player getTopKiller(){
+        Player topKiller = null;
+        int topKills = 0;
+        for(Player p : playerKillCounts.keySet()){
+            if(playerKillCounts.get(p) > topKills){
+                topKills = playerKillCounts.get(p);
+                topKiller = p;
+            }
+        }
+        return topKiller;
+    }
+
+    public int getTopKillerKills(){
+        int topKills = 0;
+        for(Player p : playerKillCounts.keySet()){
+            if(playerKillCounts.get(p) > topKills){
+                topKills = playerKillCounts.get(p);
+            }
+        }
+        return topKills;
+    }
 }
