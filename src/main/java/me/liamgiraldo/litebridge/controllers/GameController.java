@@ -720,6 +720,7 @@ public class GameController implements CommandExecutor, Listener {
             sendMessageToAllPlayersInGame(game, ChatColor.GRAY + "No top killer this game.");
         }
 
+        //REACT WITH A THUMBS UP IF YOU LOVE LITEBRIDGE!!!!!!!!
 
         if(litecoin!= null){
             game.getTopKiller().sendMessage(ChatColor.GOLD + "+1 Litecoin" + ChatColor.DARK_GRAY + " (Top Killer)");
