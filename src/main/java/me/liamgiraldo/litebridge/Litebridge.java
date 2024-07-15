@@ -88,7 +88,6 @@ public final class Litebridge extends JavaPlugin implements Listener {
 //        lobby-y: 100
 //        lobby-z: 0
         this.lobby = new Location(getServer().getWorld(getConfig().getString("lobby-world")), getConfig().getDouble("lobby-x"), getConfig().getDouble("lobby-y"), getConfig().getDouble("lobby-z"));
-        lobbyManager = new LobbyManager(lobby);
 
         spiGUI = new SpiGUI(this);
 
@@ -129,6 +128,8 @@ public final class Litebridge extends JavaPlugin implements Listener {
         this.guiModel = new GUIModel(this, models);
         this.guiController = new GUIController(guiModel, models);
 
+        lobbyManager = new LobbyManager(lobby, this, queues, this.gameController);
+
         System.out.println("Litebridge is running.");
 
         getServer().getPluginManager().registerEvents(new BedLeaveListener(),this);
@@ -156,6 +157,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
         getCommand("litebridgegame").setExecutor(new GameCommand(gameController));
         getCommand("litebridgeadmin").setExecutor(new AdminCommand(queues,models,this, gameController));
         getCommand("litebridgespectator").setExecutor(this.spectatorController);
+        getCommand("litebridgelobby").setExecutor(this.lobbyManager);
 
         HotbarConfig.setup();
         HotbarConfig.get().options().copyDefaults(true);

@@ -105,12 +105,39 @@ public class SpectatorController implements CommandExecutor, Listener {
                                 public void run() {
                                     p.setGameMode(GameMode.SPECTATOR);
                                 }
-                            }.runTaskLater(plugin, 20);
+                            }.runTaskLater(plugin, 5);
 
                             p.sendMessage("You are now spectating " + queue.getWorld().getName());
                             return true;
                         }
                     }
+
+                    //allow the player to also do /ls join (playername) and spectate that player if they are in an active game
+                    Player target = Bukkit.getPlayer(args[1]);
+                    if(target != null) {
+                        for (SpectatorQueueModel queue : spectatorQueues) {
+                            if (queue.getAssociatedGame().checkIfPlayerIsInGame(target)) {
+                                if (queue.getAssociatedGame().getGameState() != GameModel.GameState.ACTIVE) {
+                                    p.sendMessage("You cannot spectate a game that is not active");
+                                    return true;
+                                }
+                                queue.addSpectator(p);
+                                p.teleport(queue.getWorld().getSpawnLocation());
+
+                                //Use a bukkit runnable to set their gamemode to spectator after they have been teleported
+                                new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        p.setGameMode(GameMode.SPECTATOR);
+                                    }
+                                }.runTaskLater(plugin, 5);
+
+                                p.sendMessage("You are now spectating " + queue.getWorld().getName());
+                                return true;
+                            }
+                        }
+                    }
+
                     p.sendMessage("That world does not exist");
                     return true;
             }
@@ -148,16 +175,33 @@ public class SpectatorController implements CommandExecutor, Listener {
 
     @EventHandler
     public void onGameEnd(GameEndEvent e){
-        for(SpectatorQueueModel queue : spectatorQueues){
-            //careful make sure to shift indexes if you remove an element from the list
-            if(queue.getAssociatedGame().equals(e.getGame())){
-                for(Player p : queue.getSpectators()){
+//        for(SpectatorQueueModel queue : spectatorQueues){
+//            //careful make sure to shift indexes if you remove an element from the list
+//            if(queue.getAssociatedGame().equals(e.getGame())){
+//                for(Player p : queue.getSpectators()){
+//                    p.teleport(lobby);
+//                    p.setGameMode(org.bukkit.GameMode.SURVIVAL);
+//                    p.sendMessage("The game you were spectating has ended");
+//                    queue.removeSpectator(p);
+////                    p.getInventory().clear();
+//                    clearPlayerScoreboard(p);
+//                }
+//            }
+//        }
+
+        //redo the above except with a for loop instead of a foreach
+        for(int i = 0; i < spectatorQueues.size(); i++) {
+            SpectatorQueueModel queue = spectatorQueues.get(i);
+            if (queue.getAssociatedGame().equals(e.getGame())) {
+                for (int j = 0; j < queue.getSpectators().size(); j++) {
+                    Player p = queue.getSpectators().get(j);
                     p.teleport(lobby);
                     p.setGameMode(org.bukkit.GameMode.SURVIVAL);
                     p.sendMessage("The game you were spectating has ended");
                     queue.removeSpectator(p);
-//                    p.getInventory().clear();
                     clearPlayerScoreboard(p);
+                    //remember to shift the index if we remove an element
+                    j--;
                 }
             }
         }

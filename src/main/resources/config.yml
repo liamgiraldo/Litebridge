@@ -3,3 +3,4 @@ lobby-world: "lobby"
 lobby-x: 0
 lobby-y: 102
 lobby-z: 0
+lobby-kill-layer: 0

@@ -100,6 +100,15 @@ commands:
       - lbspectator
       - lbspec
       - ls
+  litebridgelobby:
+    description: Allows a player to go to the bridge lobby
+    usage: /<command>
+    permission: litebridge.lobby
+    permission-message: You don't have permission to go to the bridge lobby.
+    aliases:
+      - lblobby
+      - lbl
+      - ll
 permissions:
   litebridge.god:
     description: Allows someone to run the /god command

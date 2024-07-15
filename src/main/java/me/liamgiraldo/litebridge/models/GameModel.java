@@ -1555,4 +1555,13 @@ public class GameModel {
         }
         return topKills;
     }
+
+    public boolean checkIfGameIsEmpty(){
+        for(Player p : players){
+            if(p != null){
+                return false;
+            }
+        }
+        return true;
+    }
 }

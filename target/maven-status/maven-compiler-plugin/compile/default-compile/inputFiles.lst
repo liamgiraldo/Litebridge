@@ -25,6 +25,7 @@
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/commands/SpawnCommand.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/events/NearDeathEvent.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/commands/CheckqueueCommand.java
+/Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/utils/LitebridgePlaceholder.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/commands/AdminCommand.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/listeners/PlayerJoinListener.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/interfaces/SpectatorAction.java
@@ -35,3 +36,4 @@
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/commands/GameCommand.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/models/GameModel.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/commands/RepeatCommand.java
+/Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/files/StatsConfig.java
