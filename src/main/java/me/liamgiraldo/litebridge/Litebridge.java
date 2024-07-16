@@ -137,7 +137,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
         this.guiModel = new GUIModel(this, models);
         this.guiController = new GUIController(guiModel, models);
 
-        lobbyManager = new LobbyManager(lobby, this, queues, this.gameController);
+        lobbyManager = new LobbyManager(lobby, this, queues, this.gameController, spectatorQueues);
 
         System.out.println("Litebridge is running.");
 

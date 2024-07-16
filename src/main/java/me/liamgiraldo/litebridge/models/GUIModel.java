@@ -84,7 +84,10 @@ public class GUIModel {
         customizeitem.amount(1);
         customizeitem.name("Customize");
         SGButton customizebutton = new SGButton(customizeitem.build()).withListener((InventoryClickEvent event) -> {
-            event.getWhoClicked().openInventory(customizemenu.getInventory());
+            if(event.getWhoClicked() instanceof Player){
+                Player p = (Player) event.getWhoClicked();
+                p.performCommand("shop");
+            }
         });
 
         bridgemainmenu.setButton(0, 22, closebutton);
