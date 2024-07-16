@@ -688,7 +688,6 @@ public class GameController implements CommandExecutor, Listener {
         player.getInventory().setLeggings(leggings);
         player.getInventory().setBoots(boots);
 
-        //TODO Implement kit giving
         ItemStack redClay = XMaterial.RED_TERRACOTTA.parseItem();
         assert redClay != null;
         redClay.setAmount(64);

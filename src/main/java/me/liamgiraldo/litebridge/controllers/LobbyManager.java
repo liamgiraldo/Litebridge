@@ -4,6 +4,8 @@ import me.liamgiraldo.litebridge.Litebridge;
 import me.liamgiraldo.litebridge.models.CustomItem;
 import me.liamgiraldo.litebridge.models.GameModel;
 import me.liamgiraldo.litebridge.models.QueueModel;
+import me.liamgiraldo.litebridge.models.SpectatorQueueModel;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -30,8 +32,9 @@ public class LobbyManager implements CommandExecutor, Listener {
     private Litebridge plugin;
     private ArrayList<QueueModel> queues;
     private GameController gameController;
+    private ArrayList<SpectatorQueueModel> spectatorQueues;
 
-    public LobbyManager(Location lobby, Litebridge plugin, ArrayList<QueueModel> queues, GameController gameController) {
+    public LobbyManager(Location lobby, Litebridge plugin, ArrayList<QueueModel> queues, GameController gameController, ArrayList<SpectatorQueueModel> spectatorQueues) {
         this.lobby = lobby;
         this.mainMenu = new CustomItem("Main Menu", new ItemStack(Material.NETHER_STAR));
         mainMenu.setDisplayName("Main Menu");
@@ -39,6 +42,7 @@ public class LobbyManager implements CommandExecutor, Listener {
         this.queues = queues;
         this.gameController = gameController;
         this.plugin = plugin;
+        this.spectatorQueues = spectatorQueues;
     }
 
     @EventHandler
@@ -59,6 +63,7 @@ public class LobbyManager implements CommandExecutor, Listener {
     public void onPlayerTeleportToLobby(PlayerTeleportEvent event) {
         if(event.getTo().getWorld().getName().equals(lobby.getWorld().getName())) {
             event.getPlayer().getInventory().clear();
+            event.getPlayer().setGameMode(GameMode.SURVIVAL);
 
             if(event.getPlayer().getInventory().contains(mainMenu.getItemStack())){
                 return;
@@ -67,18 +72,6 @@ public class LobbyManager implements CommandExecutor, Listener {
             event.getPlayer().getInventory().addItem(mainMenu.getItemStack());
 
             //if the player is in a game, remove them from the game
-            for(QueueModel queue: queues){
-                if(queue.isPlayerInQueue(event.getPlayer())){
-                    GameModel game = queue.getAssociatedGame();
-                    game.removePlayer(event.getPlayer());
-                    queue.removeFromQueue(event.getPlayer());
-                    if(game.getAmountOfPlayersOnRedTeam() == 0 || game.getAmountOfPlayersOnBlueTeam() == 0){
-                        gameController.gameEnd(queue);
-                    }
-                    event.getPlayer().sendMessage("You have been removed from a game.");
-                    event.getPlayer().setScoreboard(plugin.getServer().getScoreboardManager().getNewScoreboard());
-                }
-            }
         }
     }
 
@@ -143,13 +136,33 @@ public class LobbyManager implements CommandExecutor, Listener {
         if(sender instanceof Player){
             Player p = (Player)sender;
             p.teleport(lobby);
+
             for(QueueModel queue: queues){
                 if(queue.isPlayerInQueue(p)){
+                    if(queue.getAssociatedGame().getGameState() == GameModel.GameState.ENDING){
+                        p.sendMessage("Your game is about to end, please wait.");
+                        return false;
+                    }
                     GameModel game = queue.getAssociatedGame();
                     game.removePlayer(p);
                     queue.removeFromQueue(p);
+                    if(game.getAmountOfPlayersOnRedTeam() == 0 || game.getAmountOfPlayersOnBlueTeam() == 0){
+                        gameController.gameEnd(queue);
+                    }
+                    p.sendMessage("You have been removed from a game.");
+                    p.setScoreboard(plugin.getServer().getScoreboardManager().getNewScoreboard());
                 }
             }
+
+            for(SpectatorQueueModel queue: spectatorQueues){
+                if(queue.getSpectators().contains(p)){
+                    queue.removeSpectator(p);
+                    p.sendMessage("You are no longer spectating.");
+                    p.setScoreboard(plugin.getServer().getScoreboardManager().getNewScoreboard());
+                }
+            }
+
+
             p.getInventory().clear();
             p.getInventory().setArmorContents(null);
             p.sendMessage("Sending you the bridge lobby.");
