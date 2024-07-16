@@ -121,7 +121,7 @@
         <dependency>
             <groupId>com.github.eteryi</groupId>
             <artifactId>LiteCosmetics</artifactId>
-            <version>v1.1</version>
+            <version>v1.1.2</version>
         </dependency>
         <dependency>
             <groupId>me.clip</groupId>
