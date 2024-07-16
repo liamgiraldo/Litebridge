@@ -136,7 +136,10 @@ public class QueueController implements EventListener, CommandExecutor, Listener
                     //try finding a random (non full) map 10 times
                     int recursionDepth = 10;
                     int count = 0;
-                    while(queue1.isQueueFull()){
+
+                    //if the random queue is full, try ten times to get another
+                    //if the random queue's game is active, skip it
+                    while(queue1.isQueueFull() || queue1.getAssociatedGame().getGameState() != GameModel.GameState.INACTIVE){
                         //this can go on forever, if ALL of the queues are full
                         queue1 = queues.get((int) (Math.random()*queues.size()));
                         //get the map name of the random, not full map
@@ -253,11 +256,11 @@ public class QueueController implements EventListener, CommandExecutor, Listener
             for (QueueModel q : queues) {
                 //maxPlayers of QueueModel needs to be an even number GRRR
                 if (q.getWorld().getName().equals(mapName) && q.getMaxPlayers() / 2 == gameMode) {
-                    if (!q.isQueueFull()) {
+                    if (!q.isQueueFull() && q.getAssociatedGame().getGameState() == GameModel.GameState.INACTIVE){
                         //if the found queue not full, queue it!
                         return q;
                     } else {
-                        System.out.println("All queues for the specified gamemode are full.");
+                        System.out.println("All queues for the specified gamemode are full or active.");
                         break;
                     }
                 }
@@ -268,11 +271,11 @@ public class QueueController implements EventListener, CommandExecutor, Listener
             for (QueueModel q : queues) {
                 //maxPlayers of QueueModel needs to be an even number GRRR
                 if (q.getWorld().getName().equals(mapName)) {
-                    if (!q.isQueueFull()) {
+                    if (!q.isQueueFull() && q.getAssociatedGame().getGameState() == GameModel.GameState.INACTIVE){
                         //if the found queue not full, queue it!
                         return q;
                     } else {
-                        System.out.println("All queues for the specified map are full.");
+                        System.out.println("All queues for the specified map are full or active.");
                         break;
                     }
                 }
@@ -333,6 +336,10 @@ public class QueueController implements EventListener, CommandExecutor, Listener
         for(QueueModel q : queues){
             //if the queue is null, skip it
             if(q == null) {
+                continue;
+            }
+            //if the queue's game is active, skip it
+            if(q.getAssociatedGame().getGameState() != GameModel.GameState.INACTIVE){
                 continue;
             }
             else{

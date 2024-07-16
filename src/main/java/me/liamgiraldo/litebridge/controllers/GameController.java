@@ -713,18 +713,17 @@ public class GameController implements CommandExecutor, Listener {
         if(game.getTopKiller() != null)
             sendMessageToAllPlayersInGame(game, ChatColor.GOLD + game.getTopKiller().getName() + ChatColor.GRAY + " with " + ChatColor.GOLD + game.getTopKillerKills() + ChatColor.GRAY + " kills");
 //        sendMessageToAllPlayersInGame(game, ChatColor.GOLD + game.getTopKiller().getName() + ChatColor.GRAY + " with " + ChatColor.GOLD + game.getTopKillerKills() + ChatColor.GRAY + " kills");
-        try{
-            game.getTopKiller();
-        }
-        catch(NullPointerException e){
-            sendMessageToAllPlayersInGame(game, ChatColor.GRAY + "No top killer this game.");
+        else{
+            sendMessageToAllPlayersInGame(game, ChatColor.GRAY + "No top killer");
         }
 
         //REACT WITH A THUMBS UP IF YOU LOVE LITEBRIDGE!!!!!!!!
 
         if(litecoin!= null){
-            game.getTopKiller().sendMessage(ChatColor.GOLD + "+1 Litecoin" + ChatColor.DARK_GRAY + " (Top Killer)");
-            litecoin.incrementBalance(game.getTopKiller().getUniqueId(), 1);
+            if(game.getTopKiller() != null) {
+                game.getTopKiller().sendMessage(ChatColor.GOLD + "+1 Litecoin" + ChatColor.DARK_GRAY + " (Top Killer)");
+                litecoin.incrementBalance(game.getTopKiller().getUniqueId(), 1);
+            }
         }
 
         game.startStallingTimer(()->{

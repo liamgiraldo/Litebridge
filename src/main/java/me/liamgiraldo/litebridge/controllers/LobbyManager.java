@@ -72,9 +72,11 @@ public class LobbyManager implements CommandExecutor, Listener {
                     GameModel game = queue.getAssociatedGame();
                     game.removePlayer(event.getPlayer());
                     queue.removeFromQueue(event.getPlayer());
-                    if(game.checkIfGameIsEmpty()){
-                        gameController.gameEndInstantly(game);
+                    if(game.getAmountOfPlayersOnRedTeam() == 0 || game.getAmountOfPlayersOnBlueTeam() == 0){
+                        gameController.gameEnd(queue);
                     }
+                    event.getPlayer().sendMessage("You have been removed from a game.");
+                    event.getPlayer().setScoreboard(plugin.getServer().getScoreboardManager().getNewScoreboard());
                 }
             }
         }
