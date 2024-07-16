@@ -3,6 +3,10 @@ package me.liamgiraldo.litebridge.controllers;
 import com.cryptomorin.xseries.XBlock;
 import com.cryptomorin.xseries.XMaterial;
 import com.sun.org.apache.xpath.internal.operations.Bool;
+import dev.etery.litecosmetics.Category;
+import dev.etery.litecosmetics.LiteCosmetics;
+import dev.etery.litecosmetics.cosmetic.Hat;
+import dev.etery.litecosmetics.data.CosmeticPlayer;
 import me.liamgiraldo.litebridge.Litebridge;
 import me.liamgiraldo.litebridge.events.ForceStartEvent;
 import me.liamgiraldo.litebridge.events.GameEndEvent;
@@ -75,6 +79,7 @@ public class GameController implements CommandExecutor, Listener {
     private final Map<Player, Integer> arrowCountdowns = new HashMap<>();
 
     private LiteCoin litecoin;
+    private LiteCosmetics liteCosmetics;
 
     /**
      * Constructs a new GameController
@@ -83,9 +88,10 @@ public class GameController implements CommandExecutor, Listener {
      * @param queues The queues to manage
      * @param plugin The lite-bridge plugin
      */
-    public GameController(ArrayList<QueueModel> queues, Litebridge plugin, Location lobbyLocation, LiteCoin litecoin) {
+    public GameController(ArrayList<QueueModel> queues, Litebridge plugin, Location lobbyLocation, LiteCoin litecoin, LiteCosmetics cosmetics) {
         this.queues = queues;
         this.lobbyLocation = lobbyLocation;
+        this.liteCosmetics = cosmetics;
 
         this.kitItems = new ArrayList<>();
         this.plugin = plugin;
@@ -106,6 +112,10 @@ public class GameController implements CommandExecutor, Listener {
         kitItems.add(new ItemStack(Material.STAINED_CLAY, 64));
         //I mean it should be stained clay but this is a hacky fix
         kitItems.add(new ItemStack(Material.WOOL, 64));
+
+        if (this.liteCosmetics != null) {
+            kitItems.add(this.liteCosmetics.createTauntDiamond());
+        }
 
         ItemStack goldenApple = new ItemStack(Material.GOLDEN_APPLE, 8);
         kitItems.add(goldenApple);
@@ -340,6 +350,16 @@ public class GameController implements CommandExecutor, Listener {
             boots.setItemMeta(bootsMeta);
 
 //            player.getInventory().setHelmet(helmet);
+            if (liteCosmetics != null) {
+                CosmeticPlayer cosmeticsPlayer = liteCosmetics.player(player);
+                Category<Hat> hatCategory = liteCosmetics.category("hats");
+                if (hatCategory != null) {
+                    Hat hat = cosmeticsPlayer.getSelected(hatCategory);
+                    if (hat != null) {
+                        hat.wear(player);
+                    }
+                }
+            }
             player.getInventory().setChestplate(chestplate);
             player.getInventory().setLeggings(leggings);
             player.getInventory().setBoots(boots);
@@ -480,6 +500,16 @@ public class GameController implements CommandExecutor, Listener {
             boots.setItemMeta(bootsMeta);
 
 //            p.getInventory().setHelmet(helmet);
+            if (liteCosmetics != null) {
+                CosmeticPlayer cosmeticsPlayer = liteCosmetics.player(p);
+                Category<Hat> hatCategory = liteCosmetics.category("hats");
+                if (hatCategory != null) {
+                    Hat hat = cosmeticsPlayer.getSelected(hatCategory);
+                    if (hat != null) {
+                        hat.wear(p);
+                    }
+                }
+            }
             p.getInventory().setChestplate(chestplate);
             p.getInventory().setLeggings(leggings);
             p.getInventory().setBoots(boots);
@@ -545,6 +575,16 @@ public class GameController implements CommandExecutor, Listener {
         boots.setItemMeta(bootsMeta);
 
 //        player.getInventory().setHelmet(helmet);
+        if (liteCosmetics != null) {
+            CosmeticPlayer cosmeticsPlayer = liteCosmetics.player(player);
+            Category<Hat> hatCategory = liteCosmetics.category("hats");
+            if (hatCategory != null) {
+                Hat hat = cosmeticsPlayer.getSelected(hatCategory);
+                if (hat != null) {
+                    hat.wear(player);
+                }
+            }
+        }
         player.getInventory().setChestplate(chestplate);
         player.getInventory().setLeggings(leggings);
         player.getInventory().setBoots(boots);
@@ -634,6 +674,16 @@ public class GameController implements CommandExecutor, Listener {
         boots.setItemMeta(bootsMeta);
 
 //        player.getInventory().setHelmet(helmet);
+        if (liteCosmetics != null) {
+            CosmeticPlayer cosmeticsPlayer = liteCosmetics.player(player);
+            Category<Hat> hatCategory = liteCosmetics.category("hats");
+            if (hatCategory != null) {
+                Hat hat = cosmeticsPlayer.getSelected(hatCategory);
+                if (hat != null) {
+                    hat.wear(player);
+                }
+            }
+        }
         player.getInventory().setChestplate(chestplate);
         player.getInventory().setLeggings(leggings);
         player.getInventory().setBoots(boots);

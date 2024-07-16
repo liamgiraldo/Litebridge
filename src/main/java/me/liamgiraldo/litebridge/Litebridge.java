@@ -1,6 +1,7 @@
 package me.liamgiraldo.litebridge;
 
 import com.samjakob.spigui.SpiGUI;
+import dev.etery.litecosmetics.LiteCosmetics;
 import me.liamgiraldo.litebridge.commands.*;
 import me.liamgiraldo.litebridge.controllers.*;
 import me.liamgiraldo.litebridge.files.HotbarConfig;
@@ -52,6 +53,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
     private Location lobby;
 
     private LiteCoin litecoin;
+    private LiteCosmetics liteCosmetics;
 
     public static Litebridge getPlugin(){
         return plugin;
@@ -118,7 +120,14 @@ public final class Litebridge extends JavaPlugin implements Listener {
             System.out.println("LiteCoin found, will be used for currency transactions.");
         }
 
-        this.gameController = new GameController(queues, this, lobby, litecoin);
+        if (getServer().getPluginManager().getPlugin("LiteCosmetics") != null) {
+            liteCosmetics = LiteCosmetics.get();
+            System.out.println("LiteCosmestics found, will be used for player cosmetics.");
+        } else {
+            System.out.println("Litebridge couldn't find the LiteCosmetics plugin, continuing without it.");
+        }
+
+        this.gameController = new GameController(queues, this, lobby, litecoin, liteCosmetics);
 
         plugin = this;
 
@@ -288,5 +297,9 @@ public final class Litebridge extends JavaPlugin implements Listener {
             return null;
         }
         return litecoin;
+    }
+
+    public LiteCosmetics getLiteCosmetics() {
+        return this.liteCosmetics;
     }
 }
