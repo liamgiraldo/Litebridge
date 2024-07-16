@@ -817,6 +817,9 @@ public class GameController implements CommandExecutor, Listener {
         queue.clearQueue();
     }
 
+    /**
+     * Ends all games instantly
+     * */
     public void endAllGamesInstantly(){
         for(QueueModel queue: queues){
             GameModel game = queue.getAssociatedGame();
@@ -824,6 +827,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Gets the chat color based on the team of a player
+     *
+     * @param p The player to get the chat color for
+     * @param g The game to get the chat color for
+     * */
     private String getChatColorBasedOnTeam(Player p , GameModel g){
         if(g.checkIfPlayerIsInRedTeam(p)){
             return ChatColor.RED + "";
@@ -832,6 +841,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Plays a sound effect for all players in a game
+     *
+     * @param game The game to play the sound effect for
+     * @param sound The sound effect to play
+     * */
     private void playSoundForAllPlayersInGame(GameModel game, Sound sound){
         for(Player player: game.getPlayers()){
             if(player == null)
@@ -840,6 +855,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Plays a sound effect for all players on the red team
+     *
+     * @param game The game to play the sound effect for
+     * @param sound The sound effect to play
+     * */
     private void playSoundForAllPlayersOnRedTeam(GameModel game, Sound sound){
         for(Player player: game.getRedTeam()){
             if(player == null)
@@ -848,6 +869,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Plays a sound effect for all players on the blue team
+     *
+     * @param game The game to play the sound effect for
+     * @param sound The sound effect to play
+     * */
     private void playSoundForAllPlayersOnBlueTeam(GameModel game, Sound sound){
         for(Player player: game.getBlueTeam()){
             if(player == null)
@@ -856,6 +883,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Plays a sound effect for the specific team of a player
+     *
+     * @param player The player to check the team of
+     * @param sound The sound effect to play
+     * */
     private void playSoundForSpecificPlayersTeam(GameModel game, Player player, Sound sound){
         if(game.checkIfPlayerIsInRedTeam(player)){
             playSoundForAllPlayersOnRedTeam(game, sound);
@@ -864,6 +897,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Plays a sound effect for the opposite team of a player
+     *
+     * @param player The player to check the team of
+     * @param sound The sound effect to play
+     * */
     private void playSoundForOppositeTeam(GameModel game, Player player, Sound sound){
         if(game.checkIfPlayerIsInRedTeam(player)){
             playSoundForAllPlayersOnBlueTeam(game, sound);
@@ -872,6 +911,12 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Sends a message to all players in a game
+     *
+     * @param game The game to send the message to
+     * @param message The message to send
+     * */
     private void sendMessageToAllPlayersInGame(GameModel game, String message){
         for(Player player: game.getPlayers()){
             if(player == null)
@@ -951,6 +996,14 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Player leave server event
+     * This event is used to check if a player has left the server
+     * If a player has left the server, we remove them from the game
+     * If a team has no players left, we end the game
+     *
+     * @param e The PlayerQuitEvent
+     * */
     @EventHandler
     public void onPlayerLeaveServer(PlayerQuitEvent e){
         Player player = e.getPlayer();
@@ -970,6 +1023,13 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Player rejoin server event
+     * This event is used to check if a player has rejoined the server
+     * If a player has rejoined the server, we add them back to the game
+     *
+     * @param e The PlayerJoinEvent
+     * */
     @EventHandler
     public void onPlayerRejoinServer(PlayerJoinEvent e){
         Player player = e.getPlayer();
@@ -1080,6 +1140,13 @@ public class GameController implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Checks if a player has interacted with a block
+     * If a player has interacted with a block, we cancel the event
+     * This only applies to game worlds
+     *
+     * @param e The PlayerInteractEvent
+     * */
     @EventHandler
     public void onCropTrampleEvent(PlayerInteractEvent e){
         Player player = e.getPlayer();

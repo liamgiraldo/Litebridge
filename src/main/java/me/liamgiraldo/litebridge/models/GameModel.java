@@ -1028,7 +1028,7 @@ public class GameModel {
      * */
     public void updateScoreboard(Objective objective, int countdown) {
 
-        System.out.println("Objective Display Slot: " + objective.getDisplaySlot());
+//        System.out.println("Objective Display Slot: " + objective.getDisplaySlot());
         //I don't think objective is necessary here
 //        scoreboard.resetScores(ChatColor.GREEN + "Time: 0");
 //        scoreboard.resetScores(ChatColor.GREEN + "Time: " + (countdown + 1));
@@ -1122,6 +1122,9 @@ public class GameModel {
         }
     }
 
+    /**
+     * Initializes the scoreboard teams
+     * */
     public void initializeScoreboardTeams() {
         //red is just used for the scoreboard
         if (scoreboard.getTeam("Red") == null) {
@@ -1174,6 +1177,12 @@ public class GameModel {
         }
     }
 
+    /**
+     * Clamps a string to 24 characters
+     *
+     * @param s The string to clamp
+     * @return The clamped string
+     * */
     public String clampStringTo24Characters(String s) {
         if (s.length() > 24) {
             return s.substring(0, 24);
@@ -1181,6 +1190,12 @@ public class GameModel {
         return s;
     }
 
+    /**
+     * Clamps a string to 16 characters
+     *
+     * @param s The string to clamp
+     * @return The clamped string
+     * */
     public String clampStringTo16Characters(String s) {
         if (s.length() > 16) {
             return s.substring(0, 16);
@@ -1188,6 +1203,12 @@ public class GameModel {
         return s;
     }
 
+    /**
+     * Adds a player to the team scoreboard
+     *
+     * @param player The player to add to the team scoreboard
+     * @param isRedTeam True if the player is on the red team, false if the player is on the blue team
+     * */
     public void addPlayerToTeamScoreboard(Player player, boolean isRedTeam) {
         initializeScoreboardTeams(); // Ensure teams are initialized
         Team team = scoreboard.getTeam(isRedTeam ? "RedPlayers" : "BluePlayers");
@@ -1196,6 +1217,12 @@ public class GameModel {
         }
     }
 
+    /**
+     * Removes a player from the team scoreboard
+     *
+     * @param player The player to remove from the team scoreboard
+     * @param isRedTeam True if the player is on the red team, false if the player is on the blue team
+     * */
     public void removePlayerFromTeamScoreboard(Player player, boolean isRedTeam) {
         Team team = scoreboard.getTeam(isRedTeam ? "RedPlayers" : "BluePlayers");
         if (team != null) {
@@ -1435,6 +1462,11 @@ public class GameModel {
         return stallingTimerCountdown;
     }
 
+    /**
+     * Gets the number of players on the red team
+     *
+     * @return The number of players on the red team
+     * */
     public int getAmountOfPlayersOnRedTeam() {
         int count = 0;
         for (Player p : redTeam) {
@@ -1445,6 +1477,11 @@ public class GameModel {
         return count;
     }
 
+    /**
+     * Gets the number of players on the blue team
+     *
+     * @return The number of players on the blue team
+     * */
     public int getAmountOfPlayersOnBlueTeam() {
         int count = 0;
         for (Player p : blueTeam) {
@@ -1455,6 +1492,11 @@ public class GameModel {
         return count;
     }
 
+    /**
+     * Gets the number of players in the game
+     *
+     * @return The number of players in the game
+     * */
     public int getAmountOfPlayersInGame(){
         int count = 0;
         for (Player p : players) {
@@ -1465,6 +1507,9 @@ public class GameModel {
         return count;
     }
 
+    /**
+     * Sets the new default red cage blocks
+     * */
     public void setNewDefaultRedCageBlocks(){
         this.redCageBlocks = new ArrayList<Block>();
 
@@ -1493,6 +1538,9 @@ public class GameModel {
         }
     }
 
+    /**
+     * Sets the new default blue cage blocks
+     * */
     public void setNewDefaultBlueCageBlocks(){
         this.blueCageBlocks = new ArrayList<Block>();
 
@@ -1521,10 +1569,18 @@ public class GameModel {
         }
     }
 
+    /**
+     * Resets the kill counts of all players
+     * */
     public void resetPlayerKillCounts(){
         this.playerKillCounts = new HashMap<Player, Integer>();
     }
 
+    /**
+     * Increments the kill count of a player
+     *
+     * @param player The player to increment the kill count of
+     * */
     public void incrementPlayerKillCount(Player player){
         if(playerKillCounts.containsKey(player)){
             playerKillCounts.put(player, playerKillCounts.get(player) + 1);
@@ -1534,6 +1590,11 @@ public class GameModel {
         }
     }
 
+    /**
+     * Gets the top killer of this game
+     *
+     * @return The top killer of this game
+     * */
     public Player getTopKiller(){
         Player topKiller = null;
         int topKills = 0;
@@ -1546,6 +1607,11 @@ public class GameModel {
         return topKiller;
     }
 
+    /**
+     * Gets the number of kills the top killer has
+     *
+     * @return The number of kills the top killer has
+     * */
     public int getTopKillerKills(){
         int topKills = 0;
         for(Player p : playerKillCounts.keySet()){
@@ -1556,6 +1622,9 @@ public class GameModel {
         return topKills;
     }
 
+    /**
+     * Checks if the game is empty
+     * */
     public boolean checkIfGameIsEmpty(){
         for(Player p : players){
             if(p != null){
