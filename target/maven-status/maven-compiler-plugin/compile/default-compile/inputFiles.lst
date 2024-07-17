@@ -1,4 +1,3 @@
-/Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/commands/SetSpawnCommand.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/controllers/GUIController.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/commands/FeedCommand.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/models/QueueModel.java
@@ -22,7 +21,6 @@
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/models/SpectatorQueueModel.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/files/HotbarConfig.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/models/GUIModel.java
-/Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/commands/SpawnCommand.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/events/NearDeathEvent.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/commands/CheckqueueCommand.java
 /Users/liamgiraldo/Desktop/CS/Plugins/litebridgegit/Litebridge/src/main/java/me/liamgiraldo/litebridge/utils/LitebridgePlaceholder.java
