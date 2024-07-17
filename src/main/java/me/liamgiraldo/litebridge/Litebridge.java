@@ -156,8 +156,6 @@ public final class Litebridge extends JavaPlugin implements Listener {
         getCommand("feed").setExecutor(new FeedCommand());
         getCommand("repeat").setExecutor(new RepeatCommand());
         getCommand("strike").setExecutor(new StrikeCommand());
-        getCommand("setspawn").setExecutor(new SetSpawnCommand());
-        getCommand("spawn").setExecutor(new SpawnCommand());
         getCommand("setjoinmessage").setExecutor(new SetMessageCommand());
         getCommand("bridgewand").setExecutor(mapCreator);
         getCommand("litebridge").setExecutor(queueController);
