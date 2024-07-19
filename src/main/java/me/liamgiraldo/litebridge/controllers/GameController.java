@@ -1447,7 +1447,7 @@ public class GameController implements CommandExecutor, Listener {
                                 resetPlayerInventory(player);
                                 teleportPlayerBasedOnTeam(player, game);
 //                                player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
-                                if(damager != null && game.isPlayerDamageTimerActive(player)){
+                                if(damager != null){
                                     //for everyone on the damager's team, play a sound and send them a message
                                     sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getName() + ChatColor.GRAY + " was shot by " + getChatColorBasedOnTeam(damager, game) + damager.getName());
                                     playSoundForSpecificPlayersTeam(game, damager, Sound.ORB_PICKUP);
@@ -1481,7 +1481,7 @@ public class GameController implements CommandExecutor, Listener {
                         teleportPlayerBasedOnTeam(player, game);
                         player.playSound(player.getLocation(), Sound.CHICKEN_HURT, 1, 1);
 
-                        if(damager != null && game.isPlayerDamageTimerActive(player)){
+                        if(damager != null){
                             sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getName() + ChatColor.GRAY + " was killed by " + getChatColorBasedOnTeam(damager, game) + damager.getName());
                             playSoundForSpecificPlayersTeam(game, damager, Sound.ORB_PICKUP);
                             game.incrementPlayerKillCount(damager);
