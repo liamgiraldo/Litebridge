@@ -799,6 +799,7 @@ public class GameController implements CommandExecutor, Listener {
             resetWorld(game.getWorld());
             game.resetGame();
             game.resetPlayerKillCounts();
+            game.resetAllDamageTimers();
             game.resetCages();
             queue.clearQueue();
         });
@@ -863,6 +864,7 @@ public class GameController implements CommandExecutor, Listener {
         game.resetGame();
         game.resetCages();
         game.resetPlayerKillCounts();
+        game.resetAllDamageTimers();
         queue.clearQueue();
     }
 
@@ -1019,7 +1021,7 @@ public class GameController implements CommandExecutor, Listener {
                 int killPlane = game.getKillPlane();
                 if(playerLocation.getBlockY() <= killPlane){
                     Player damager = lastDamagerMap.get(player);
-                    if(damager != null){
+                    if(damager != null && game.isPlayerDamageTimerActive(player)){
                         sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getDisplayName() + ChatColor.GRAY + " was voided by " + getChatColorBasedOnTeam(damager, game) + damager.getDisplayName());
                         game.incrementPlayerKillCount(damager);
 //                        damager.sendMessage("You killed " + player.getDisplayName());
@@ -1037,7 +1039,12 @@ public class GameController implements CommandExecutor, Listener {
                     player.playSound(player.getLocation(), Sound.CHICKEN_HURT, 1, 1);
                     playSoundForOppositeTeam(game, player, Sound.ORB_PICKUP);
 //                    player.sendMessage(ChatColor.RED + "You fell into the void!");
-                    sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getDisplayName() + ChatColor.GRAY + " fell into the void!");
+                    if(damager == null)
+                        sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getDisplayName() + ChatColor.GRAY + " fell into the void!");
+
+                    if(damager != null && !game.isPlayerDamageTimerActive(player)){
+                        sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getDisplayName() + ChatColor.GRAY + " fell into the void!");
+                    }
                     //call the on death event
 
                 }
@@ -1243,6 +1250,15 @@ public class GameController implements CommandExecutor, Listener {
                         }
                         else{
                             lastDamagerMap.put(player, damager);
+
+                            //start their "time since last damaged" timer.
+                            game.startDamageTimer(player);
+
+                            int arrowDistance = (int) Math.round(player.getLocation().distance(damager.getLocation()));
+                            if(arrowDistance >= 15){
+                                String message = getChatColorBasedOnTeam(damager, game) + damager.getDisplayName() + ChatColor.GRAY + " shot " + getChatColorBasedOnTeam(player, game) + player.getDisplayName() + ChatColor.GRAY + " from " + ChatColor.WHITE + arrowDistance + ChatColor.GRAY + " blocks away!";
+                                sendMessageToAllPlayersOnPlayerTeam(game, damager, message);
+                            }
                         }
                     }
                 }
@@ -1264,9 +1280,27 @@ public class GameController implements CommandExecutor, Listener {
                         e.setCancelled(true);
                     }
                     else{
+                        game.startDamageTimer(player);
+
                         lastDamagerMap.put(player, damager);
                     }
                 }
+            }
+        }
+    }
+
+    private void sendMessageToAllPlayersOnPlayerTeam(GameModel game, Player player, String message){
+        if(game.checkIfPlayerIsInRedTeam(player)){
+            for(Player p: game.getRedTeam()){
+                if(p == null)
+                    continue;
+                p.sendMessage(message);
+            }
+        } else {
+            for(Player p: game.getBlueTeam()){
+                if(p == null)
+                    continue;
+                p.sendMessage(message);
             }
         }
     }
@@ -1413,7 +1447,7 @@ public class GameController implements CommandExecutor, Listener {
                                 resetPlayerInventory(player);
                                 teleportPlayerBasedOnTeam(player, game);
 //                                player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
-                                if(damager != null){
+                                if(damager != null && game.isPlayerDamageTimerActive(player)){
                                     //for everyone on the damager's team, play a sound and send them a message
                                     sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getName() + ChatColor.GRAY + " was shot by " + getChatColorBasedOnTeam(damager, game) + damager.getName());
                                     playSoundForSpecificPlayersTeam(game, damager, Sound.ORB_PICKUP);
@@ -1447,7 +1481,7 @@ public class GameController implements CommandExecutor, Listener {
                         teleportPlayerBasedOnTeam(player, game);
                         player.playSound(player.getLocation(), Sound.CHICKEN_HURT, 1, 1);
 
-                        if(damager != null){
+                        if(damager != null && game.isPlayerDamageTimerActive(player)){
                             sendMessageToAllPlayersInGame(game, getChatColorBasedOnTeam(player, game) + player.getName() + ChatColor.GRAY + " was killed by " + getChatColorBasedOnTeam(damager, game) + damager.getName());
                             playSoundForSpecificPlayersTeam(game, damager, Sound.ORB_PICKUP);
                             game.incrementPlayerKillCount(damager);
@@ -1733,7 +1767,7 @@ public class GameController implements CommandExecutor, Listener {
                 p.setHealth(20);
                 resetPlayerInventory(p);
 
-                p.sendMessage(getChatColorBasedOnTeam(player, game) + player.getName() + ChatColor.GRAY + " scored a goal for the blue team!");
+                p.sendMessage(getChatColorBasedOnTeam(player, game) + player.getName() + getFormattedHealthOfPlayer(player) + ChatColor.GRAY + " scored a goal for the blue team!");
                 p.playSound(p.getLocation(), Sound.FIREWORK_LAUNCH, 1, 1);
 
                 //we also need to reset all potion effects
@@ -1760,6 +1794,32 @@ public class GameController implements CommandExecutor, Listener {
 //            updateScoreboard(game);
             game.updateScoreboard(game.getScoreboard().getObjective("bridge"), game.getGameTimer().getCountdown());
         }
+    }
+
+    private String getFormattedHealthOfPlayer(Player p){
+        double health = p.getHealth();
+        double maxHealth = p.getMaxHealth();
+        double healthPercentage = (health / maxHealth) * 100;
+        //round this to the nearest hundredth decimal point
+        healthPercentage = Math.round(healthPercentage * 100.0) / 100.0;
+
+        return ChatColor.GRAY + " (" + ChatColor.RED + healthPercentage + "%" + ChatColor.GRAY + " ❤) ";
+    }
+
+    private String getFormattedHealthOfPlayerMinusDamage(Player p, double damage){
+        double health = p.getHealth() - damage;
+        double maxHealth = p.getMaxHealth();
+        double healthPercentage = (health / maxHealth) * 100;
+        healthPercentage = Math.round(healthPercentage * 100.0) / 100.0;
+        //if it's equal to 50% exactly, set healthPercentage to 0 (hotfix)
+
+        if(healthPercentage < 0){
+            healthPercentage = 0;
+        }
+
+        //get the health percentage rounded to the nearest whole number
+        healthPercentage = Math.round(healthPercentage);
+        return ChatColor.GRAY + " (" + ChatColor.RED + healthPercentage + "%" + ChatColor.GRAY + " ❤) ";
     }
 
     /**
@@ -1813,7 +1873,7 @@ public class GameController implements CommandExecutor, Listener {
                 p.setHealth(20);
                 teleportPlayerBasedOnTeam(p, game);
 
-                p.sendMessage(getChatColorBasedOnTeam(player, game) + player.getName() + ChatColor.GRAY + " scored a goal for the red team!");
+                p.sendMessage(getChatColorBasedOnTeam(player, game) + player.getName() + getFormattedHealthOfPlayer(p) + ChatColor.GRAY + " scored a goal for the red team!");
                 p.playSound(p.getLocation(), Sound.FIREWORK_LAUNCH, 1, 1);
 
                 p.getActivePotionEffects().forEach(potionEffect -> p.removePotionEffect(potionEffect.getType()));

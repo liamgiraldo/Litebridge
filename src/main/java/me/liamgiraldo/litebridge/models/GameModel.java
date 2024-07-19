@@ -2,6 +2,7 @@ package me.liamgiraldo.litebridge.models;
 
 import jdk.internal.org.jline.utils.Display;
 import me.liamgiraldo.litebridge.Litebridge;
+import me.liamgiraldo.litebridge.runnables.DamageTimer;
 import me.liamgiraldo.litebridge.runnables.GameTimer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -209,6 +210,13 @@ public class GameModel {
     private int stallingTimerCountdown = 5;
 
     private HashMap<Player, Integer> playerKillCounts = new HashMap<>();
+
+    /**
+     * Timers meant to track when a player was last damaged
+     * */
+    private HashMap<Player, DamageTimer> playerDamageTimers = new HashMap<>();
+
+    private int maxTimeSinceLastDamaged = 5;
 
     /**
      * @param world          The bridge map the game will use
@@ -1632,5 +1640,39 @@ public class GameModel {
             }
         }
         return true;
+    }
+
+    public void startDamageTimer(Player p){
+        if(playerDamageTimers.containsKey(p)){
+            DamageTimer existingTimer = playerDamageTimers.get(p);
+            if(existingTimer.isDamagedTimerActive()){
+                existingTimer.cancelTimer();
+            }
+        }
+
+        DamageTimer damageTimer = new DamageTimer();
+        playerDamageTimers.put(p, damageTimer);
+        damageTimer.runTaskTimer(plugin, 0, 20);
+    }
+
+    public void removeDamageTimer(Player p){
+        if(playerDamageTimers.containsKey(p)){
+            playerDamageTimers.get(p).cancelTimer();
+            playerDamageTimers.remove(p);
+        }
+    }
+
+    public void resetAllDamageTimers(){
+        for(Player p : playerDamageTimers.keySet()){
+            playerDamageTimers.get(p).cancelTimer();
+        }
+        playerDamageTimers.clear();
+    }
+
+    public boolean isPlayerDamageTimerActive(Player p){
+        if(!playerDamageTimers.containsKey(p)){
+            return false;
+        }
+        return playerDamageTimers.get(p).isDamagedTimerActive();
     }
 }

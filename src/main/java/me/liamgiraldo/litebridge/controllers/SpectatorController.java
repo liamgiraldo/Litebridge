@@ -60,7 +60,7 @@ public class SpectatorController implements CommandExecutor, Listener {
                                 public void run() {
                                     p.setGameMode(GameMode.SURVIVAL);
                                 }
-                            }.runTaskLater(plugin, 20);
+                            }.runTaskLater(plugin, 3);
 
                             p.sendMessage("You are no longer spectating " + queue.getWorld().getName());
                             return true;
@@ -105,7 +105,7 @@ public class SpectatorController implements CommandExecutor, Listener {
                                 public void run() {
                                     p.setGameMode(GameMode.SPECTATOR);
                                 }
-                            }.runTaskLater(plugin, 5);
+                            }.runTaskLater(plugin, 3);
 
                             p.sendMessage("You are now spectating " + queue.getWorld().getName());
                             return true;
