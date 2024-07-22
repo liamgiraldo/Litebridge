@@ -17,6 +17,8 @@ commands:
   feed:
     description: Sets hunger to full
     usage: /<command>
+    permission: litebridge.feed
+    permission-message: You don't have permission to feed yourself
   repeat:
     description: Repeats the arguments provided to this command
     usage: /<command>
@@ -127,6 +129,12 @@ permissions:
     default: op
   litebridge.litebridgespectator:
     description: Allows someone to spectate games
+    default: op
+  litebridge.feed:
+    description: Allows someone to feed themselves
+    default: op
+  feed:
+    description: Allows someone to feed themselves
     default: op
 softdepend:
   - LiteCoin

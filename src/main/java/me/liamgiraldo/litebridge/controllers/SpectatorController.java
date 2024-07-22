@@ -98,6 +98,7 @@ public class SpectatorController implements CommandExecutor, Listener {
                             }
                             queue.addSpectator(p);
                             p.teleport(queue.getWorld().getSpawnLocation());
+                            p.getInventory().clear();
 
                             //Use a bukkit runnable to set their gamemode to spectator after they have been teleported
                             new BukkitRunnable(){
@@ -123,6 +124,7 @@ public class SpectatorController implements CommandExecutor, Listener {
                                 }
                                 queue.addSpectator(p);
                                 p.teleport(queue.getWorld().getSpawnLocation());
+                                p.getInventory().clear();
 
                                 //Use a bukkit runnable to set their gamemode to spectator after they have been teleported
                                 new BukkitRunnable() {

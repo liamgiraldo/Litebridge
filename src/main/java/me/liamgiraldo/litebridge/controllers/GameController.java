@@ -1256,7 +1256,11 @@ public class GameController implements CommandExecutor, Listener {
 
                             int arrowDistance = (int) Math.round(player.getLocation().distance(damager.getLocation()));
                             if(arrowDistance >= 15){
-                                String message = getChatColorBasedOnTeam(damager, game) + damager.getDisplayName() + ChatColor.GRAY + " shot " + getChatColorBasedOnTeam(player, game) + player.getDisplayName() + ChatColor.GRAY + " from " + ChatColor.WHITE + arrowDistance + ChatColor.GRAY + " blocks away!";
+                                String message = getChatColorBasedOnTeam(damager, game) + damager.getDisplayName() + ChatColor.GRAY + " shot " + getChatColorBasedOnTeam(player, game) + player.getDisplayName() + getFormattedHealthOfPlayer(player) + ChatColor.GRAY + " from " + ChatColor.WHITE + arrowDistance + ChatColor.GRAY + " blocks away!";
+                                sendMessageToAllPlayersOnPlayerTeam(game, damager, message);
+                            }
+                            else{
+                                String message = getChatColorBasedOnTeam(damager, game) + damager.getDisplayName() + ChatColor.GRAY + " shot " + getChatColorBasedOnTeam(player, game) + player.getDisplayName() + getFormattedHealthOfPlayer(player);
                                 sendMessageToAllPlayersOnPlayerTeam(game, damager, message);
                             }
                         }
@@ -1443,7 +1447,6 @@ public class GameController implements CommandExecutor, Listener {
                                 }
 
                                 e.setCancelled(true);
-                                player.setHealth(20);
                                 resetPlayerInventory(player);
                                 teleportPlayerBasedOnTeam(player, game);
 //                                player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
@@ -1454,6 +1457,7 @@ public class GameController implements CommandExecutor, Listener {
                                     game.incrementPlayerKillCount(damager);
                                 }
                                 player.playSound(player.getLocation(), Sound.CHICKEN_HURT, 1, 1);
+                                player.setHealth(20);
                                 return;
                             }
                         }
@@ -1476,7 +1480,6 @@ public class GameController implements CommandExecutor, Listener {
                         }
 
                         e.setCancelled(true);
-                        player.setHealth(20);
                         resetPlayerInventory(player);
                         teleportPlayerBasedOnTeam(player, game);
                         player.playSound(player.getLocation(), Sound.CHICKEN_HURT, 1, 1);
@@ -1486,6 +1489,8 @@ public class GameController implements CommandExecutor, Listener {
                             playSoundForSpecificPlayersTeam(game, damager, Sound.ORB_PICKUP);
                             game.incrementPlayerKillCount(damager);
                         }
+
+                        player.setHealth(20);
 //                        player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
                     }
                 }
@@ -1764,7 +1769,6 @@ public class GameController implements CommandExecutor, Listener {
                 if(p == null)
                     continue;
                 teleportPlayerBasedOnTeam(p, game);
-                p.setHealth(20);
                 resetPlayerInventory(p);
 
                 p.sendMessage(getChatColorBasedOnTeam(player, game) + player.getName() + getFormattedHealthOfPlayer(player) + ChatColor.GRAY + " scored a goal for the blue team!");
@@ -1772,6 +1776,7 @@ public class GameController implements CommandExecutor, Listener {
 
                 //we also need to reset all potion effects
                 p.getActivePotionEffects().forEach(potionEffect -> p.removePotionEffect(potionEffect.getType()));
+                p.setHealth(20);
             }
 //            player.teleport(new Location(game.getWorld(), game.getBlueSpawnPoint()[0], game.getBlueSpawnPoint()[1], game.getBlueSpawnPoint()[2]));
 
@@ -1798,28 +1803,19 @@ public class GameController implements CommandExecutor, Listener {
 
     private String getFormattedHealthOfPlayer(Player p){
         double health = p.getHealth();
-        double maxHealth = p.getMaxHealth();
-        double healthPercentage = (health / maxHealth) * 100;
-        //round this to the nearest hundredth decimal point
-        healthPercentage = Math.round(healthPercentage * 100.0) / 100.0;
+        //round the health to the nearest whole number
+        health = Math.round(health * 100.0) / 100.0;
 
-        return ChatColor.GRAY + " (" + ChatColor.RED + healthPercentage + "%" + ChatColor.GRAY + " ❤) ";
+        return ChatColor.GRAY + " (" + ChatColor.RED + health + " ❤"+ ChatColor.GRAY + ") ";
     }
 
     private String getFormattedHealthOfPlayerMinusDamage(Player p, double damage){
         double health = p.getHealth() - damage;
-        double maxHealth = p.getMaxHealth();
-        double healthPercentage = (health / maxHealth) * 100;
-        healthPercentage = Math.round(healthPercentage * 100.0) / 100.0;
-        //if it's equal to 50% exactly, set healthPercentage to 0 (hotfix)
-
-        if(healthPercentage < 0){
-            healthPercentage = 0;
-        }
+        //round the health to the second decimal place
+        health = Math.round(health * 100.0) / 100.0;
 
         //get the health percentage rounded to the nearest whole number
-        healthPercentage = Math.round(healthPercentage);
-        return ChatColor.GRAY + " (" + ChatColor.RED + healthPercentage + "%" + ChatColor.GRAY + " ❤) ";
+        return ChatColor.GRAY + " (" + ChatColor.RED + health + " ❤" + ChatColor.GRAY + ") ";
     }
 
     /**
@@ -1870,13 +1866,13 @@ public class GameController implements CommandExecutor, Listener {
                 if(p == null)
                     continue;
                 resetPlayerInventory(p);
-                p.setHealth(20);
                 teleportPlayerBasedOnTeam(p, game);
 
                 p.sendMessage(getChatColorBasedOnTeam(player, game) + player.getName() + getFormattedHealthOfPlayer(p) + ChatColor.GRAY + " scored a goal for the red team!");
                 p.playSound(p.getLocation(), Sound.FIREWORK_LAUNCH, 1, 1);
 
                 p.getActivePotionEffects().forEach(potionEffect -> p.removePotionEffect(potionEffect.getType()));
+                p.setHealth(20);
             }
 //            player.teleport(new Location(game.getWorld(), game.getRedSpawnPoint()[0], game.getRedSpawnPoint()[1], game.getRedSpawnPoint()[2]));
 

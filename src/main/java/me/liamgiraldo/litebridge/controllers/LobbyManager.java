@@ -141,7 +141,7 @@ public class LobbyManager implements CommandExecutor, Listener {
                 if(queue.isPlayerInQueue(p)){
                     if(queue.getAssociatedGame().getGameState() == GameModel.GameState.ENDING){
                         p.sendMessage("Your game is about to end, please wait.");
-                        return false;
+                        return true;
                     }
                     GameModel game = queue.getAssociatedGame();
                     game.removePlayer(p);
@@ -166,6 +166,8 @@ public class LobbyManager implements CommandExecutor, Listener {
             p.getInventory().clear();
             p.getInventory().setArmorContents(null);
             p.sendMessage("Sending you the bridge lobby.");
+
+            return true;
         }
         return false;
     }

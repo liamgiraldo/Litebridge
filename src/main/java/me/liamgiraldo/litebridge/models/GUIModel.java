@@ -28,10 +28,11 @@ public class GUIModel {
     SGMenu mapmenu;
 
     ArrayList<GameModel> games;
+    ArrayList<QueueModel> queues;
 
     HashMap<Player, Integer> lastSelectedMode = new HashMap<>();
 
-    public GUIModel(Litebridge plugin, ArrayList<GameModel> games){
+    public GUIModel(Litebridge plugin, ArrayList<GameModel> games, ArrayList<QueueModel> queues){
         this.plugin = plugin;
         this.bridgemainmenu = plugin.getSpiGUI().create("Bridge Main Menu", 3);
         this.bridgeselectmode = plugin.getSpiGUI().create("Bridge Mode Selection", 3);
@@ -39,6 +40,7 @@ public class GUIModel {
         this.customizemenu = plugin.getSpiGUI().create("Customize", 3);
         this.mapmenu = plugin.getSpiGUI().create("Map Menu", 6);
         this.games = games;
+        this.queues = queues;
 
         ItemBuilder closeitem = new ItemBuilder(Material.BARRIER);
         closeitem.lore("Click here to close the menu");
@@ -261,9 +263,18 @@ public class GUIModel {
             event.getWhoClicked().closeInventory();
         });
 
+        ItemBuilder refreshitem = new ItemBuilder(XMaterial.EMERALD.parseMaterial());
+        refreshitem.lore("Click to refresh the map list");
+        refreshitem.amount(1);
+        refreshitem.name("Refresh");
+        SGButton refreshbutton = new SGButton(refreshitem.build()).withListener((InventoryClickEvent event) -> {
+            generateMapButtons((Player) event.getWhoClicked());
+        });
+
         mapmenu.setButton(0, 49, closebutton);
         mapmenu.setButton(0, 45, mainmenubutton);
         mapmenu.setButton(0, 53, randomq);
+        mapmenu.setButton(0, 51, refreshbutton);
 
         //TODO: There has to be a better way to do this
         plugin.getSpiGUI().setBlockDefaultInteractions(false);
@@ -308,6 +319,10 @@ public class GUIModel {
         int i = 0;
 
         this.getMapmenu().clearAllButStickiedSlots();
+        //clear all slots except the last 10
+//        for(int j = 0; j < 45; j++){
+//            this.getMapmenu().setButton(j, null);
+//        }
 
         int lastSelectedMode = this.getLastSelectedMode(player);
 
@@ -315,10 +330,26 @@ public class GUIModel {
             if((game.getMaxPlayers()/2) != lastSelectedMode){
                 continue;
             }
+            QueueModel queue = findQueueCoorespondingToGame(game);
+
             ItemStack item = new ItemStack(Material.MAP);
             ItemMeta meta = item.getItemMeta();
             meta.setDisplayName((game.getWorld().getName()));
             ArrayList<String> lore = new ArrayList<>();
+            lore.add(ChatColor.GOLD + "In-Queue:");
+            if(queue != null){
+                for(Player p: queue.getQueue()){
+                    if(p == null){
+                        lore.add(ChatColor.GRAY + "Empty");
+                        continue;
+                    }
+                    ChatColor color = ChatColor.WHITE;
+                    lore.add(color + p.getName());
+                }
+            } else {
+                lore.add(ChatColor.GRAY + "Empty");
+            }
+
             lore.add(ChatColor.GOLD + "In-Game:");
             for(Player p: game.getPlayers()){
                 if(p == null){
@@ -369,5 +400,14 @@ public class GUIModel {
     //write a method to check if a string has a number in it
     private boolean hasNumber(String s) {
         return s.matches(".*\\d.*");
+    }
+
+    private QueueModel findQueueCoorespondingToGame(GameModel game){
+        for(QueueModel queue: queues){
+            if(queue.getAssociatedGame().equals(game)){
+                return queue;
+            }
+        }
+        return null;
     }
 }

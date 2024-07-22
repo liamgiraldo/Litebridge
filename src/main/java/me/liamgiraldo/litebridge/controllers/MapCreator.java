@@ -121,6 +121,7 @@ public class MapCreator implements CommandExecutor, Listener {
         //TODO save all these parameters to config.
         //Before the first stick click, the case is 0, but...
         //immediately gets set to 1.
+
         if (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
             Block blockClicked = e.getClickedBlock();
             boolean airClicked = true;
@@ -135,7 +136,7 @@ public class MapCreator implements CommandExecutor, Listener {
             ItemStack itemUsed = e.getItem();
             Player player = e.getPlayer();
             //TODO get this to work specifically for the bridge stick
-            if (itemUsed != null && itemUsed.getType() == Material.STICK) {
+            if (itemUsed != null && itemUsed.getType() == Material.STICK && itemUsed.getItemMeta().getLore().get(0).equals("Used for making bridge maps.")) {
                 this.worldName = player.getWorld().getName();
                 //if the config for this world doesn't exist make one
                 if(!litebridge.getConfig().isConfigurationSection(player.getWorld().getName())) {
@@ -512,7 +513,7 @@ public class MapCreator implements CommandExecutor, Listener {
             float blueSpawnYaw = (float)litebridge.getConfig().getLong(worldName + ".blue-spawn-yaw");
             float redSpawnYaw = (float)litebridge.getConfig().getLong(worldName + ".red-spawn-yaw");
 
-            printSingleArray(blueSpawnPoint);
+            /*printSingleArray(blueSpawnPoint);
             printSingleArray(redSpawnPoint);
             printDoubleArray(redGoalBounds);
             printDoubleArray(blueGoalBounds);
@@ -523,7 +524,7 @@ public class MapCreator implements CommandExecutor, Listener {
             System.out.println(maxPlayers);
             System.out.println(killPlane);
             System.out.println(blueSpawnYaw);
-            System.out.println(redSpawnYaw);
+            System.out.println(redSpawnYaw);*/
 
             models.add(new GameModel(world, blueSpawnPoint, redSpawnPoint, blueGoalBounds, redGoalBounds, blueCageBounds, redCageBounds, worldBounds, killPlane, goalsToWin, maxPlayers, litebridge, blueSpawnYaw, redSpawnYaw));
         }

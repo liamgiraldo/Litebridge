@@ -103,7 +103,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
 
         constructQueues(this.models, queues, spectatorQueues);
 
-        this.spectatorController = new SpectatorController(spectatorQueues, this.getServer().getWorld("lobby").getSpawnLocation(), this);
+        this.spectatorController = new SpectatorController(spectatorQueues, lobby, this);
 
         this.queueController = new QueueController(queues, spectatorQueues);
         System.out.println("All queue's max players upon constructor load");
@@ -134,7 +134,7 @@ public final class Litebridge extends JavaPlugin implements Listener {
         //TODO: Change the location to be a variable in the config file
 
 
-        this.guiModel = new GUIModel(this, models);
+        this.guiModel = new GUIModel(this, models, queues);
         this.guiController = new GUIController(guiModel, models);
 
         lobbyManager = new LobbyManager(lobby, this, queues, this.gameController, spectatorQueues);
@@ -289,15 +289,4 @@ public final class Litebridge extends JavaPlugin implements Listener {
         this.getConfig().set(mapName, null);
     }
 
-    public JavaPlugin getLitecoin(){
-        if(litecoin == null){
-            System.out.println("Litebridge could not find the LiteCoin plugin, continuing without it.");
-            return null;
-        }
-        return litecoin;
-    }
-
-    public LiteCosmetics getLiteCosmetics() {
-        return this.liteCosmetics;
-    }
 }
