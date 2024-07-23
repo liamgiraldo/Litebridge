@@ -276,6 +276,11 @@ public class GUIModel {
         mapmenu.setButton(0, 53, randomq);
         mapmenu.setButton(0, 51, refreshbutton);
 
+        mapmenu.stickSlot(49);
+        mapmenu.stickSlot(45);
+        mapmenu.stickSlot(53);
+        mapmenu.stickSlot(51);
+
         //TODO: There has to be a better way to do this
         plugin.getSpiGUI().setBlockDefaultInteractions(false);
         bridgemainmenu.setBlockDefaultInteractions(true);
