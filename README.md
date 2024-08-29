@@ -2,6 +2,8 @@
 
 Litebridge is a lightweight minigame plugin for Minecraft 1.8, aimed at recreating the Hypixel original minigame, **"The Bridge"**.
 
+If you don't know what The Bridge is, here's a youtube video of some gameplay from the youtuber Technoblade. [Bridge Video](https://www.youtube.com/watch?v=RNi0gLnfUC8)
+
 ## Official Downloads
 
  - [Most Recent Github Release](https://github.com/liamgiraldo/Litebridge/releases/tag/untagged-4d57b82669770067e664)](https://github.com/liamgiraldo/Litebridge/releases/tag/1.0.0)
