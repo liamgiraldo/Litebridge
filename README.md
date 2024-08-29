@@ -4,12 +4,13 @@ Litebridge is a lightweight minigame plugin for Minecraft 1.8, aimed at recreati
 
 ## Official Downloads
 
- - [SpigotMC Page](https://www.spigotmc.org/resources/categories/spigot.4/)
- - [Most Recent Github Release](https://github.com/liamgiraldo/Litebridge/releases/tag/untagged-4d57b82669770067e664)
+ - [Most Recent Github Release](https://github.com/liamgiraldo/Litebridge/releases/tag/untagged-4d57b82669770067e664)](https://github.com/liamgiraldo/Litebridge/releases/tag/1.0.0)
 
 ## Maintainers
 
  - [liamgiraldo (litebow)](https://github.com/liamgiraldo) Main developer
+ - [StephenMiner](https://github.com/StephenMiner) Litecoin addon developer
+ - [eteryi](https://github.com/eteryi) Litecosmetics addon developer
 
 ## Features
 
@@ -50,13 +51,29 @@ Credit should be given where credit is due. This is my first ever Minecraft plug
 
 That being said, this plugin uses [XMaterial](https://www.spigotmc.org/threads/xseries-xmaterial-xparticle-xsound-xpotion-titles-actionbar-etc.378136/).
 
+This plugin also uses SpiGUI for the main menu inventory GUI. [SpiGUI](https://github.com/SamJakob/SpiGUI)
+
 I was planning on using [SternalBoard](https://www.spigotmc.org/resources/sternalboard-simple-animated-scoreboard.89245/), however I just used the default spigot scoreboard api. Still will give it a shoutout.
 
 ## Integration
 If (for some reason) you want to use this plugin in your own projects, you can use Maven. I really can't think of a good reason for you to do this, but I'll provide the option. If you do this please do not expect any kind of developer support, the plugin was never built to be a tool.
 ### Maven
 
-    //placeholder
-    //I don't know how to do this yet
-    //and I don't even know if anyone would want this
+Using Jitpack
+
+```
+	<repositories>
+		<repository>
+		    <id>jitpack.io</id>
+		    <url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+```
+```
+	<dependency>
+	    <groupId>com.github.liamgiraldo</groupId>
+	    <artifactId>Litebridge</artifactId>
+	    <version>1.0.0</version>
+	</dependency>
+```
 
