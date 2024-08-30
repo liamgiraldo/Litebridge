@@ -6,7 +6,7 @@ If you don't know what The Bridge is, here's a youtube video of some gameplay fr
 
 ## Official Downloads
 
- - [Most Recent Github Release](https://github.com/liamgiraldo/Litebridge/releases/tag/untagged-4d57b82669770067e664)](https://github.com/liamgiraldo/Litebridge/releases/tag/1.0.0)
+ - [Most Recent Github Release](https://github.com/liamgiraldo/Litebridge/releases/tag/untagged-4d57b82669770067e664)
 
 ## Maintainers
 
